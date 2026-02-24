@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Flow — Pomodoro Timer + Ambient Sounds</title>
+<meta name="description" content="Beautiful pomodoro timer with ambient sound mixing. Stay focused with rain, coffee shop, fireplace & more. Free online focus timer.">
+<meta name="keywords" content="pomodoro timer, focus timer, ambient sounds, study timer, productivity timer, concentration, white noise">
+<meta property="og:title" content="Focus Flow — Pomodoro Timer + Ambient Sounds">
+<meta property="og:description" content="Stay focused with a beautiful timer and ambient sound mixing. Rain, coffee shop, fireplace & more.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--surface:#14141f;--surface2:#1e1e2e;
+--accent:#ff6b35;--accent2:#7c3aed;--accent3:#06b6d4;
+--text:#f0f0f5;--text2:#8888aa;--radius:16px;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,.12),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(255,107,53,.08),transparent 60%);pointer-events:none;z-index:0}
+
+/* Noise overlay */
+.noise{position:fixed;inset:0;opacity:.035;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.container{max-width:480px;margin:0 auto;padding:24px 20px;position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column}
+
+/* Header */
+.header{text-align:center;margin-bottom:32px;padding-top:20px}
+.logo{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.tagline{color:var(--text2);font-size:.85rem;margin-top:4px;letter-spacing:.05em;text-transform:uppercase}
+
+/* Timer Ring */
+.timer-section{display:flex;flex-direction:column;align-items:center;margin-bottom:32px}
+.timer-ring-wrap{position:relative;width:280px;height:280px;margin-bottom:24px}
+.timer-ring-bg,.timer-ring-progress{position:absolute;inset:0}
+.timer-ring-bg svg,.timer-ring-progress svg{width:100%;height:100%}
+.timer-ring-bg circle{fill:none;stroke:var(--surface2);stroke-width:6}
+.timer-ring-progress circle{fill:none;stroke:url(#timerGrad);stroke-width:6;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .5s ease}
+.timer-display{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.timer-time{font-family:'Fraunces',serif;font-size:4.5rem;font-weight:700;line-height:1;letter-spacing:-.02em}
+.timer-label{color:var(--text2);font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin-top:8px}
+.timer-sessions{color:var(--accent);font-size:.75rem;margin-top:4px;font-weight:600}
+
+/* Controls */
+.controls{display:flex;gap:12px;justify-content:center;margin-bottom:8px}
+.btn{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-radius:50px;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#ff8c5a);color:#fff;font-size:1.1rem;padding:14px 40px;box-shadow:0 4px 24px rgba(255,107,53,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(255,107,53,.4)}
+.btn-primary.running{background:linear-gradient(135deg,var(--accent2),#9b5de5)}
+.btn-secondary{background:var(--surface2);color:var(--text2);font-size:.85rem;padding:10px 20px}
+.btn-secondary:hover{background:#2a2a3e;color:var(--text)}
+
+/* Mode Tabs */
+.mode-tabs{display:flex;gap:4px;background:var(--surface);border-radius:50px;padding:4px;margin-bottom:28px}
+.mode-tab{flex:1;text-align:center;padding:10px 8px;border-radius:50px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text2);border:none;background:none;font-family:inherit}
+.mode-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.mode-tab:hover:not(.active){color:var(--text)}
+
+/* Sound Mixer */
+.section-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title span{font-size:1.2rem}
+.sound-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:32px}
+.sound-card{background:var(--surface);border:2px solid transparent;border-radius:var(--radius);padding:16px 8px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.sound-card:hover{border-color:var(--surface2);transform:translateY(-2px)}
+.sound-card.active{border-color:var(--accent);background:rgba(255,107,53,.06)}
+.sound-card.active::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(255,107,53,.08),transparent);pointer-events:none}
+.sound-icon{font-size:1.8rem;margin-bottom:6px;display:block}
+.sound-name{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
+.sound-card.active .sound-name{color:var(--accent)}
+.sound-vol{width:80%;height:3px;background:var(--surface2);border-radius:3px;margin:8px auto 0;appearance:none;-webkit-appearance:none;cursor:pointer;display:none}
+.sound-card.active .sound-vol{display:block}
+.sound-vol::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--accent);border-radius:50%;cursor:pointer;margin-top:-4px}
+.sound-vol::-webkit-slider-runnable-track{height:3px;background:linear-gradient(to right,var(--accent) var(--val,50%),var(--surface2) var(--val,50%));border-radius:3px}
+input[type=range]{background:transparent}
+
+/* Presets */
+.presets{margin-bottom:32px}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap}
+.preset-chip{background:var(--surface);border:1px solid var(--surface2);border-radius:50px;padding:8px 16px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text2);font-family:inherit}
+.preset-chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Stats */
+.stats-bar{display:flex;justify-content:space-around;background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:28px}
+.stat{text-align:center}
+.stat-val{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:var(--accent)}
+.stat-label{font-size:.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* CTA / Revenue */
+.cta-card{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(255,107,53,.1));border:1px solid rgba(124,58,237,.2);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:24px}
+.cta-card h3{font-family:'Fraunces',serif;font-size:1rem;margin-bottom:6px}
+.cta-card p{color:var(--text2);font-size:.8rem;margin-bottom:12px;line-height:1.5}
+.cta-input-row{display:flex;gap:8px}
+.cta-input{flex:1;background:var(--bg);border:1px solid var(--surface2);border-radius:50px;padding:10px 16px;color:var(--text);font-family:inherit;font-size:.85rem}
+.cta-input::placeholder{color:var(--text2)}
+.cta-btn{background:var(--accent);color:#fff;border:none;border-radius:50px;padding:10px 20px;font-weight:600;cursor:pointer;font-family:inherit;font-size:.85rem}
+
+/* Gear Section */
+.gear{margin-bottom:32px}
+.gear-card{display:flex;gap:14px;background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;text-decoration:none;color:var(--text);transition:all .2s;border:1px solid transparent}
+.gear-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.gear-emoji{font-size:2rem;display:flex;align-items:center}
+.gear-info{flex:1}
+.gear-name{font-weight:600;font-size:.9rem;margin-bottom:2px}
+.gear-desc{color:var(--text2);font-size:.75rem;line-height:1.4}
+.gear-price{color:var(--accent);font-size:.8rem;font-weight:600;margin-top:4px}
+
+/* Footer */
+.footer{text-align:center;padding:20px 0;color:var(--text2);font-size:.7rem;margin-top:auto}
+.footer a{color:var(--accent);text-decoration:none}
+
+/* Animations */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.running .timer-time{animation:pulse 2s ease infinite}
+
+/* Mobile */
+@media(max-width:360px){
+.timer-ring-wrap{width:240px;height:240px}
+.timer-time{font-size:3.5rem}
+.sound-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+<header class="header">
+<div class="logo">Focus Flow</div>
+<div class="tagline">Timer + Ambient Sounds</div>
+</header>
+
+<!-- Mode Tabs -->
+<div class="mode-tabs">
+<button class="mode-tab active" data-mode="focus" data-time="1500">Focus · 25m</button>
+<button class="mode-tab" data-mode="short" data-time="300">Short · 5m</button>
+<button class="mode-tab" data-mode="long" data-time="900">Long · 15m</button>
+<button class="mode-tab" data-mode="custom" data-time="2700">Deep · 45m</button>
+</div>
+
+<!-- Timer -->
+<div class="timer-section" id="timerSection">
+<div class="timer-ring-wrap">
+<div class="timer-ring-bg">
+<svg viewBox="0 0 280 280">
+<circle cx="140" cy="140" r="130"/>
+</svg>
+</div>
+<div class="timer-ring-progress">
+<svg viewBox="0 0 280 280">
+<defs>
+<linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#ff6b35"/>
+<stop offset="100%" stop-color="#7c3aed"/>
+</linearGradient>
+</defs>
+<circle id="progressCircle" cx="140" cy="140" r="130" stroke-dasharray="816.81" stroke-dashoffset="0"/>
+</svg>
+</div>
+<div class="timer-display">
+<div class="timer-time" id="timerDisplay">25:00</div>
+<div class="timer-label" id="timerLabel">focus time</div>
+<div class="timer-sessions" id="sessionCount">Session 1 of 4</div>
+</div>
+</div>
+<div class="controls">
+<button class="btn btn-secondary" id="resetBtn">Reset</button>
+<button class="btn btn-primary" id="startBtn">Start Focus</button>
+<button class="btn btn-secondary" id="skipBtn">Skip</button>
+</div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+<div class="stat"><div class="stat-val" id="statSessions">0</div><div class="stat-label">Sessions</div></div>
+<div class="stat"><div class="stat-val" id="statMinutes">0</div><div class="stat-label">Minutes</div></div>
+<div class="stat"><div class="stat-val" id="statStreak">0</div><div class="stat-label">Day Streak</div></div>
+</div>
+
+<!-- Sound Mixer -->
+<div class="section-title"><span>🎧</span> Ambient Mixer</div>
+<div class="sound-grid" id="soundGrid">
+<div class="sound-card" data-sound="rain"><span class="sound-icon">🌧️</span><span class="sound-name">Rain</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="thunder"><span class="sound-icon">⛈️</span><span class="sound-name">Thunder</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="fire"><span class="sound-icon">🔥</span><span class="sound-name">Fireplace</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="cafe"><span class="sound-icon">☕</span><span class="sound-name">Café</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="waves"><span class="sound-icon">🌊</span><span class="sound-name">Ocean</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="wind"><span class="sound-icon">🍃</span><span class="sound-name">Forest</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="birds"><span class="sound-icon">🐦</span><span class="sound-name">Birds</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="night"><span class="sound-icon">🦗</span><span class="sound-name">Night</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+<div class="sound-card" data-sound="white"><span class="sound-icon">📡</span><span class="sound-name">White Noise</span><input type="range" class="sound-vol" min="0" max="100" value="50"></div>
+</div>
+
+<!-- Presets -->
+<div class="presets">
+<div class="section-title"><span>✨</span> Sound Presets</div>
+<div class="preset-row">
+<button class="preset-chip" data-preset="cozy">🔥 Cozy Cabin</button>
+<button class="preset-chip" data-preset="rainy">🌧️ Rainy Day</button>
+<button class="preset-chip" data-preset="nature">🌿 Nature Walk</button>
+<button class="preset-chip" data-preset="cafe">☕ Coffee Shop</button>
+<button class="preset-chip" data-preset="ocean">🌊 Beach House</button>
+</div>
+</div>
+
+<!-- Email CTA -->
+<div class="cta-card">
+<h3>📬 Weekly Focus Tips</h3>
+<p>Productivity hacks, focus music playlists, and workspace optimization — every Monday.</p>
+<div class="cta-input-row">
+<input type="email" class="cta-input" placeholder="your@email.com" id="emailInput">
+<button class="cta-btn" id="emailBtn">Subscribe</button>
+</div>
+</div>
+
+<!-- Gear Recommendations (Affiliate) -->
+<div class="gear">
+<div class="section-title"><span>🎯</span> Focus Gear</div>
+<a href="https://www.amazon.com/dp/B0D1XD1ZNK?tag=stirman-20" target="_blank" rel="noopener" class="gear-card">
+<div class="gear-emoji">🎧</div>
+<div class="gear-info">
+<div class="gear-name">Sony WH-1000XM5</div>
+<div class="gear-desc">Industry-leading noise canceling. The #1 headphone for deep work.</div>
+<div class="gear-price">$278 on Amazon →</div>
+</div>
+</a>
+<a href="https://www.amazon.com/dp/B09HZ89KM7?tag=stirman-20" target="_blank" rel="noopener" class="gear-card">
+<div class="gear-emoji">🕯️</div>
+<div class="gear-info">
+<div class="gear-name">Homesick Focus Candle</div>
+<div class="gear-desc">Eucalyptus + cedar scent designed to boost concentration.</div>
+<div class="gear-price">$34 on Amazon →</div>
+</div>
+</a>
+<a href="https://www.amazon.com/dp/B0BSHF7WHW?tag=stirman-20" target="_blank" rel="noopener" class="gear-card">
+<div class="gear-emoji">☕</div>
+<div class="gear-info">
+<div class="gear-name">Fellow Stagg EKG Kettle</div>
+<div class="gear-desc">Precision pour-over kettle. Ritual coffee = ritual focus.</div>
+<div class="gear-price">$165 on Amazon →</div>
+</div>
+</a>
+</div>
+
+<footer class="footer">
+Built with 🔥 by <a href="https://stirman.net">stirman.net</a> · © 2026
+</footer>
+
+</div>
+
+<script>
+// ===== AUDIO ENGINE (Web Audio API oscillators + noise) =====
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+const activeSounds = {};
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function createNoise(type) {
+  const ctx = getCtx();
+  const bufferSize = ctx.sampleRate * 2;
+  const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    if (type === 'white') {
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    } else if (type === 'brown' || type === 'rain') {
+      let last = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const w = Math.random() * 2 - 1;
+        data[i] = (last + 0.02 * w) / 1.02;
+        last = data[i];
+        data[i] *= 3.5;
+      }
+    } else if (type === 'pink') {
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for (let i = 0; i < bufferSize; i++) {
+        const w = Math.random() * 2 - 1;
+        b0 = 0.99886*b0 + w*0.0555179;
+        b1 = 0.99332*b1 + w*0.0750759;
+        b2 = 0.96900*b2 + w*0.1538520;
+        b3 = 0.86650*b3 + w*0.3104856;
+        b4 = 0.55000*b4 + w*0.5329522;
+        b5 = -0.7616*b5 - w*0.0168980;
+        data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+        b6 = w*0.115926;
+      }
+    }
+  }
+  return buffer;
+}
+
+const soundDefs = {
+  rain: { noise:'brown', filter:{type:'lowpass',freq:800}, gain:0.4 },
+  thunder: { noise:'brown', filter:{type:'lowpass',freq:200}, gain:0.5, mod:{freq:0.05,depth:0.8} },
+  fire: { noise:'brown', filter:{type:'bandpass',freq:600,q:0.5}, gain:0.3, crackle:true },
+  cafe: { noise:'pink', filter:{type:'bandpass',freq:1200,q:0.3}, gain:0.25 },
+  waves: { noise:'brown', filter:{type:'lowpass',freq:400}, gain:0.4, mod:{freq:0.08,depth:0.7} },
+  wind: { noise:'pink', filter:{type:'lowpass',freq:500}, gain:0.3, mod:{freq:0.03,depth:0.5} },
+  birds: { noise:'pink', filter:{type:'bandpass',freq:3000,q:2}, gain:0.15, mod:{freq:0.5,depth:0.9} },
+  night: { noise:'brown', filter:{type:'bandpass',freq:2500,q:1}, gain:0.12, mod:{freq:0.3,depth:0.8} },
+  white: { noise:'white', filter:{type:'lowpass',freq:6000}, gain:0.15 }
+};
+
+function startSound(id, vol) {
+  if (activeSounds[id]) stopSound(id);
+  const ctx = getCtx();
+  const def = soundDefs[id];
+  const buf = createNoise(def.noise);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  const filt = ctx.createBiquadFilter();
+  filt.type = def.filter.type;
+  filt.frequency.value = def.filter.freq;
+  if (def.filter.q) filt.Q.value = def.filter.q;
+  const gain = ctx.createGain();
+  gain.gain.value = def.gain * (vol / 100);
+  src.connect(filt);
+  filt.connect(gain);
+  gain.connect(ctx.destination);
+  if (def.mod) {
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = def.mod.freq;
+    lfoGain.gain.value = def.gain * def.mod.depth * (vol / 100);
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+    lfo.start();
+    activeSounds[id] = { src, gain, lfo, lfoGain, def, baseVol: vol };
+  } else {
+    activeSounds[id] = { src, gain, def, baseVol: vol };
+  }
+  src.start();
+}
+
+function stopSound(id) {
+  const s = activeSounds[id];
+  if (!s) return;
+  try { s.src.stop(); } catch(e){}
+  if (s.lfo) try { s.lfo.stop(); } catch(e){}
+  delete activeSounds[id];
+}
+
+function setVolume(id, vol) {
+  const s = activeSounds[id];
+  if (!s) return;
+  s.baseVol = vol;
+  s.gain.gain.value = s.def.gain * (vol / 100);
+  if (s.lfoGain) s.lfoGain.gain.value = s.def.gain * s.def.mod.depth * (vol / 100);
+}
+
+// ===== SOUND UI =====
+document.querySelectorAll('.sound-card').forEach(card => {
+  const id = card.dataset.sound;
+  const slider = card.querySelector('.sound-vol');
+  card.addEventListener('click', e => {
+    if (e.target === slider) return;
+    card.classList.toggle('active');
+    if (card.classList.contains('active')) {
+      startSound(id, parseInt(slider.value));
+    } else {
+      stopSound(id);
+    }
+  });
+  slider.addEventListener('input', () => {
+    slider.style.setProperty('--val', slider.value + '%');
+    if (activeSounds[id]) setVolume(id, parseInt(slider.value));
+  });
+});
+
+// Presets
+const presets = {
+  cozy: { fire:80, rain:30, wind:20 },
+  rainy: { rain:70, thunder:40 },
+  nature: { birds:60, wind:40, waves:20 },
+  cafe: { cafe:70, rain:20 },
+  ocean: { waves:70, birds:30, wind:20 }
+};
+document.querySelectorAll('.preset-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Clear all
+    document.querySelectorAll('.sound-card').forEach(c => {
+      c.classList.remove('active');
+      stopSound(c.dataset.sound);
+    });
+    const p = presets[btn.dataset.preset];
+    Object.entries(p).forEach(([id, vol]) => {
+      const card = document.querySelector(`[data-sound="${id}"]`);
+      const slider = card.querySelector('.sound-vol');
+      card.classList.add('active');
+      slider.value = vol;
+      slider.style.setProperty('--val', vol + '%');
+      startSound(id, vol);
+    });
+  });
+});
+
+// ===== TIMER =====
+let totalTime = 1500, timeLeft = 1500, running = false, interval = null;
+let sessionNum = 1, completedSessions = 0, totalMinutes = 0;
+const circle = document.getElementById('progressCircle');
+const circumference = 2 * Math.PI * 130;
+circle.style.strokeDasharray = circumference;
+
+function updateDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  const pct = 1 - (timeLeft / totalTime);
+  circle.style.strokeDashoffset = circumference * (1 - pct);
+}
+
+function startTimer() {
+  if (running) {
+    clearInterval(interval);
+    running = false;
+    document.getElementById('startBtn').textContent = 'Resume';
+    document.getElementById('startBtn').classList.remove('running');
+    document.getElementById('timerSection').classList.remove('running');
+    return;
+  }
+  running = true;
+  document.getElementById('startBtn').textContent = 'Pause';
+  document.getElementById('startBtn').classList.add('running');
+  document.getElementById('timerSection').classList.add('running');
+  interval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      running = false;
+      completedSessions++;
+      totalMinutes += Math.round(totalTime / 60);
+      document.getElementById('statSessions').textContent = completedSessions;
+      document.getElementById('statMinutes').textContent = totalMinutes;
+      saveStats();
+      // Notify
+      if (Notification.permission === 'granted') new Notification('Focus Flow', { body: 'Session complete! Time for a break.' });
+      sessionNum++;
+      document.getElementById('sessionCount').textContent = `Session ${sessionNum} of 4`;
+      document.getElementById('startBtn').textContent = 'Start Focus';
+      document.getElementById('startBtn').classList.remove('running');
+      document.getElementById('timerSection').classList.remove('running');
+      timeLeft = totalTime;
+      updateDisplay();
+    }
+    updateDisplay();
+  }, 1000);
+}
+
+document.getElementById('startBtn').addEventListener('click', startTimer);
+document.getElementById('resetBtn').addEventListener('click', () => {
+  clearInterval(interval);
+  running = false;
+  timeLeft = totalTime;
+  updateDisplay();
+  document.getElementById('startBtn').textContent = 'Start Focus';
+  document.getElementById('startBtn').classList.remove('running');
+  document.getElementById('timerSection').classList.remove('running');
+});
+document.getElementById('skipBtn').addEventListener('click', () => {
+  clearInterval(interval);
+  running = false;
+  timeLeft = 0;
+  completedSessions++;
+  totalMinutes += Math.round(totalTime / 60);
+  document.getElementById('statSessions').textContent = completedSessions;
+  document.getElementById('statMinutes').textContent = totalMinutes;
+  saveStats();
+  sessionNum++;
+  document.getElementById('sessionCount').textContent = `Session ${sessionNum} of 4`;
+  timeLeft = totalTime;
+  updateDisplay();
+  document.getElementById('startBtn').textContent = 'Start Focus';
+  document.getElementById('startBtn').classList.remove('running');
+});
+
+// Mode tabs
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    totalTime = parseInt(tab.dataset.time);
+    timeLeft = totalTime;
+    clearInterval(interval);
+    running = false;
+    const labels = { focus:'focus time', short:'short break', long:'long break', custom:'deep work' };
+    document.getElementById('timerLabel').textContent = labels[tab.dataset.mode];
+    document.getElementById('startBtn').textContent = 'Start Focus';
+    document.getElementById('startBtn').classList.remove('running');
+    document.getElementById('timerSection').classList.remove('running');
+    updateDisplay();
+  });
+});
+
+// Stats persistence
+function saveStats() {
+  const today = new Date().toISOString().slice(0,10);
+  const data = JSON.parse(localStorage.getItem('focusflow') || '{}');
+  if (!data[today]) data[today] = { sessions:0, minutes:0 };
+  data[today].sessions = completedSessions;
+  data[today].minutes = totalMinutes;
+  data.streak = calcStreak(data);
+  localStorage.setItem('focusflow', JSON.stringify(data));
+  document.getElementById('statStreak').textContent = data.streak || 0;
+}
+function calcStreak(data) {
+  let streak = 0, d = new Date();
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    if (data[key] && data[key].sessions > 0) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+function loadStats() {
+  const data = JSON.parse(localStorage.getItem('focusflow') || '{}');
+  const today = new Date().toISOString().slice(0,10);
+  if (data[today]) {
+    completedSessions = data[today].sessions;
+    totalMinutes = data[today].minutes;
+    document.getElementById('statSessions').textContent = completedSessions;
+    document.getElementById('statMinutes').textContent = totalMinutes;
+  }
+  document.getElementById('statStreak').textContent = data.streak || (data[today] ? 1 : 0);
+}
+loadStats();
+
+// Notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  document.getElementById('startBtn').addEventListener('click', () => Notification.requestPermission(), { once: true });
+}
+
+// Email CTA
+document.getElementById('emailBtn').addEventListener('click', () => {
+  const email = document.getElementById('emailInput').value;
+  if (email && email.includes('@')) {
+    document.getElementById('emailBtn').textContent = '✓ Subscribed!';
+    document.getElementById('emailBtn').style.background = '#22c55e';
+    // In production, POST to email service
+  }
+});
+
+updateDisplay();
+</script>
+</body>
+</html>

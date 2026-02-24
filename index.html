@@ -3,45 +3,443 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Night Build</title>
+    <title>One Night Build — A new web app, shipped every night</title>
+    <meta name="description" content="A new useful web app, built from scratch and shipped every single night. Free tools for productivity, fitness, finance, sleep, and more.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #0a0a0a;
-            color: #f5f5f5;
+            background: #050505;
+            color: #e5e5e5;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Noise texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0 60px;
             text-align: center;
         }
+
+        .hero-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            padding: 6px 16px;
+            border-radius: 100px;
+            margin-bottom: 24px;
+        }
+
         .hero h1 {
-            font-size: 4rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
             font-weight: 800;
-            background: linear-gradient(135deg, #ff6b6b, #fbbf24, #4ecdc4);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #ff6b6b 0%, #fbbf24 30%, #4ecdc4 60%, #a78bfa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
+            background-clip: text;
+            margin-bottom: 20px;
         }
+
         .hero p {
-            font-size: 1.3rem;
-            color: #888;
-            max-width: 500px;
+            font-size: 1.25rem;
+            color: #777;
+            max-width: 550px;
             margin: 0 auto;
+            line-height: 1.6;
         }
-        .hero .sub {
-            margin-top: 2rem;
-            font-size: 0.9rem;
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .hero-stat-label {
+            font-size: 0.8rem;
             color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+
+        /* Grid */
+        .builds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+            padding-bottom: 80px;
+        }
+
+        .build-card {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 28px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .build-card:hover {
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .build-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .build-card:hover::before {
+            opacity: 1;
+        }
+
+        .build-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .build-emoji {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .build-night {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: rgba(255,255,255,0.05);
+            padding: 4px 10px;
+            border-radius: 100px;
+        }
+
+        .build-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .build-desc {
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .build-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        .build-tag {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #666;
+            background: rgba(255,255,255,0.04);
+            padding: 3px 10px;
+            border-radius: 100px;
+        }
+
+        .build-arrow {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            font-size: 1.2rem;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .build-card:hover .build-arrow {
+            color: #fff;
+            transform: translate(3px, -3px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            color: #444;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .hero { padding: 48px 0 40px; }
+            .hero-stats { gap: 32px; }
+            .builds-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>One Night Build</h1>
-        <p>A new web app, built from scratch, shipped every night.</p>
-        <p class="sub">🚧 Directory coming soon...</p>
+    <div class="container">
+        <section class="hero">
+            <div class="hero-badge">🌙 The Challenge</div>
+            <h1>One Night Build</h1>
+            <p>A new useful web app, built from scratch and shipped every single night. No frameworks, no fluff — just ideas that work.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="build-count">14</div>
+                    <div class="hero-stat-label">Apps Shipped</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">14</div>
+                    <div class="hero-stat-label">Nights</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">0</div>
+                    <div class="hero-stat-label">Dependencies</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="builds-grid" id="builds-grid">
+        </section>
+
+        <footer>
+            <p>Built with insomnia and curiosity by <a href="https://stirman.net" target="_blank">Stirman</a> + <a href="https://stirman.net/rosie-dashboard/" target="_blank">Rosie 🤖</a></p>
+        </footer>
     </div>
+
+    <script>
+    const builds = [
+        {
+            name: "PackLight",
+            emoji: "🎒",
+            desc: "Smart travel packing list generator. Pick your trip type, climate, and activities — get a personalized checklist with gear recommendations.",
+            url: "/packlight/",
+            night: "Night 14",
+            date: "Feb 23",
+            tags: ["travel", "quiz", "affiliate"],
+            accent: "linear-gradient(135deg, #4ecdc4, #44b09e)"
+        },
+        {
+            name: "Energy Vampires",
+            emoji: "⚡",
+            desc: "Phantom power cost calculator. See how much your plugged-in devices secretly cost you per year — then kill the vampires.",
+            url: "/energy-vampires/",
+            night: "Night 13",
+            date: "Feb 22",
+            tags: ["finance", "calculator", "utility"],
+            accent: "linear-gradient(135deg, #f87171, #fbbf24)"
+        },
+        {
+            name: "Home Office Score",
+            emoji: "🏠",
+            desc: "Rate your workspace across 8 categories. Get a personalized score and smart upgrade recommendations for your setup.",
+            url: "/home-office-score/",
+            night: "Night 12",
+            date: "Feb 21",
+            tags: ["productivity", "quiz", "affiliate"],
+            accent: "linear-gradient(135deg, #818cf8, #6366f1)"
+        },
+        {
+            name: "Side Hustle Match",
+            emoji: "🚀",
+            desc: "5-question quiz to find your perfect side income. Get matched with hustles that fit your skills, time, and goals.",
+            url: "/side-hustle-match/",
+            night: "Night 11",
+            date: "Feb 20",
+            tags: ["career", "quiz", "affiliate"],
+            accent: "linear-gradient(135deg, #4ade80, #22d3ee)"
+        },
+        {
+            name: "FitStack",
+            emoji: "💪",
+            desc: "Custom home workout generator. Pick your equipment and goals — get a randomized workout with built-in timer.",
+            url: "/fitstack/",
+            night: "Night 10",
+            date: "Feb 19",
+            tags: ["fitness", "generator", "affiliate"],
+            accent: "linear-gradient(135deg, #ef4444, #f97316)"
+        },
+        {
+            name: "Sleep Score",
+            emoji: "😴",
+            desc: "How well do you really sleep? 8-question assessment with personalized score and science-backed tips for your weak spots.",
+            url: "/sleep-score/",
+            night: "Night 9",
+            date: "Feb 18",
+            tags: ["health", "quiz", "affiliate"],
+            accent: "linear-gradient(135deg, #8b5cf6, #06b6d4)"
+        },
+        {
+            name: "RateRight",
+            emoji: "💰",
+            desc: "Freelance rate calculator. Input your desired salary and expenses — get precise hourly, daily, and project rates.",
+            url: "/rate-calc/",
+            night: "Night 8",
+            date: "Feb 17",
+            tags: ["finance", "calculator", "freelance"],
+            accent: "linear-gradient(135deg, #f59e0b, #d946ef)"
+        },
+        {
+            name: "SubAudit",
+            emoji: "💸",
+            desc: "Subscription spending calculator. Add your subscriptions, see the shocking yearly total, and get smart savings tips.",
+            url: "/subaudit/",
+            night: "Night 7",
+            date: "Feb 16",
+            tags: ["finance", "calculator", "utility"],
+            accent: "linear-gradient(135deg, #a78bfa, #f472b6)"
+        },
+        {
+            name: "VERSUS",
+            emoji: "🏀",
+            desc: "NBA player head-to-head comparison. Pick two players, see animated stat bars across 12 categories. Settle the debate.",
+            url: "/versus/",
+            night: "Night 6",
+            date: "Feb 15",
+            tags: ["sports", "NBA", "comparison"],
+            accent: "linear-gradient(135deg, #f97316, #3b82f6)"
+        },
+        {
+            name: "Focus Flow",
+            emoji: "🎧",
+            desc: "Pomodoro timer with ambient sound mixer. 9 procedurally-generated sounds, mix your own focus atmosphere. Zero external files.",
+            url: "/focus-flow/",
+            night: "Night 5",
+            date: "Feb 14",
+            tags: ["productivity", "tool", "audio"],
+            accent: "linear-gradient(135deg, #8b5cf6, #f97316)"
+        },
+        {
+            name: "Valentine's Gift Finder",
+            emoji: "🎁",
+            desc: "Last-minute gift quiz. Answer 4 questions, get 5 personalized picks with 'why this works' explanations.",
+            url: "/valentines-gift-finder/",
+            night: "Night 4",
+            date: "Feb 13",
+            tags: ["shopping", "quiz", "seasonal"],
+            accent: "linear-gradient(135deg, #e11d48, #be185d)"
+        },
+        {
+            name: "Family Game Night",
+            emoji: "🎲",
+            desc: "Board game recommender. Tell us your group size, ages, and vibe — get the perfect game picks with buy links.",
+            url: "/family-game-night/",
+            night: "Night 3",
+            date: "Feb 12",
+            tags: ["family", "quiz", "affiliate"],
+            accent: "linear-gradient(135deg, #fbbf24, #ef4444)"
+        },
+        {
+            name: "Morning Routine Builder",
+            emoji: "☀️",
+            desc: "Drag-and-drop routine designer. 14 activities with adjustable durations, pre-built templates, and auto-calculated timelines.",
+            url: "/morning-routine-builder/",
+            night: "Night 2",
+            date: "Feb 11",
+            tags: ["productivity", "tool", "lifestyle"],
+            accent: "linear-gradient(135deg, #f97316, #a855f7)"
+        },
+        {
+            name: "Date Night Roulette",
+            emoji: "💕",
+            desc: "Spin the wheel for date night ideas. 12 curated plans with descriptions, checklists, and time/cost estimates.",
+            url: "/date-night-roulette/",
+            night: "Night 1",
+            date: "Feb 9",
+            tags: ["romance", "generator", "fun"],
+            accent: "linear-gradient(135deg, #ec4899, #f43f5e)"
+        }
+    ];
+
+    const grid = document.getElementById('builds-grid');
+    document.getElementById('build-count').textContent = builds.length;
+
+    builds.forEach(build => {
+        const card = document.createElement('a');
+        card.href = build.url;
+        card.className = 'build-card';
+        card.style.setProperty('--accent', build.accent);
+        card.innerHTML = `
+            <div class="build-header">
+                <span class="build-emoji">${build.emoji}</span>
+                <span class="build-night">${build.night} · ${build.date}</span>
+            </div>
+            <div class="build-name">${build.name}</div>
+            <div class="build-desc">${build.desc}</div>
+            <div class="build-tags">
+                ${build.tags.map(t => `<span class="build-tag">${t}</span>`).join('')}
+            </div>
+            <span class="build-arrow">↗</span>
+        `;
+        grid.appendChild(card);
+    });
+    </script>
 </body>
 </html>

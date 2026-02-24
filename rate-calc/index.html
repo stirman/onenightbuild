@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RateRight — Freelance Rate Calculator | Know Your Worth</title>
+<meta name="description" content="Calculate your ideal freelance hourly rate in 60 seconds. Factor in taxes, expenses, time off, and profit margin to know exactly what to charge.">
+<meta name="keywords" content="freelance rate calculator, how much to charge freelance, freelance hourly rate, consulting rate calculator, freelancer pricing">
+<meta property="og:title" content="RateRight — Freelance Rate Calculator">
+<meta property="og:description" content="Stop guessing. Calculate your real freelance rate in 60 seconds.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--surface:#14141f;--surface2:#1e1e2e;--border:#2a2a3a;
+--text:#e8e6f0;--text2:#9896a8;--accent:#f97316;--accent2:#a855f7;
+--green:#22c55e;--red:#ef4444;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+canvas#grain{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:.04;z-index:0}
+.wrap{max-width:680px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:1}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.8rem,8vw,4.2rem);line-height:1.05;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--text2);font-size:1.1rem;margin-bottom:48px;max-width:420px}
+.section{margin-bottom:32px}
+.section-title{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title .num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;flex-shrink:0}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:6px;font-weight:500}
+.field .hint{font-size:.75rem;color:var(--text2);margin-top:4px;opacity:.7}
+.input-wrap{position:relative}
+.input-wrap .prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:1rem;pointer-events:none}
+.input-wrap .suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:.85rem;pointer-events:none}
+input[type=number],input[type=text]{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-size:1rem;font-family:inherit;outline:none;transition:border .2s}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--accent)}
+input.has-prefix{padding-left:32px}
+input.has-suffix{padding-right:60px}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+.slider-field{margin-bottom:24px}
+.slider-field .label-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.slider-field .label-row label{font-size:.85rem;color:var(--text2);font-weight:500}
+.slider-field .label-row .value{font-size:1.1rem;font-weight:600;color:var(--text)}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-track{height:6px;border-radius:3px;background:var(--surface2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));margin-top:-8px;box-shadow:0 2px 8px rgba(249,115,22,.3)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.presets button{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text2);font-size:.8rem;font-family:inherit;cursor:pointer;transition:all .2s}
+.presets button:hover,.presets button.active{border-color:var(--accent);color:var(--accent)}
+.divider{height:1px;background:var(--border);margin:40px 0}
+
+/* Results */
+.results{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;margin-top:40px;display:none}
+.results.show{display:block;animation:slideUp .5s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.results h2{font-family:'Instrument Serif',serif;font-size:1.8rem;margin-bottom:24px}
+.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.rate-card{background:var(--surface2);border-radius:14px;padding:20px;text-align:center}
+.rate-card.primary{background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(168,85,247,.15));border:1px solid rgba(249,115,22,.3);grid-column:1/-1}
+.rate-card .label{font-size:.8rem;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.rate-card .amount{font-size:2rem;font-weight:700}
+.rate-card.primary .amount{font-size:2.8rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.rate-card .sub{font-size:.8rem;color:var(--text2);margin-top:4px}
+.breakdown{margin-top:24px}
+.breakdown h3{font-size:1rem;color:var(--text2);margin-bottom:12px;font-weight:500}
+.breakdown-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.breakdown-row:last-child{border:none}
+.breakdown-row .val{font-weight:600}
+.breakdown-row .val.green{color:var(--green)}
+.breakdown-row .val.red{color:var(--red)}
+
+/* Reality Check */
+.reality{background:var(--surface2);border-radius:14px;padding:20px;margin-top:24px}
+.reality h3{font-size:1rem;margin-bottom:12px}
+.reality p{font-size:.9rem;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.reality p:last-child{margin:0}
+
+/* CTA */
+.cta-section{margin-top:40px;background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(168,85,247,.08));border:1px solid rgba(249,115,22,.2);border-radius:20px;padding:28px;text-align:center}
+.cta-section h3{font-family:'Instrument Serif',serif;font-size:1.4rem;margin-bottom:8px}
+.cta-section p{color:var(--text2);font-size:.9rem;margin-bottom:16px}
+.cta-section .tools{display:flex;flex-direction:column;gap:10px}
+.tool-link{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--text);transition:all .2s}
+.tool-link:hover{border-color:var(--accent);transform:translateY(-1px)}
+.tool-link .icon{font-size:1.4rem}
+.tool-link .info{text-align:left;flex:1}
+.tool-link .info .name{font-weight:600;font-size:.95rem}
+.tool-link .info .desc{font-size:.8rem;color:var(--text2)}
+.tool-link .arrow{color:var(--text2);font-size:1.2rem}
+
+/* Email */
+.email-cap{margin-top:32px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center}
+.email-cap h3{font-size:1.1rem;margin-bottom:4px}
+.email-cap p{font-size:.85rem;color:var(--text2);margin-bottom:14px}
+.email-row{display:flex;gap:8px}
+.email-row input{flex:1;border-radius:10px}
+.email-row button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:14px 20px;font-family:inherit;font-weight:600;font-size:.9rem;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.email-row button:hover{opacity:.9}
+
+/* Share */
+.share-bar{display:flex;gap:8px;margin-top:20px;justify-content:center}
+.share-bar button{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:var(--text);font-family:inherit;font-size:.85rem;cursor:pointer;transition:all .2s}
+.share-bar button:hover{border-color:var(--accent)}
+
+footer{text-align:center;color:var(--text2);font-size:.75rem;margin-top:48px;opacity:.5}
+@media(max-width:500px){.rate-grid{grid-template-columns:1fr}.email-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<canvas id="grain"></canvas>
+<div class="wrap">
+  <h1>Know your <span>worth.</span></h1>
+  <p class="subtitle">Calculate your real freelance rate in 60 seconds. No more guessing, no more underselling.</p>
+
+  <div class="section">
+    <div class="section-title"><span class="num">1</span> Your Income Goal</div>
+    <div class="field">
+      <label>Desired annual salary (what you'd earn full-time)</label>
+      <div class="input-wrap">
+        <span class="prefix">$</span>
+        <input type="number" id="salary" class="has-prefix" value="85000" min="0" step="1000">
+      </div>
+      <div class="hint">What would you earn at a salaried job? Start there.</div>
+    </div>
+    <div class="presets" id="salaryPresets">
+      <button data-val="50000">$50K</button>
+      <button data-val="75000">$75K</button>
+      <button data-val="85000" class="active">$85K</button>
+      <button data-val="100000">$100K</button>
+      <button data-val="125000">$125K</button>
+      <button data-val="150000">$150K</button>
+      <button data-val="200000">$200K</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> Your Expenses</div>
+    <div class="field">
+      <label>Monthly business expenses</label>
+      <div class="input-wrap">
+        <span class="prefix">$</span>
+        <input type="number" id="expenses" class="has-prefix" value="500" min="0" step="50">
+      </div>
+      <div class="hint">Software, insurance, workspace, internet, gear, etc.</div>
+    </div>
+    <div class="field">
+      <label>Annual self-employment tax rate</label>
+      <div class="input-wrap">
+        <input type="number" id="taxRate" class="has-suffix" value="30" min="0" max="60" step="1">
+        <span class="suffix">%</span>
+      </div>
+      <div class="hint">US freelancers: ~30% (income + SE tax). Adjust for your situation.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> Your Time</div>
+    <div class="slider-field">
+      <div class="label-row">
+        <label>Vacation + sick days per year</label>
+        <span class="value" id="daysOffVal">20 days</span>
+      </div>
+      <input type="range" id="daysOff" min="0" max="60" value="20">
+    </div>
+    <div class="slider-field">
+      <div class="label-row">
+        <label>Billable hours per day</label>
+        <span class="value" id="billableVal">6 hours</span>
+      </div>
+      <input type="range" id="billable" min="2" max="10" value="6" step="0.5">
+      <div class="hint" style="margin-top:4px">Most freelancers bill 5-6 hours/day. The rest is admin, marketing, emails.</div>
+    </div>
+    <div class="slider-field">
+      <div class="label-row">
+        <label>Profit margin</label>
+        <span class="value" id="profitVal">20%</span>
+      </div>
+      <input type="range" id="profit" min="0" max="50" value="20" step="5">
+      <div class="hint" style="margin-top:4px">Buffer for growth, savings, and the unexpected. 10-20% is healthy.</div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <h2>Your Rate 💰</h2>
+    <div class="rate-grid">
+      <div class="rate-card primary">
+        <div class="label">Your hourly rate</div>
+        <div class="amount" id="hourlyRate">$0</div>
+        <div class="sub">What you should charge per hour</div>
+      </div>
+      <div class="rate-card">
+        <div class="label">Day Rate</div>
+        <div class="amount" id="dayRate">$0</div>
+        <div class="sub" id="dayRateSub">8hr day</div>
+      </div>
+      <div class="rate-card">
+        <div class="label">Weekly Rate</div>
+        <div class="amount" id="weekRate">$0</div>
+        <div class="sub">5-day week</div>
+      </div>
+      <div class="rate-card">
+        <div class="label">Monthly Retainer</div>
+        <div class="amount" id="monthRate">$0</div>
+        <div class="sub">~21.7 working days</div>
+      </div>
+      <div class="rate-card">
+        <div class="label">Project Estimate</div>
+        <div class="amount" id="projRate">$0</div>
+        <div class="sub">For a 40hr project</div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <h3>The Math</h3>
+      <div class="breakdown-row"><span>Desired salary</span><span class="val green" id="bSalary">$0</span></div>
+      <div class="breakdown-row"><span>+ Business expenses</span><span class="val red" id="bExpenses">$0</span></div>
+      <div class="breakdown-row"><span>+ Tax reserve (<span id="bTaxPct">30</span>%)</span><span class="val red" id="bTax">$0</span></div>
+      <div class="breakdown-row"><span>+ Profit margin (<span id="bProfPct">20</span>%)</span><span class="val green" id="bProfit">$0</span></div>
+      <div class="breakdown-row"><span><strong>Total needed</strong></span><span class="val" id="bTotal"><strong>$0</strong></span></div>
+      <div class="breakdown-row"><span>÷ Billable hours/year</span><span class="val" id="bHours">0</span></div>
+    </div>
+
+    <div class="reality" id="reality"></div>
+
+    <div class="cta-section">
+      <h3>Tools to Run Your Freelance Business</h3>
+      <p>Now that you know your rate, set yourself up right.</p>
+      <div class="tools">
+        <a class="tool-link" href="https://www.freshbooks.com" target="_blank" rel="noopener">
+          <span class="icon">🧾</span>
+          <div class="info"><div class="name">FreshBooks</div><div class="desc">Dead-simple invoicing & expense tracking for freelancers</div></div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="tool-link" href="https://www.honeybook.com" target="_blank" rel="noopener">
+          <span class="icon">🤝</span>
+          <div class="info"><div class="name">HoneyBook</div><div class="desc">Contracts, proposals & payments in one place</div></div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="tool-link" href="https://www.notion.so/templates/freelancer" target="_blank" rel="noopener">
+          <span class="icon">📋</span>
+          <div class="info"><div class="name">Notion Freelancer Kit</div><div class="desc">Project management templates built for solo workers</div></div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="tool-link" href="https://www.amazon.com/dp/0999529528?tag=stirman-20" target="_blank" rel="noopener">
+          <span class="icon">📘</span>
+          <div class="info"><div class="name">Company of One (book)</div><div class="desc">Why staying small is the next big thing for business</div></div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="tool-link" href="https://www.amazon.com/dp/0062884654?tag=stirman-20" target="_blank" rel="noopener">
+          <span class="icon">📕</span>
+          <div class="info"><div class="name">The Freelancer's Bible</div><div class="desc">Everything you need to know to thrive as a freelancer</div></div>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="email-cap">
+      <h3>Get the Freelance Pricing Playbook</h3>
+      <p>Weekly tips on pricing, proposals, and landing higher-paying clients.</p>
+      <div class="email-row">
+        <input type="text" id="email" placeholder="you@email.com">
+        <button onclick="captureEmail()">Send It</button>
+      </div>
+    </div>
+
+    <div class="share-bar">
+      <button onclick="copyResults()">📋 Copy Results</button>
+      <button onclick="tweetResults()">𝕏 Share</button>
+    </div>
+  </div>
+
+  <footer>RateRight — Built by Rosie 🤖 for stirman.net</footer>
+</div>
+
+<script>
+// Grain
+const c=document.getElementById('grain'),ctx=c.getContext('2d');
+function grain(){c.width=window.innerWidth;c.height=window.innerHeight;const d=ctx.createImageData(c.width,c.height);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}ctx.putImageData(d,0,0)}
+grain();window.addEventListener('resize',grain);
+
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Math.round(n).toLocaleString();
+
+// Salary presets
+document.querySelectorAll('#salaryPresets button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    $('salary').value=b.dataset.val;
+    document.querySelectorAll('#salaryPresets button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    calc();
+  });
+});
+
+// Sliders
+$('daysOff').oninput=()=>{$('daysOffVal').textContent=$('daysOff').value+' days';calc()};
+$('billable').oninput=()=>{$('billableVal').textContent=$('billable').value+' hours';calc()};
+$('profit').oninput=()=>{$('profitVal').textContent=$('profit').value+'%';calc()};
+$('salary').oninput=calc;
+$('expenses').oninput=calc;
+$('taxRate').oninput=calc;
+
+function calc(){
+  const salary=+$('salary').value||0;
+  const monthExp=+$('expenses').value||0;
+  const taxPct=(+$('taxRate').value||0)/100;
+  const daysOff=+$('daysOff').value;
+  const billableH=+$('billable').value;
+  const profitPct=(+$('profit').value||0)/100;
+
+  const annualExp=monthExp*12;
+  const workingDays=260-daysOff; // 52 weeks × 5 days = 260
+  const billableHoursYear=workingDays*billableH;
+
+  const subtotal=salary+annualExp;
+  const taxAmount=subtotal*taxPct;
+  const beforeProfit=subtotal+taxAmount;
+  const profitAmount=beforeProfit*profitPct;
+  const totalNeeded=beforeProfit+profitAmount;
+
+  const hourly=billableHoursYear>0?totalNeeded/billableHoursYear:0;
+  const day=hourly*8;
+  const week=day*5;
+  const month=totalNeeded/12;
+  const project=hourly*40;
+
+  $('hourlyRate').textContent=fmt(hourly);
+  $('dayRate').textContent=fmt(day);
+  $('dayRateSub').textContent=`${billableH}hr billable day`;
+  $('weekRate').textContent=fmt(week);
+  $('monthRate').textContent=fmt(month);
+  $('projRate').textContent=fmt(project);
+
+  $('bSalary').textContent=fmt(salary);
+  $('bExpenses').textContent=fmt(annualExp);
+  $('bTaxPct').textContent=Math.round(taxPct*100);
+  $('bTax').textContent=fmt(taxAmount);
+  $('bProfPct').textContent=Math.round(profitPct*100);
+  $('bProfit').textContent=fmt(profitAmount);
+  $('bTotal').innerHTML='<strong>'+fmt(totalNeeded)+'</strong>';
+  $('bHours').textContent=billableHoursYear.toLocaleString()+' hrs';
+
+  // Reality check
+  const coffees=Math.round(hourly/6);
+  const salaryEquiv=fmt(salary);
+  const realEffective=fmt(salary/billableHoursYear);
+  let html=`<h3>💡 Reality Check</h3>`;
+  html+=`<p>At <strong>${fmt(hourly)}/hr</strong>, one hour of your time buys ~${coffees} lattes.</p>`;
+  html+=`<p>Your effective take-home per billable hour (after taxes + expenses) is about <strong>${realEffective}</strong>.</p>`;
+  if(hourly<50)html+=`<p style="color:var(--accent)">⚠️ Under $50/hr is tough in most markets. Consider raising your salary goal or reducing overhead.</p>`;
+  if(daysOff<10)html+=`<p style="color:var(--accent)">⚠️ Less than 10 days off? Burnout is real. Price in rest.</p>`;
+  if(hourly>=150)html+=`<p style="color:var(--green)">🔥 Premium territory. Make sure your portfolio, case studies, and positioning back this up.</p>`;
+  $('reality').innerHTML=html;
+
+  $('results').classList.add('show');
+}
+
+function copyResults(){
+  const h=$('hourlyRate').textContent;
+  const d=$('dayRate').textContent;
+  const w=$('weekRate').textContent;
+  const m=$('monthRate').textContent;
+  const txt=`My freelance rates (via RateRight):\n• Hourly: ${h}\n• Day: ${d}\n• Weekly: ${w}\n• Monthly retainer: ${m}\n\nCalculate yours: https://stirman.net/rate-calc/`;
+  navigator.clipboard.writeText(txt);
+  event.target.textContent='✅ Copied!';
+  setTimeout(()=>event.target.textContent='📋 Copy Results',2000);
+}
+
+function tweetResults(){
+  const h=$('hourlyRate').textContent;
+  const txt=encodeURIComponent(`Just calculated my freelance rate: ${h}/hr 💰\n\nStop guessing. Know your worth → https://stirman.net/rate-calc/`);
+  window.open('https://twitter.com/intent/tweet?text='+txt,'_blank');
+}
+
+function captureEmail(){
+  const e=$('email').value;
+  if(e&&e.includes('@')){
+    localStorage.setItem('rateright_email',e);
+    $('email').value='';
+    document.querySelector('.email-cap p').textContent='🎉 You\'re in! (Demo — connect to your email service)';
+  }
+}
+
+// Initial calc
+calc();
+</script>
+</body>
+</html>

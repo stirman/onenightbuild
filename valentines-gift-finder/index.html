@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Last-Minute Valentine's Gift Finder — Find the Perfect Gift in 60 Seconds</title>
+<meta name="description" content="Running out of time? Answer 4 quick questions and get personalized Valentine's Day gift ideas with direct buy links. Don't panic — we've got you.">
+<meta name="keywords" content="valentine's day gifts, last minute valentine gifts, valentine gift ideas, gifts for him, gifts for her, romantic gifts">
+<meta property="og:title" content="Last-Minute Valentine's Gift Finder">
+<meta property="og:description" content="Find the perfect Valentine's gift in 60 seconds. Don't panic.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--rose:#e63956;--blush:#ff6b8a;--deep:#1a0a12;--cream:#fff5f5;
+--gold:#ffd700;--wine:#8b1a3a;--soft-pink:#ffc2d1;
+}
+body{
+font-family:'Outfit',sans-serif;background:var(--deep);color:var(--cream);
+min-height:100vh;overflow-x:hidden;
+}
+/* Noisy gradient background */
+body::before{
+content:'';position:fixed;inset:0;z-index:0;
+background:
+  radial-gradient(ellipse at 20% 50%, rgba(230,57,86,0.3) 0%, transparent 60%),
+  radial-gradient(ellipse at 80% 20%, rgba(139,26,58,0.4) 0%, transparent 50%),
+  radial-gradient(ellipse at 60% 80%, rgba(255,107,138,0.2) 0%, transparent 50%),
+  var(--deep);
+}
+body::after{
+content:'';position:fixed;inset:0;z-index:1;opacity:0.4;
+background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+pointer-events:none;
+}
+.container{
+position:relative;z-index:2;max-width:680px;margin:0 auto;padding:24px 20px;min-height:100vh;
+display:flex;flex-direction:column;
+}
+
+/* HERO */
+.hero{text-align:center;padding:60px 0 40px;}
+.hero .panic{
+font-size:14px;text-transform:uppercase;letter-spacing:4px;color:var(--blush);
+margin-bottom:16px;font-weight:600;
+}
+.hero h1{
+font-family:'Playfair Display',serif;font-size:clamp(2.4rem,7vw,3.8rem);
+line-height:1.1;margin-bottom:20px;
+}
+.hero h1 em{font-style:italic;color:var(--blush);}
+.hero .sub{
+font-size:18px;color:rgba(255,245,245,0.7);max-width:420px;margin:0 auto 32px;line-height:1.5;
+}
+.hero .timer{
+display:inline-flex;align-items:center;gap:8px;
+background:rgba(230,57,86,0.15);border:1px solid rgba(230,57,86,0.3);
+border-radius:40px;padding:10px 24px;font-size:15px;font-weight:600;color:var(--blush);
+}
+.hero .timer .dot{
+width:8px;height:8px;background:var(--rose);border-radius:50%;
+animation:pulse 1s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.start-btn{
+display:inline-block;margin-top:28px;padding:16px 48px;
+background:linear-gradient(135deg,var(--rose),var(--wine));
+color:white;font-size:18px;font-weight:700;border:none;border-radius:60px;
+cursor:pointer;transition:all 0.3s;text-transform:uppercase;letter-spacing:2px;
+box-shadow:0 4px 30px rgba(230,57,86,0.4);
+}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(230,57,86,0.6);}
+
+/* QUIZ */
+.quiz{display:none;}
+.quiz.active{display:block;}
+.progress{
+display:flex;gap:8px;margin-bottom:40px;
+}
+.progress .dot{
+flex:1;height:4px;border-radius:4px;background:rgba(255,245,245,0.15);
+transition:background 0.4s;
+}
+.progress .dot.filled{background:var(--rose);}
+.question{animation:fadeUp 0.4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.question h2{
+font-family:'Playfair Display',serif;font-size:clamp(1.6rem,5vw,2.2rem);
+margin-bottom:8px;line-height:1.2;
+}
+.question .hint{
+font-size:14px;color:rgba(255,245,245,0.5);margin-bottom:28px;
+}
+.options{display:grid;gap:12px;}
+.opt{
+background:rgba(255,245,245,0.06);border:1px solid rgba(255,245,245,0.1);
+border-radius:16px;padding:18px 24px;cursor:pointer;transition:all 0.25s;
+font-size:16px;text-align:left;display:flex;align-items:center;gap:14px;
+}
+.opt:hover{
+background:rgba(230,57,86,0.12);border-color:rgba(230,57,86,0.4);
+transform:translateX(4px);
+}
+.opt .emoji{font-size:28px;flex-shrink:0;}
+.opt .label{font-weight:600;}
+.opt .desc{font-size:13px;color:rgba(255,245,245,0.5);margin-top:2px;}
+
+/* RESULTS */
+.results{display:none;padding-top:20px;}
+.results.active{display:block;animation:fadeUp 0.5s ease;}
+.results h2{
+font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.6rem);
+text-align:center;margin-bottom:8px;
+}
+.results .tagline{
+text-align:center;color:rgba(255,245,245,0.6);margin-bottom:36px;font-size:15px;
+}
+.gift-card{
+background:rgba(255,245,245,0.05);border:1px solid rgba(255,245,245,0.1);
+border-radius:20px;padding:28px;margin-bottom:20px;
+transition:all 0.3s;position:relative;overflow:hidden;
+}
+.gift-card::before{
+content:'';position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--rose),var(--gold),var(--blush));
+}
+.gift-card:hover{border-color:rgba(230,57,86,0.3);transform:translateY(-2px);}
+.gift-card .rank{
+font-size:12px;text-transform:uppercase;letter-spacing:3px;color:var(--blush);
+margin-bottom:12px;font-weight:600;
+}
+.gift-card h3{font-size:22px;margin-bottom:6px;font-weight:700;}
+.gift-card .price{
+color:var(--gold);font-weight:700;font-size:15px;margin-bottom:12px;
+}
+.gift-card p{
+color:rgba(255,245,245,0.7);line-height:1.6;font-size:15px;margin-bottom:16px;
+}
+.gift-card .why{
+background:rgba(230,57,86,0.1);border-radius:12px;padding:14px 18px;
+font-size:13px;color:var(--soft-pink);margin-bottom:18px;
+}
+.gift-card .why strong{color:var(--cream);}
+.buy-btn{
+display:inline-block;padding:12px 32px;
+background:linear-gradient(135deg,var(--rose),var(--wine));
+color:white;font-weight:700;border-radius:40px;text-decoration:none;
+font-size:15px;transition:all 0.3s;
+box-shadow:0 4px 20px rgba(230,57,86,0.3);
+}
+.buy-btn:hover{transform:translateY(-1px);box-shadow:0 6px 30px rgba(230,57,86,0.5);}
+.buy-btn .arr{margin-left:6px;transition:margin 0.2s;}
+.buy-btn:hover .arr{margin-left:10px;}
+
+/* BONUS SECTION */
+.bonus{
+margin-top:40px;text-align:center;
+background:rgba(255,245,245,0.04);border:1px solid rgba(255,245,245,0.08);
+border-radius:20px;padding:36px 28px;
+}
+.bonus h3{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:10px;}
+.bonus p{color:rgba(255,245,245,0.6);font-size:14px;margin-bottom:20px;line-height:1.5;}
+.bonus input{
+background:rgba(255,245,245,0.08);border:1px solid rgba(255,245,245,0.15);
+border-radius:12px;padding:14px 18px;width:100%;max-width:320px;
+color:var(--cream);font-size:15px;margin-bottom:12px;font-family:'Outfit',sans-serif;
+}
+.bonus input::placeholder{color:rgba(255,245,245,0.3);}
+.bonus button{
+padding:14px 36px;background:var(--rose);color:white;border:none;
+border-radius:12px;font-weight:700;cursor:pointer;font-size:15px;
+font-family:'Outfit',sans-serif;transition:all 0.3s;
+}
+.bonus button:hover{background:var(--wine);}
+.bonus .success{display:none;color:var(--gold);font-weight:600;margin-top:12px;}
+
+/* RESTART */
+.restart-wrap{text-align:center;margin-top:32px;padding-bottom:60px;}
+.restart-btn{
+background:none;border:1px solid rgba(255,245,245,0.2);color:var(--cream);
+padding:12px 32px;border-radius:40px;cursor:pointer;font-size:14px;
+font-family:'Outfit',sans-serif;transition:all 0.3s;
+}
+.restart-btn:hover{border-color:var(--blush);color:var(--blush);}
+
+/* FOOTER */
+footer{
+margin-top:auto;padding:40px 0 20px;text-align:center;
+font-size:12px;color:rgba(255,245,245,0.25);
+}
+footer a{color:rgba(255,245,245,0.4);text-decoration:none;}
+
+/* AD SLOT */
+.ad-slot{
+margin:32px 0;padding:20px;text-align:center;
+border:1px dashed rgba(255,245,245,0.1);border-radius:12px;
+color:rgba(255,245,245,0.15);font-size:12px;min-height:90px;
+display:flex;align-items:center;justify-content:center;
+}
+
+@media(max-width:500px){
+.container{padding:16px 16px;}
+.hero{padding:40px 0 28px;}
+.gift-card{padding:22px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HERO -->
+<div class="hero" id="hero">
+<div class="panic">Valentine's Day is Tomorrow</div>
+<h1>Find the <em>Perfect Gift</em> in 60 Seconds</h1>
+<p class="sub">Answer 4 quick questions. Get personalized gift ideas you can order right now.</p>
+<div class="timer"><span class="dot"></span> <span id="countdown"></span> until Valentine's Day</div>
+<button class="start-btn" onclick="startQuiz()">Find My Gift →</button>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz" id="quiz">
+<div class="progress" id="progress"></div>
+<div id="questionContainer"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+<h2>Your Perfect Picks 💝</h2>
+<p class="tagline">Based on your answers — curated just for your Valentine</p>
+<div id="giftList"></div>
+
+<div class="ad-slot">— Ad Space —</div>
+
+<div class="bonus">
+<h3>Never Panic Again 💌</h3>
+<p>Get curated gift ideas for every occasion — anniversaries, birthdays, holidays — delivered a week early so you're always prepared.</p>
+<input type="email" id="emailInput" placeholder="your@email.com">
+<br>
+<button onclick="captureEmail()">Send Me Ideas</button>
+<p class="success" id="emailSuccess">🎉 You're in! Check your inbox before the next occasion.</p>
+</div>
+
+<div class="restart-wrap">
+<button class="restart-btn" onclick="restart()">↻ Start Over</button>
+</div>
+</div>
+
+<footer>
+<p>Made with ❤️ by <a href="https://stirman.net">stirman.net</a> · Affiliate links help support this site</p>
+</footer>
+
+</div>
+
+<script>
+// Countdown to Valentine's Day
+function updateCountdown(){
+const now=new Date();
+const vday=new Date(now.getFullYear(),1,14); // Feb 14
+if(now>vday)vday.setFullYear(vday.getFullYear()+1);
+const diff=vday-now;
+const h=Math.floor(diff/3600000);
+const m=Math.floor((diff%3600000)/60000);
+document.getElementById('countdown').textContent=`${h}h ${m}m`;
+}
+updateCountdown();
+setInterval(updateCountdown,60000);
+
+const AFF_TAG='stirman-20';
+function affLink(asin){return `https://www.amazon.com/dp/${asin}?tag=${AFF_TAG}`;}
+
+const questions=[
+{
+q:"Who are you shopping for?",
+hint:"This helps us nail the vibe",
+opts:[
+{emoji:"👨",label:"Him",desc:"Boyfriend, husband, partner",val:"him"},
+{emoji:"👩",label:"Her",desc:"Girlfriend, wife, partner",val:"her"},
+{emoji:"🌈",label:"Them",desc:"Non-binary / keep it neutral",val:"them"},
+]
+},
+{
+q:"What's their love language?",
+hint:"How do they feel most appreciated?",
+opts:[
+{emoji:"🎁",label:"Gifts & Surprises",desc:"They light up unwrapping things",val:"gifts"},
+{emoji:"🫂",label:"Quality Time",desc:"Just being together is everything",val:"time"},
+{emoji:"✍️",label:"Words & Thoughtfulness",desc:"A heartfelt note means the world",val:"words"},
+{emoji:"💆",label:"Physical Touch & Comfort",desc:"Cozy, sensory, relaxing things",val:"touch"},
+]
+},
+{
+q:"What's your budget?",
+hint:"No judgment — it's the thought that counts",
+opts:[
+{emoji:"💚",label:"Under $30",desc:"Sweet & meaningful",val:"low"},
+{emoji:"💛",label:"$30–$75",desc:"The sweet spot",val:"mid"},
+{emoji:"🧡",label:"$75–$150",desc:"Going big",val:"high"},
+{emoji:"❤️",label:"$150+",desc:"All out, no limits",val:"lux"},
+]
+},
+{
+q:"Pick a Valentine's vibe",
+hint:"What feels most like your relationship?",
+opts:[
+{emoji:"🕯️",label:"Classic Romance",desc:"Timeless, elegant, sweep-them-off-their-feet",val:"classic"},
+{emoji:"🎮",label:"Fun & Playful",desc:"Inside jokes, adventures, laughter",val:"fun"},
+{emoji:"🧘",label:"Self-Care & Wellness",desc:"Relaxation, pampering, feeling good",val:"wellness"},
+{emoji:"🍳",label:"Experiences Together",desc:"Cook, travel, create memories",val:"experience"},
+]
+}
+];
+
+// Gift database — scored by quiz answers
+const gifts=[
+// HER gifts
+{name:"Preserved Rose in Glass Dome",price:"$28",asin:"B09WDGWQJN",desc:"A real rose that lasts forever — Beauty-and-the-Beast style. Romantic without being cliché.",why:"A forever rose says 'this love is timeless' without you having to.",for:["her","them"],lang:["gifts","words"],budget:["low","mid"],vibe:["classic"]},
+{name:"Silk Pillowcase Set",price:"$26",asin:"B07RLRDRNN",desc:"Mulberry silk pillowcases that are amazing for skin and hair. Luxury they'll use every single night.",why:"Practical luxury — they'll think of you literally every time they go to bed.",for:["her","them"],lang:["touch","gifts"],budget:["low","mid"],vibe:["wellness","classic"]},
+{name:"Custom Star Map Print",price:"$40",asin:"B0BHXKCHCH",desc:"A map of the night sky from a date that matters — when you met, first kiss, wedding day. Deeply personal.",why:"'I remember the exact night' is peak romantic energy.",for:["her","him","them"],lang:["words","gifts"],budget:["mid"],vibe:["classic"]},
+{name:"Luxury Bath Bomb Gift Set",price:"$35",asin:"B01MFBTKQI",desc:"12 handcrafted bath bombs with essential oils. Turn any bathroom into a spa.",why:"Self-care is the love language of 2026. Bonus: great excuse for a bath together.",for:["her","them"],lang:["touch","gifts"],budget:["mid","low"],vibe:["wellness"]},
+{name:"Dyson Airwrap Complete",price:"$599",asin:"B0C7HVV2NM",desc:"The holy grail of hair tools. If they've hinted at this even once, you'll be a legend.",why:"This is the 'I actually listen when you talk' gift. Legendary status.",for:["her"],lang:["gifts"],budget:["lux"],vibe:["wellness","classic"]},
+{name:"Le Labo Santal 33 Perfume",price:"$182",asin:"B07DJ1SMHF",desc:"The iconic unisex fragrance. Woody, warm, unforgettable — just like your love.",why:"Every time they spritz it, they'll think of you. Scent memory is powerful.",for:["her","them"],lang:["gifts","touch"],budget:["lux","high"],vibe:["classic"]},
+{name:"Couples Massage Kit",price:"$45",asin:"B08HRZ8HY3",desc:"Professional-grade massage oils, candles, and guide. Date night in a box.",why:"The gift of touch + quality time. Best ROI in the romance game.",for:["her","him","them"],lang:["touch","time"],budget:["mid"],vibe:["wellness","classic"]},
+{name:"Kindle Paperwhite",price:"$150",asin:"B09TMN58KL",desc:"Waterproof, glare-free reading. For the partner who devours books or wants to start.",why:"'I support your interests' energy. Plus now you can share book recs.",for:["her","him","them"],lang:["gifts","words"],budget:["high"],vibe:["wellness","experience"]},
+
+// HIM gifts
+{name:"Ember Temperature Control Mug",price:"$130",asin:"B09FSPKMK5",desc:"Keeps coffee at the exact perfect temperature for hours. App-controlled. Future is now.",why:"Every morning sip at the perfect temp = thinking of you every morning.",for:["him","them"],lang:["gifts"],budget:["high"],vibe:["fun","experience"]},
+{name:"Theragun Mini",price:"$199",asin:"B09CC2WKZB",desc:"Portable percussion massager. Perfect for gym rats, desk workers, or anyone with a body.",why:"Taking care of their body = 'I care about your wellbeing' in physical form.",for:["him","them"],lang:["touch","gifts"],budget:["high","lux"],vibe:["wellness"]},
+{name:"Premium Cocktail Making Kit",price:"$65",asin:"B08L6YD7QY",desc:"Everything to become a home bartender — shaker, jigger, muddler, strainer, recipe book.",why:"Date nights just got upgraded. 'I made you an Old Fashioned' hits different.",for:["him","them"],lang:["time","gifts"],budget:["mid","high"],vibe:["fun","experience"]},
+{name:"Personalized Leather Wallet",price:"$35",asin:"B08YRGF3RV",desc:"Genuine leather, custom engraved with initials or a message. Classic and daily-use.",why:"Something they carry everywhere, with your words literally in their pocket.",for:["him"],lang:["words","gifts"],budget:["mid","low"],vibe:["classic"]},
+{name:"Nintendo Switch Game — It Takes Two",price:"$30",asin:"B09YPNDKZR",desc:"Award-winning co-op game literally about a couple's relationship. Play it together.",why:"A game about love that you play together? Meta romance at its finest.",for:["him","her","them"],lang:["time"],budget:["low","mid"],vibe:["fun"]},
+{name:"Whiskey Stones Gift Set",price:"$22",asin:"B07H3T9JQW",desc:"Soapstone cubes that chill drinks without diluting. Comes in a nice wooden box.",why:"Elevates every evening drink. Small luxury, big appreciation.",for:["him"],lang:["gifts"],budget:["low"],vibe:["classic","fun"]},
+{name:"Couple's Adventure Scratch-Off Poster",price:"$20",asin:"B07QH7JCBF",desc:"50 fun date ideas to scratch off together. From stargazing to cooking challenges.",why:"It's not just a gift — it's 50 future dates. The gift that keeps giving all year.",for:["him","her","them"],lang:["time"],budget:["low"],vibe:["fun","experience"]},
+{name:"AirPods Pro 2",price:"$189",asin:"B0D1XD1ZV3",desc:"The best everyday earbuds. Noise cancellation, spatial audio, USB-C. A no-brainer upgrade.",why:"If they're still using wired earbuds or AirPods 1, this is a game-changer gift.",for:["him","her","them"],lang:["gifts"],budget:["high","lux"],vibe:["fun","experience"]},
+
+// EXPERIENCE gifts
+{name:"Date Night Cooking Class (MasterClass)",price:"$120/yr",asin:"B084BNPMJZ",desc:"MasterClass annual subscription. Gordon Ramsay, Thomas Keller + 180 other experts on everything.",why:"Learn together, grow together. Plus: finally nail that pasta recipe.",for:["him","her","them"],lang:["time","gifts"],budget:["high"],vibe:["experience","fun"]},
+{name:"Polaroid Camera",price:"$70",asin:"B0CW57VDGS",desc:"Instant film camera for capturing memories as they happen. Retro cool factor through the roof.",why:"Digital photos get lost. Polaroids go on the fridge. Tangible memories win.",for:["her","him","them"],lang:["time","gifts"],budget:["mid","high"],vibe:["fun","experience"]},
+{name:"Weighted Blanket for Two",price:"$80",asin:"B0C5GJ3LFS",desc:"20lb king-size weighted blanket. Like a permanent hug for your couch or bed.",why:"Cozy + calming + togetherness. The ultimate Netflix-and-chill upgrade.",for:["him","her","them"],lang:["touch","time"],budget:["mid","high"],vibe:["wellness","classic"]},
+{name:"Custom Song (from Songlorious)",price:"$150",asin:"B09LHKCRBP",desc:"A professional musician writes and records a custom song about your love story. One of a kind.",why:"There is literally nothing more personal than a song written about your relationship.",for:["her","him","them"],lang:["words"],budget:["high","lux"],vibe:["classic"]},
+];
+
+let currentQ=0;
+let answers={};
+
+function startQuiz(){
+document.getElementById('hero').style.display='none';
+document.getElementById('quiz').classList.add('active');
+renderQuestion();
+}
+
+function renderQuestion(){
+const q=questions[currentQ];
+// Progress dots
+let progHTML='';
+for(let i=0;i<questions.length;i++){
+progHTML+=`<div class="dot ${i<=currentQ?'filled':''}"></div>`;
+}
+document.getElementById('progress').innerHTML=progHTML;
+
+let optsHTML='';
+q.opts.forEach(o=>{
+optsHTML+=`
+<div class="opt" onclick="answer('${o.val}')">
+<span class="emoji">${o.emoji}</span>
+<div><div class="label">${o.label}</div><div class="desc">${o.desc}</div></div>
+</div>`;
+});
+
+document.getElementById('questionContainer').innerHTML=`
+<div class="question">
+<h2>${q.q}</h2>
+<p class="hint">${q.hint}</p>
+<div class="options">${optsHTML}</div>
+</div>`;
+}
+
+function answer(val){
+const keys=['who','lang','budget','vibe'];
+answers[keys[currentQ]]=val;
+currentQ++;
+if(currentQ<questions.length){
+renderQuestion();
+}else{
+showResults();
+}
+}
+
+function scoreGift(g){
+let s=0;
+if(g.for.includes(answers.who))s+=3; else return -1;
+if(g.lang.includes(answers.lang))s+=3;
+if(g.budget.includes(answers.budget))s+=3;
+if(g.vibe.includes(answers.vibe))s+=3;
+// partial matches
+if(g.lang.length>1)s+=0.5;
+if(g.vibe.length>1)s+=0.5;
+// randomize ties
+s+=Math.random()*0.5;
+return s;
+}
+
+function showResults(){
+document.getElementById('quiz').classList.remove('active');
+document.getElementById('results').classList.add('active');
+
+let scored=gifts.map(g=>({...g,score:scoreGift(g)})).filter(g=>g.score>0);
+scored.sort((a,b)=>b.score-a.score);
+const top5=scored.slice(0,5);
+
+const labels=['Top Pick','Runner Up','Great Choice','Also Love','Wildcard'];
+let html='';
+top5.forEach((g,i)=>{
+html+=`
+<div class="gift-card">
+<div class="rank">${labels[i]||'Pick #'+(i+1)}</div>
+<h3>${g.name}</h3>
+<div class="price">${g.price}</div>
+<p>${g.desc}</p>
+<div class="why"><strong>Why this works:</strong> ${g.why}</div>
+<a href="${affLink(g.asin)}" target="_blank" rel="noopener" class="buy-btn">
+Buy on Amazon <span class="arr">→</span>
+</a>
+</div>`;
+});
+
+document.getElementById('giftList').innerHTML=html;
+window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function captureEmail(){
+const email=document.getElementById('emailInput').value;
+if(email&&email.includes('@')){
+document.getElementById('emailSuccess').style.display='block';
+// In production: send to ConvertKit/Mailchimp API
+console.log('Email captured:',email);
+}
+}
+
+function restart(){
+currentQ=0;
+answers={};
+document.getElementById('results').classList.remove('active');
+document.getElementById('hero').style.display='block';
+window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

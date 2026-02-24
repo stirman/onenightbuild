@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morning Routine Builder — Design Your Perfect Morning</title>
+<meta name="description" content="Build your ideal morning routine with our free interactive tool. Drag, drop, and customize activities to create a productive morning that works for you.">
+<meta name="keywords" content="morning routine, productive morning, morning habits, routine builder, morning schedule, productivity tools">
+<meta property="og:title" content="Morning Routine Builder — Design Your Perfect Morning">
+<meta property="og:description" content="Build your ideal morning routine with our free interactive tool.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #141420;
+  --surface2: #1c1c2e;
+  --accent: #ff6b35;
+  --accent2: #7b2ff7;
+  --accent3: #00d4aa;
+  --text: #f0ece2;
+  --text-dim: #8a8a9a;
+  --radius: 16px;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noisy gradient background */
+.noise-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(123,47,247,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0,212,170,0.05) 0%, transparent 60%),
+    var(--bg);
+}
+.noise-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px;
+  opacity: 0.5;
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  position: relative;
+}
+header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 1.05;
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+header p {
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Layout */
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
+}
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+}
+
+/* Activity palette */
+.palette {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+}
+.palette h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.palette-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  cursor: grab;
+  transition: all 0.2s;
+  user-select: none;
+}
+.palette-item:hover {
+  background: var(--surface2);
+  border-color: rgba(255,255,255,0.1);
+  transform: translateY(-1px);
+}
+.palette-item:active { cursor: grabbing; }
+.palette-item .icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.palette-item .info h3 { font-size: 0.95rem; font-weight: 600; }
+.palette-item .info span { font-size: 0.75rem; color: var(--text-dim); }
+
+/* Timeline */
+.timeline-area h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.timeline-area h2 .wake-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.timeline-area h2 input[type="time"] {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.timeline {
+  min-height: 300px;
+  background: var(--surface);
+  border: 2px dashed rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: border-color 0.2s;
+  position: relative;
+}
+.timeline.drag-over {
+  border-color: var(--accent);
+  background: rgba(255,107,53,0.03);
+}
+.timeline.empty::after {
+  content: 'Drag activities here to build your routine';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  margin-bottom: 8px;
+  background: var(--surface2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: grab;
+  position: relative;
+  transition: all 0.2s;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.timeline-item:hover {
+  border-color: rgba(255,255,255,0.1);
+}
+.timeline-item .time-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 55px;
+  padding-top: 2px;
+}
+.timeline-item .time-col .time {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+.timeline-item .time-col .duration {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.timeline-item .content {
+  flex: 1;
+}
+.timeline-item .content .row1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.timeline-item .content .row1 .icon { font-size: 1.3rem; }
+.timeline-item .content .row1 h3 { font-size: 1rem; font-weight: 600; flex: 1; }
+.timeline-item .content .tip {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.timeline-item .content .product-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--accent3);
+  text-decoration: none;
+  padding: 4px 10px;
+  background: rgba(0,212,170,0.08);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.timeline-item .content .product-link:hover {
+  background: rgba(0,212,170,0.15);
+}
+.timeline-item .controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.timeline-item .controls button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-item .controls button:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+.timeline-item .controls .remove:hover { color: #ff4444; }
+.timeline-item .duration-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.timeline-item .duration-slider input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  height: 4px;
+}
+.timeline-item .duration-slider span {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  min-width: 45px;
+}
+
+/* Summary bar */
+.summary {
+  margin-top: 24px;
+  background: linear-gradient(135deg, rgba(123,47,247,0.15), rgba(255,107,53,0.1));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+}
+.summary .stat {
+  text-align: center;
+}
+.summary .stat .val {
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: 'DM Serif Display', serif;
+}
+.summary .stat .label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,107,53,0.3); }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.btn-secondary:hover { background: var(--surface2); }
+
+/* Share modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.modal p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 20px; }
+.modal .routine-text {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.modal .email-capture {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.modal .email-capture h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.modal .email-capture p { font-size: 0.8rem; }
+.modal .email-row {
+  display: flex;
+  gap: 8px;
+}
+.modal .email-row input {
+  flex: 1;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.modal .email-row input::placeholder { color: var(--text-dim); }
+
+/* CTA banner */
+.cta-banner {
+  margin-top: 40px;
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+}
+.cta-banner h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+.cta-banner p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 16px; }
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+footer a { color: var(--accent3); text-decoration: none; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--accent3);
+  color: var(--bg);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.3s ease;
+  z-index: 200;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="noise-bg"></div>
+
+<header>
+  <h1>Morning Routine Builder</h1>
+  <p>Design your perfect morning. Drag activities, set durations, own your first hours.</p>
+</header>
+
+<div class="app">
+  <!-- Palette -->
+  <div class="palette">
+    <h2>Activities</h2>
+    <div class="palette-grid" id="palette"></div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline-area">
+    <h2>
+      <span>Your Routine</span>
+      <span class="wake-time">
+        Wake up: <input type="time" id="wakeTime" value="06:00">
+      </span>
+    </h2>
+    <div class="timeline empty" id="timeline"></div>
+
+    <div class="summary" id="summary" style="display:none">
+      <div class="stat"><div class="val" id="totalTime">0</div><div class="label">Total Minutes</div></div>
+      <div class="stat"><div class="val" id="endTime">—</div><div class="label">Ready By</div></div>
+      <div class="stat"><div class="val" id="actCount">0</div><div class="label">Activities</div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="shareRoutine()">📋 Copy & Share</button>
+      <button class="btn btn-secondary" onclick="resetRoutine()">↺ Start Over</button>
+      <button class="btn btn-secondary" onclick="loadTemplate('productive')">⚡ Productive Template</button>
+      <button class="btn btn-secondary" onclick="loadTemplate('chill')">🧘 Chill Template</button>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-banner">
+      <h3>🔥 Level Up Your Morning</h3>
+      <p>Get the top-rated gear for your morning routine — handpicked by productivity enthusiasts.</p>
+      <a href="https://www.amazon.com/s?k=morning+routine+essentials&tag=morningrout0a-20" target="_blank" rel="noopener" class="btn btn-primary" style="display:inline-block;text-decoration:none;margin-top:4px;">Shop Morning Essentials →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Your Morning Routine</h2>
+    <p>Copy this and stick it on your fridge, mirror, or phone.</p>
+    <div class="routine-text" id="routineText"></div>
+    <button class="btn btn-primary" onclick="copyRoutine()" style="width:100%">📋 Copy to Clipboard</button>
+    <div class="email-capture">
+      <h3>💌 Want weekly morning tips?</h3>
+      <p>Join 10,000+ early risers getting productivity tips every Monday.</p>
+      <div class="email-row">
+        <input type="email" placeholder="your@email.com" id="emailInput">
+        <button class="btn btn-primary" onclick="captureEmail()">Subscribe</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built with ☕ by <a href="https://stirman.net">stirman.net</a> &middot; Some links are affiliate — they help keep this free.
+</footer>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+const ACTIVITIES = [
+  { id: 'wake', icon: '⏰', name: 'Wake Up & Stretch', duration: 5, color: '#ff6b35',
+    tip: 'Resist the snooze. Stand up, reach for the ceiling, twist side to side.',
+    product: { text: 'Sunrise Alarm Clock', url: 'https://www.amazon.com/s?k=sunrise+alarm+clock&tag=morningrout0a-20' }},
+  { id: 'water', icon: '💧', name: 'Hydrate', duration: 3, color: '#00bcd4',
+    tip: '16oz of water with lemon. Your body is dehydrated after 7+ hours.',
+    product: { text: 'Hydro Flask Bottle', url: 'https://www.amazon.com/s?k=hydro+flask+water+bottle&tag=morningrout0a-20' }},
+  { id: 'meditate', icon: '🧘', name: 'Meditate', duration: 10, color: '#7b2ff7',
+    tip: 'Even 5 minutes rewires your brain. Use an app or just breathe.',
+    product: { text: 'Meditation Cushion', url: 'https://www.amazon.com/s?k=meditation+cushion&tag=morningrout0a-20' }},
+  { id: 'journal', icon: '📓', name: 'Journal', duration: 10, color: '#e91e63',
+    tip: '3 things you\'re grateful for. 3 things that would make today great.',
+    product: { text: '5-Minute Journal', url: 'https://www.amazon.com/s?k=five+minute+journal&tag=morningrout0a-20' }},
+  { id: 'exercise', icon: '🏋️', name: 'Exercise', duration: 30, color: '#ff9800',
+    tip: 'Doesn\'t have to be intense. A walk, yoga, or 20 pushups counts.',
+    product: { text: 'Resistance Bands Set', url: 'https://www.amazon.com/s?k=resistance+bands+set&tag=morningrout0a-20' }},
+  { id: 'cold', icon: '🥶', name: 'Cold Shower', duration: 5, color: '#00d4aa',
+    tip: 'Start warm, end cold for 30-90 seconds. Dopamine boost is real.',
+    product: null },
+  { id: 'coffee', icon: '☕', name: 'Coffee / Tea', duration: 10, color: '#795548',
+    tip: 'Wait 90 min after waking for peak cortisol timing. Or don\'t — it\'s your morning.',
+    product: { text: 'AeroPress Coffee Maker', url: 'https://www.amazon.com/s?k=aeropress+coffee+maker&tag=morningrout0a-20' }},
+  { id: 'read', icon: '📖', name: 'Read', duration: 20, color: '#3f51b5',
+    tip: '10 pages a day = 18 books a year. Non-fiction before notifications.',
+    product: { text: 'Kindle Paperwhite', url: 'https://www.amazon.com/s?k=kindle+paperwhite&tag=morningrout0a-20' }},
+  { id: 'skincare', icon: '✨', name: 'Skincare', duration: 5, color: '#f48fb1',
+    tip: 'Cleanser, moisturizer, SPF. Keep it simple, keep it consistent.',
+    product: { text: 'CeraVe Skincare Set', url: 'https://www.amazon.com/s?k=cerave+morning+skincare+routine&tag=morningrout0a-20' }},
+  { id: 'plan', icon: '📝', name: 'Plan Your Day', duration: 10, color: '#00bfa5',
+    tip: 'Top 3 priorities. Not 20 tasks. Three things that matter most.',
+    product: { text: 'Full Focus Planner', url: 'https://www.amazon.com/s?k=full+focus+planner&tag=morningrout0a-20' }},
+  { id: 'breakfast', icon: '🍳', name: 'Breakfast', duration: 15, color: '#ffc107',
+    tip: 'Protein + healthy fat to stay full. Eggs, avocado, greek yogurt.',
+    product: { text: 'Cast Iron Skillet', url: 'https://www.amazon.com/s?k=lodge+cast+iron+skillet&tag=morningrout0a-20' }},
+  { id: 'podcast', icon: '🎧', name: 'Podcast / Music', duration: 15, color: '#9c27b0',
+    tip: 'Pair with exercise or commute. Learn something or pump yourself up.',
+    product: { text: 'AirPods Pro', url: 'https://www.amazon.com/s?k=airpods+pro&tag=morningrout0a-20' }},
+  { id: 'walk', icon: '🚶', name: 'Morning Walk', duration: 20, color: '#4caf50',
+    tip: 'Sunlight within 30 min of waking sets your circadian rhythm.',
+    product: null },
+  { id: 'creative', icon: '🎨', name: 'Creative Work', duration: 30, color: '#ff5722',
+    tip: 'Your best creative thinking happens in the first 2 hours after waking.',
+    product: null },
+];
+
+let routine = [];
+let dragSrcIdx = null;
+
+// Render palette
+function renderPalette() {
+  const el = document.getElementById('palette');
+  el.innerHTML = ACTIVITIES.map(a => `
+    <div class="palette-item" draggable="true" data-id="${a.id}"
+         ondragstart="dragFromPalette(event, '${a.id}')">
+      <div class="icon" style="background:${a.color}22;color:${a.color}">${a.icon}</div>
+      <div class="info"><h3>${a.name}</h3><span>${a.duration} min</span></div>
+    </div>
+  `).join('');
+}
+
+function dragFromPalette(e, id) {
+  e.dataTransfer.setData('source', 'palette');
+  e.dataTransfer.setData('activityId', id);
+}
+
+// Timeline
+const tl = document.getElementById('timeline');
+tl.addEventListener('dragover', e => { e.preventDefault(); tl.classList.add('drag-over'); });
+tl.addEventListener('dragleave', () => tl.classList.remove('drag-over'));
+tl.addEventListener('drop', e => {
+  e.preventDefault();
+  tl.classList.remove('drag-over');
+  const src = e.dataTransfer.getData('source');
+  if (src === 'palette') {
+    const id = e.dataTransfer.getData('activityId');
+    const act = ACTIVITIES.find(a => a.id === id);
+    if (act) routine.push({ ...act, duration: act.duration });
+  } else if (src === 'timeline') {
+    const fromIdx = parseInt(e.dataTransfer.getData('fromIdx'));
+    // Find drop position
+    const items = tl.querySelectorAll('.timeline-item');
+    let toIdx = routine.length;
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) { toIdx = i; break; }
+    }
+    const [moved] = routine.splice(fromIdx, 1);
+    if (toIdx > fromIdx) toIdx--;
+    routine.splice(toIdx, 0, moved);
+  }
+  renderTimeline();
+});
+
+function renderTimeline() {
+  tl.classList.toggle('empty', routine.length === 0);
+  const wake = document.getElementById('wakeTime').value;
+  let [h, m] = wake.split(':').map(Number);
+  let mins = h * 60 + m;
+
+  tl.innerHTML = routine.map((item, i) => {
+    const timeStr = formatTime(mins);
+    const html = `
+      <div class="timeline-item" draggable="true"
+           ondragstart="dragFromTimeline(event, ${i})"
+           data-idx="${i}">
+        <div class="time-col">
+          <span class="time">${timeStr}</span>
+          <span class="duration">${item.duration}m</span>
+        </div>
+        <div class="content">
+          <div class="row1">
+            <span class="icon">${item.icon}</span>
+            <h3>${item.name}</h3>
+          </div>
+          <div class="tip">${item.tip}</div>
+          ${item.product ? `<a class="product-link" href="${item.product.url}" target="_blank" rel="noopener">🛒 ${item.product.text}</a>` : ''}
+          <div class="duration-slider">
+            <input type="range" min="1" max="60" value="${item.duration}"
+                   oninput="changeDuration(${i}, this.value)">
+            <span>${item.duration} min</span>
+          </div>
+        </div>
+        <div class="controls">
+          <button onclick="moveItem(${i},-1)" title="Move up">↑</button>
+          <button onclick="moveItem(${i},1)" title="Move down">↓</button>
+          <button class="remove" onclick="removeItem(${i})" title="Remove">✕</button>
+        </div>
+      </div>`;
+    mins += item.duration;
+    return html;
+  }).join('');
+
+  // Summary
+  const totalMins = routine.reduce((s, a) => s + a.duration, 0);
+  const sumEl = document.getElementById('summary');
+  if (routine.length > 0) {
+    sumEl.style.display = 'flex';
+    document.getElementById('totalTime').textContent = totalMins;
+    document.getElementById('endTime').textContent = formatTime(h * 60 + m + totalMins);
+    document.getElementById('actCount').textContent = routine.length;
+  } else {
+    sumEl.style.display = 'none';
+  }
+
+  // Save to localStorage
+  localStorage.setItem('morningRoutine', JSON.stringify({ wake, routine }));
+}
+
+function dragFromTimeline(e, idx) {
+  e.dataTransfer.setData('source', 'timeline');
+  e.dataTransfer.setData('fromIdx', idx.toString());
+}
+
+function formatTime(mins) {
+  const h = Math.floor(mins / 60) % 24;
+  const m = mins % 60;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+function changeDuration(i, val) {
+  routine[i].duration = parseInt(val);
+  renderTimeline();
+}
+
+function moveItem(i, dir) {
+  const ni = i + dir;
+  if (ni < 0 || ni >= routine.length) return;
+  [routine[i], routine[ni]] = [routine[ni], routine[i]];
+  renderTimeline();
+}
+
+function removeItem(i) {
+  routine.splice(i, 1);
+  renderTimeline();
+}
+
+function resetRoutine() {
+  routine = [];
+  renderTimeline();
+}
+
+function loadTemplate(type) {
+  if (type === 'productive') {
+    routine = ['wake','water','exercise','cold','coffee','plan','creative'].map(id => {
+      const a = ACTIVITIES.find(x => x.id === id);
+      return { ...a };
+    });
+  } else {
+    routine = ['wake','water','meditate','coffee','journal','read','breakfast'].map(id => {
+      const a = ACTIVITIES.find(x => x.id === id);
+      return { ...a };
+    });
+  }
+  renderTimeline();
+}
+
+function shareRoutine() {
+  const wake = document.getElementById('wakeTime').value;
+  let [h, m] = wake.split(':').map(Number);
+  let mins = h * 60 + m;
+  let text = `☀️ MY MORNING ROUTINE\n${'─'.repeat(28)}\n`;
+  routine.forEach(item => {
+    text += `${formatTime(mins).padEnd(9)} ${item.icon} ${item.name} (${item.duration}m)\n`;
+    mins += item.duration;
+  });
+  const total = routine.reduce((s, a) => s + a.duration, 0);
+  text += `${'─'.repeat(28)}\n⏱️ Total: ${total} min | Done by ${formatTime(h * 60 + m + total)}\n\nBuilt with morningroutinebuilder.com`;
+  document.getElementById('routineText').textContent = text;
+  document.getElementById('modal').classList.add('active');
+}
+
+function copyRoutine() {
+  const text = document.getElementById('routineText').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('Copied to clipboard!');
+  document.getElementById('modal').classList.remove('active');
+}
+
+function captureEmail() {
+  const email = document.getElementById('emailInput').value;
+  if (email) {
+    showToast('Thanks! You\'re on the list 🎉');
+    document.getElementById('modal').classList.remove('active');
+    // In production: POST to email service API
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+});
+
+// Wake time change
+document.getElementById('wakeTime').addEventListener('change', renderTimeline);
+
+// Load from localStorage
+const saved = localStorage.getItem('morningRoutine');
+if (saved) {
+  try {
+    const data = JSON.parse(saved);
+    document.getElementById('wakeTime').value = data.wake;
+    routine = data.routine;
+  } catch(e) {}
+}
+
+renderPalette();
+renderTimeline();
+</script>
+</body>
+</html>

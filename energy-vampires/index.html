@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Vampires — How Much Do Your Plugged-In Devices Really Cost?</title>
+<meta name="description" content="Calculate the hidden cost of phantom power drain from your plugged-in devices. Find out how much you're wasting per year and get smart recommendations to save.">
+<meta name="keywords" content="phantom load calculator, energy vampire, electricity cost calculator, save on electric bill, standby power, vampire power">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#141420;--card-border:#1e1e30;--text:#e8e8f0;--text-dim:#8888a0;--accent-green:#00e87b;--accent-red:#ff4466;--accent-orange:#ff8833;--accent-purple:#aa66ff;--accent-blue:#4488ff;--grad-1:#ff4466;--grad-2:#ff8833;--grad-3:#ffcc00}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 20%,rgba(255,68,102,0.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(255,136,51,0.06) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(170,102,255,0.04) 0%,transparent 60%);pointer-events:none;z-index:0}
+canvas#noise{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0.035;pointer-events:none;z-index:1}
+.container{max-width:720px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:2}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;margin-bottom:8px;background:linear-gradient(135deg,var(--grad-1),var(--grad-2),var(--grad-3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--text-dim);font-size:1.05rem;margin-bottom:36px;line-height:1.5}
+.subtitle span{color:var(--accent-red);font-weight:600}
+
+/* Device Grid */
+.section-title{font-family:'Instrument Serif',serif;font-size:1.6rem;margin:32px 0 16px;display:flex;align-items:center;gap:10px}
+.section-title .icon{font-size:1.4rem}
+.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.device-chip{background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;user-select:none}
+.device-chip:hover{border-color:#333;transform:translateY(-1px)}
+.device-chip.active{border-color:var(--accent-red);background:rgba(255,68,102,0.08)}
+.device-chip .emoji{font-size:1.3rem;flex-shrink:0}
+.device-chip .info{flex:1;min-width:0}
+.device-chip .name{font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-chip .watts{font-size:0.7rem;color:var(--text-dim)}
+.device-chip .check{width:18px;height:18px;border-radius:50%;border:2px solid #333;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.device-chip.active .check{border-color:var(--accent-red);background:var(--accent-red)}
+.device-chip.active .check::after{content:'✓';color:#fff;font-size:0.7rem;font-weight:700}
+
+/* Custom add */
+.add-custom{display:flex;gap:8px;margin:16px 0 24px}
+.add-custom input{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none}
+.add-custom input:focus{border-color:var(--accent-orange)}
+.add-custom input::placeholder{color:#555}
+.add-custom button{background:linear-gradient(135deg,var(--grad-1),var(--grad-2));border:none;border-radius:10px;padding:10px 18px;color:#fff;font-family:inherit;font-weight:600;font-size:0.9rem;cursor:pointer;white-space:nowrap}
+.add-custom button:hover{opacity:0.9}
+
+/* Rate input */
+.rate-row{display:flex;align-items:center;gap:12px;margin:20px 0 32px;flex-wrap:wrap}
+.rate-row label{font-size:0.9rem;color:var(--text-dim)}
+.rate-input{background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:1rem;width:100px;text-align:center;outline:none}
+.rate-input:focus{border-color:var(--accent-orange)}
+.rate-row .unit{font-size:0.85rem;color:var(--text-dim)}
+.rate-avg{font-size:0.75rem;color:var(--accent-purple);cursor:pointer;text-decoration:underline}
+
+/* Calculate button */
+.calc-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--grad-1),var(--grad-2),var(--grad-3));border:none;border-radius:14px;color:#fff;font-family:inherit;font-weight:700;font-size:1.1rem;cursor:pointer;transition:transform 0.2s,opacity 0.2s;margin-bottom:40px}
+.calc-btn:hover{transform:translateY(-2px);opacity:0.95}
+.calc-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* Results */
+#results{display:none}
+.results-show{display:block!important}
+.total-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:32px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+.total-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--grad-1),var(--grad-2),var(--grad-3))}
+.total-label{font-size:0.9rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.total-amount{font-family:'Instrument Serif',serif;font-size:clamp(3rem,8vw,4.5rem);background:linear-gradient(135deg,var(--grad-1),var(--grad-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
+.total-sub{color:var(--text-dim);font-size:0.95rem;margin-top:8px}
+.total-kwh{color:var(--accent-purple);font-size:0.85rem;margin-top:4px}
+
+.breakdown-title{font-family:'Instrument Serif',serif;font-size:1.4rem;margin:28px 0 14px}
+.device-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;margin-bottom:8px}
+.device-row .emoji{font-size:1.2rem;flex-shrink:0}
+.device-row .details{flex:1;min-width:0}
+.device-row .dname{font-size:0.9rem;font-weight:600}
+.device-row .dwatts{font-size:0.75rem;color:var(--text-dim)}
+.device-row .dcost{font-size:1rem;font-weight:700;color:var(--accent-red);flex-shrink:0}
+.bar-wrap{height:4px;background:#1a1a2a;border-radius:2px;margin-top:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--grad-1),var(--grad-2));transition:width 0.8s ease}
+
+/* Reality Check */
+.reality{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:24px;margin:28px 0}
+.reality h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:14px}
+.reality-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--card-border)}
+.reality-item:last-child{border-bottom:none}
+.reality-item .ri-icon{font-size:1.2rem}
+.reality-item .ri-text{font-size:0.9rem;color:var(--text-dim)}
+.reality-item .ri-text strong{color:var(--text)}
+
+/* Recommendations */
+.rec-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:20px;margin-bottom:12px;transition:border-color 0.2s}
+.rec-card:hover{border-color:#333}
+.rec-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rec-head .rec-icon{font-size:1.3rem}
+.rec-head .rec-title{font-weight:700;font-size:1rem}
+.rec-head .rec-save{margin-left:auto;color:var(--accent-green);font-weight:700;font-size:0.9rem}
+.rec-desc{font-size:0.85rem;color:var(--text-dim);line-height:1.5;margin-bottom:12px}
+.rec-links{display:flex;flex-wrap:wrap;gap:8px}
+.rec-link{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,136,51,0.1);border:1px solid rgba(255,136,51,0.2);border-radius:8px;color:var(--accent-orange);font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s}
+.rec-link:hover{background:rgba(255,136,51,0.2);border-color:rgba(255,136,51,0.4)}
+
+/* Email CTA */
+.email-cta{background:linear-gradient(135deg,rgba(255,68,102,0.1),rgba(255,136,51,0.1));border:1px solid rgba(255,68,102,0.2);border-radius:16px;padding:24px;text-align:center;margin:32px 0}
+.email-cta h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:6px}
+.email-cta p{font-size:0.85rem;color:var(--text-dim);margin-bottom:14px}
+.email-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.email-row input{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none}
+.email-row button{background:linear-gradient(135deg,var(--grad-1),var(--grad-2));border:none;border-radius:10px;padding:10px 18px;color:#fff;font-weight:600;font-size:0.85rem;cursor:pointer;white-space:nowrap}
+
+/* Share */
+.share-row{display:flex;gap:10px;justify-content:center;margin:24px 0}
+.share-btn{padding:10px 20px;border-radius:10px;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-family:inherit;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
+.share-btn:hover{border-color:#444;transform:translateY(-1px)}
+
+/* Footer */
+.footer{text-align:center;color:#444;font-size:0.75rem;margin-top:40px;padding-top:20px;border-top:1px solid #1a1a2a}
+.footer a{color:#666;text-decoration:none}
+
+@media(max-width:500px){
+.device-grid{grid-template-columns:1fr 1fr}
+.add-custom{flex-direction:column}
+.rate-row{flex-direction:column;align-items:flex-start;gap:8px}
+}
+</style>
+</head>
+<body>
+<canvas id="noise"></canvas>
+<div class="container">
+  <h1>Energy Vampires 🧛</h1>
+  <p class="subtitle">Your devices are <span>silently draining power</span> even when "off." The average US home wastes <span>$100–$200/year</span> on phantom load. Find your hidden energy vampires and stake them.</p>
+
+  <div class="section-title"><span class="icon">🏠</span> Select your devices</div>
+  <div class="device-grid" id="deviceGrid"></div>
+
+  <div class="add-custom">
+    <input type="text" id="customName" placeholder="Custom device name">
+    <input type="number" id="customWatts" placeholder="Standby watts" min="0" step="0.5">
+    <button onclick="addCustom()">+ Add</button>
+  </div>
+
+  <div class="rate-row">
+    <label>Your electricity rate:</label>
+    <input type="number" class="rate-input" id="rateInput" value="0.16" step="0.01" min="0.01">
+    <span class="unit">$/kWh</span>
+    <span class="rate-avg" onclick="document.getElementById('rateInput').value='0.16'">(US avg: $0.16)</span>
+  </div>
+
+  <button class="calc-btn" id="calcBtn" onclick="calculate()">⚡ Calculate My Vampire Drain</button>
+
+  <div id="results">
+    <div class="total-card">
+      <div class="total-label">Your Annual Phantom Drain</div>
+      <div class="total-amount" id="totalCost">$0</div>
+      <div class="total-sub" id="totalMonthly"></div>
+      <div class="total-kwh" id="totalKwh"></div>
+    </div>
+
+    <div class="breakdown-title">Device Breakdown</div>
+    <div id="breakdown"></div>
+
+    <div class="reality" id="reality"></div>
+
+    <div class="section-title"><span class="icon">🛡️</span> Slay Your Vampires</div>
+    <div id="recommendations"></div>
+
+    <div class="email-cta">
+      <h3>Get Monthly Energy Saving Tips</h3>
+      <p>Join 2,000+ homeowners saving $50–$200/year on electricity</p>
+      <div class="email-row">
+        <input type="email" placeholder="your@email.com" id="emailInput">
+        <button onclick="captureEmail()">Subscribe</button>
+      </div>
+    </div>
+
+    <div class="share-row">
+      <button class="share-btn" onclick="shareResults()">📋 Copy Results</button>
+      <button class="share-btn" onclick="tweetResults()">𝕏 Share</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Energy Vampires — Built by <a href="https://stirman.net">stirman.net</a></p>
+    <p style="margin-top:4px">Affiliate links help support this free tool. Savings estimates based on US averages.</p>
+  </div>
+</div>
+
+<script>
+const DEVICES = [
+  {name:"TV (LED/LCD)",emoji:"📺",watts:5,cat:"entertainment"},
+  {name:"Soundbar",emoji:"🔊",watts:6,cat:"entertainment"},
+  {name:"Game Console",emoji:"🎮",watts:10,cat:"entertainment"},
+  {name:"Streaming Stick",emoji:"📡",watts:3,cat:"entertainment"},
+  {name:"Cable/Satellite Box",emoji:"📦",watts:18,cat:"entertainment"},
+  {name:"Laptop Charger",emoji:"💻",watts:4,cat:"office"},
+  {name:"Desktop PC",emoji:"🖥️",watts:6,cat:"office"},
+  {name:"Monitor",emoji:"🖥️",watts:3,cat:"office"},
+  {name:"Printer",emoji:"🖨️",watts:5,cat:"office"},
+  {name:"Wi-Fi Router",emoji:"📶",watts:8,cat:"always-on"},
+  {name:"Smart Speaker",emoji:"🔈",watts:3,cat:"always-on"},
+  {name:"Phone Charger (empty)",emoji:"🔌",watts:0.5,cat:"chargers"},
+  {name:"Tablet Charger",emoji:"🔋",watts:0.5,cat:"chargers"},
+  {name:"Smartwatch Charger",emoji:"⌚",watts:0.3,cat:"chargers"},
+  {name:"Coffee Maker",emoji:"☕",watts:2,cat:"kitchen"},
+  {name:"Microwave",emoji:"🍿",watts:3,cat:"kitchen"},
+  {name:"Toaster Oven",emoji:"🍞",watts:1,cat:"kitchen"},
+  {name:"Instant Pot",emoji:"🍲",watts:1,cat:"kitchen"},
+  {name:"Garage Door Opener",emoji:"🚗",watts:5,cat:"other"},
+  {name:"Washer",emoji:"👕",watts:3,cat:"other"},
+  {name:"Dryer",emoji:"👖",watts:3,cat:"other"},
+  {name:"Space Heater (off)",emoji:"🔥",watts:1,cat:"other"},
+  {name:"Air Purifier",emoji:"💨",watts:4,cat:"other"},
+  {name:"Baby Monitor",emoji:"👶",watts:3,cat:"other"},
+  {name:"Electric Toothbrush",emoji:"🪥",watts:0.5,cat:"other"},
+  {name:"DVR/Blu-Ray",emoji:"📀",watts:12,cat:"entertainment"},
+  {name:"Second TV",emoji:"📺",watts:5,cat:"entertainment"},
+  {name:"Smart Display",emoji:"🖼️",watts:4,cat:"always-on"},
+];
+
+let selected = new Set();
+let customDevices = [];
+
+function renderGrid() {
+  const grid = document.getElementById('deviceGrid');
+  grid.innerHTML = '';
+  const all = [...DEVICES, ...customDevices];
+  all.forEach((d, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'device-chip' + (selected.has(i) ? ' active' : '');
+    chip.innerHTML = `<span class="emoji">${d.emoji}</span><div class="info"><div class="name">${d.name}</div><div class="watts">${d.watts}W standby</div></div><div class="check"></div>`;
+    chip.onclick = () => { selected.has(i) ? selected.delete(i) : selected.add(i); renderGrid(); };
+    grid.appendChild(chip);
+  });
+}
+
+function addCustom() {
+  const name = document.getElementById('customName').value.trim();
+  const watts = parseFloat(document.getElementById('customWatts').value);
+  if (!name || isNaN(watts) || watts < 0) return;
+  customDevices.push({name, emoji:'⚡', watts, cat:'custom'});
+  document.getElementById('customName').value = '';
+  document.getElementById('customWatts').value = '';
+  const idx = DEVICES.length + customDevices.length - 1;
+  selected.add(idx);
+  renderGrid();
+}
+
+function calculate() {
+  if (selected.size === 0) return;
+  const rate = parseFloat(document.getElementById('rateInput').value) || 0.16;
+  const all = [...DEVICES, ...customDevices];
+  const items = [...selected].map(i => all[i]).filter(Boolean);
+  const hoursPerYear = 8760;
+
+  let results = items.map(d => {
+    const kwhYear = (d.watts * hoursPerYear) / 1000;
+    const costYear = kwhYear * rate;
+    return {...d, kwhYear, costYear};
+  }).sort((a, b) => b.costYear - a.costYear);
+
+  const totalCost = results.reduce((s, r) => s + r.costYear, 0);
+  const totalKwh = results.reduce((s, r) => s + r.kwhYear, 0);
+
+  document.getElementById('totalCost').textContent = '$' + totalCost.toFixed(0);
+  document.getElementById('totalMonthly').textContent = `That's $${(totalCost / 12).toFixed(2)}/month in phantom drain`;
+  document.getElementById('totalKwh').textContent = `${totalKwh.toFixed(0)} kWh wasted per year`;
+
+  // Breakdown
+  const maxCost = results[0]?.costYear || 1;
+  const bk = document.getElementById('breakdown');
+  bk.innerHTML = results.map(r => `
+    <div class="device-row">
+      <span class="emoji">${r.emoji}</span>
+      <div class="details">
+        <div class="dname">${r.name}</div>
+        <div class="dwatts">${r.watts}W × 24/7 = ${r.kwhYear.toFixed(1)} kWh/yr</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:0%"></div></div>
+      </div>
+      <span class="dcost">$${r.costYear.toFixed(2)}</span>
+    </div>
+  `).join('');
+
+  // Animate bars
+  setTimeout(() => {
+    bk.querySelectorAll('.bar-fill').forEach((bar, i) => {
+      bar.style.width = ((results[i].costYear / maxCost) * 100) + '%';
+    });
+  }, 100);
+
+  // Reality check
+  const rc = document.getElementById('reality');
+  const coffees = (totalCost / 5.5).toFixed(0);
+  const netflix = (totalCost / 15.49).toFixed(1);
+  const trees = (totalKwh * 0.92 / 1000).toFixed(1); // lbs CO2 / 1000 for rough tree equivalent
+  const co2 = (totalKwh * 0.92).toFixed(0);
+  rc.innerHTML = `<h3>⚡ Reality Check</h3>
+    <div class="reality-item"><span class="ri-icon">☕</span><span class="ri-text">That's <strong>${coffees} lattes</strong> per year going to phantom power</span></div>
+    <div class="reality-item"><span class="ri-icon">🎬</span><span class="ri-text">Equivalent to <strong>${netflix} months</strong> of Netflix Premium</span></div>
+    <div class="reality-item"><span class="ri-icon">🌍</span><span class="ri-text"><strong>${co2} lbs of CO₂</strong> — like driving ${(totalKwh * 0.92 / 0.89).toFixed(0)} extra miles</span></div>
+    <div class="reality-item"><span class="ri-icon">💡</span><span class="ri-text">Over <strong>5 years</strong>, that's <strong>$${(totalCost * 5).toFixed(0)}</strong> silently drained</span></div>`;
+
+  // Recommendations based on what they selected
+  const recs = [];
+  const tag = 'stirman-20';
+  const hasEntertainment = results.some(r => r.cat === 'entertainment');
+  const hasOffice = results.some(r => r.cat === 'office');
+  const hasChargers = results.some(r => r.cat === 'chargers');
+  const hasKitchen = results.some(r => r.cat === 'kitchen');
+  const totalHighWatt = results.filter(r => r.watts >= 5).length;
+
+  if (totalHighWatt >= 3) {
+    recs.push({
+      icon:'🔌', title:'Smart Power Strips', save: Math.min(totalCost * 0.4, 80).toFixed(0),
+      desc:'Cut power to entertainment centers and office setups with one tap. Smart strips auto-detect when devices enter standby and kill phantom draw.',
+      links:[
+        {name:'TP-Link Kasa Smart Strip', url:`https://www.amazon.com/dp/B083JKSSYB?tag=${tag}`},
+        {name:'Amazon Smart Plug (2-pack)', url:`https://www.amazon.com/dp/B089DR29T6?tag=${tag}`}
+      ]
+    });
+  }
+
+  if (hasEntertainment) {
+    recs.push({
+      icon:'📺', title:'Entertainment Center Solution', save: Math.min(results.filter(r=>r.cat==='entertainment').reduce((s,r)=>s+r.costYear,0) * 0.7, 60).toFixed(0),
+      desc:'Your entertainment setup is likely your biggest vampire. A smart power strip with auto-switching kills standby on your TV, soundbar, and console in one shot.',
+      links:[
+        {name:'Belkin Surge Protector', url:`https://www.amazon.com/dp/B000JE9LD4?tag=${tag}`},
+        {name:'Energy Monitor Plug', url:`https://www.amazon.com/dp/B09NNT8L5L?tag=${tag}`}
+      ]
+    });
+  }
+
+  if (hasOffice) {
+    recs.push({
+      icon:'💻', title:'Office Power Management', save: Math.min(results.filter(r=>r.cat==='office').reduce((s,r)=>s+r.costYear,0) * 0.5, 40).toFixed(0),
+      desc:'Printers and monitors are sneaky drainers. Use a smart plug to schedule them off during non-work hours automatically.',
+      links:[
+        {name:'Kasa Smart Plug Mini', url:`https://www.amazon.com/dp/B07B8W2KHZ?tag=${tag}`},
+        {name:'Electricity Usage Monitor', url:`https://www.amazon.com/dp/B00009MDBU?tag=${tag}`}
+      ]
+    });
+  }
+
+  recs.push({
+    icon:'📊', title:'Monitor Your Usage', save: (totalCost * 0.15).toFixed(0),
+    desc:`You can't optimize what you can't measure. A whole-home energy monitor shows real-time usage and identifies the worst offenders.`,
+    links:[
+      {name:'Sense Energy Monitor', url:`https://www.amazon.com/dp/B075K6PHJ9?tag=${tag}`},
+      {name:'Kill A Watt Meter', url:`https://www.amazon.com/dp/B00009MDBU?tag=${tag}`}
+    ]
+  });
+
+  if (totalCost > 80) {
+    recs.push({
+      icon:'🏠', title:'Smart Home Power Control', save: (totalCost * 0.3).toFixed(0),
+      desc:'For heavy phantom loads, a smart home hub can schedule power cuts across all rooms. Set routines: everything off at bedtime, on when you wake up.',
+      links:[
+        {name:'Amazon Echo (4th Gen)', url:`https://www.amazon.com/dp/B07XKF5RM3?tag=${tag}`},
+        {name:'Smart Plug 4-Pack', url:`https://www.amazon.com/dp/B091FXLMS8?tag=${tag}`}
+      ]
+    });
+  }
+
+  const recsDiv = document.getElementById('recommendations');
+  recsDiv.innerHTML = recs.map(r => `
+    <div class="rec-card">
+      <div class="rec-head">
+        <span class="rec-icon">${r.icon}</span>
+        <span class="rec-title">${r.title}</span>
+        <span class="rec-save">Save ~$${r.save}/yr</span>
+      </div>
+      <div class="rec-desc">${r.desc}</div>
+      <div class="rec-links">
+        ${r.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener" class="rec-link">🛒 ${l.name}</a>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('results').classList.add('results-show');
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Save to localStorage
+  localStorage.setItem('ev_last', JSON.stringify({selected:[...selected], totalCost, totalKwh}));
+}
+
+function captureEmail() {
+  const e = document.getElementById('emailInput').value;
+  if (e && e.includes('@')) {
+    document.querySelector('.email-cta').innerHTML = '<h3>✅ You\'re in!</h3><p style="color:var(--text-dim)">Check your inbox for energy-saving tips.</p>';
+  }
+}
+
+function shareResults() {
+  const tc = document.getElementById('totalCost').textContent;
+  const txt = `🧛 My plugged-in devices waste ${tc}/year in phantom power! Find your energy vampires: https://stirman.net/energy-vampires/`;
+  navigator.clipboard?.writeText(txt).then(() => {
+    document.querySelectorAll('.share-btn')[0].textContent = '✅ Copied!';
+    setTimeout(() => document.querySelectorAll('.share-btn')[0].textContent = '📋 Copy Results', 2000);
+  });
+}
+
+function tweetResults() {
+  const tc = document.getElementById('totalCost').textContent;
+  const txt = encodeURIComponent(`🧛 My plugged-in devices waste ${tc}/year in phantom power!\n\nFind your energy vampires:`);
+  window.open(`https://twitter.com/intent/tweet?text=${txt}&url=${encodeURIComponent('https://stirman.net/energy-vampires/')}`, '_blank');
+}
+
+// Noise canvas
+(function() {
+  const c = document.getElementById('noise');
+  const ctx = c.getContext('2d');
+  function resize() { c.width = window.innerWidth; c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  function draw() {
+    const w = c.width, h = c.height;
+    const img = ctx.createImageData(w, h);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const v = Math.random() * 255;
+      d[i] = d[i+1] = d[i+2] = v;
+      d[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  draw();
+  // Redraw noise occasionally for subtle texture
+  setInterval(draw, 8000);
+})();
+
+renderGrid();
+</script>
+</body>
+</html>

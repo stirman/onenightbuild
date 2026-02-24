@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERSUS — NBA Player Comparison Tool</title>
+<meta name="description" content="Compare NBA players head-to-head. Career stats, visual breakdowns, and the ultimate verdict. LeBron vs Jordan? Curry vs Durant? Settle it now.">
+<meta name="keywords" content="NBA player comparison, basketball stats, LeBron vs Jordan, Curry vs Durant, NBA head to head, player stats comparison">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--surface:#14141f;--surface2:#1e1e2e;
+--orange:#ff6b2b;--blue:#4a7cff;--gold:#ffd700;
+--text:#f0f0f0;--text2:#999;--text3:#666;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.035}
+.noise::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");width:100%;height:100%}
+header{text-align:center;padding:2.5rem 1rem 1rem;position:relative;z-index:1}
+header h1{font-family:'Oswald',sans-serif;font-size:clamp(3rem,8vw,6rem);font-weight:700;letter-spacing:.08em;background:linear-gradient(135deg,var(--orange),#ff3c6f,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+header p{color:var(--text2);font-size:.95rem;margin-top:.5rem;letter-spacing:.15em;text-transform:uppercase;font-weight:300}
+.pick-section{position:relative;z-index:1;max-width:900px;margin:1.5rem auto;padding:0 1rem}
+.pick-row{display:flex;gap:1rem;align-items:stretch}
+.pick-card{flex:1;background:var(--surface);border:1px solid #2a2a3a;border-radius:12px;padding:1.2rem;position:relative;transition:border-color .3s}
+.pick-card:focus-within{border-color:var(--orange)}
+.pick-card.right:focus-within{border-color:var(--blue)}
+.pick-label{font-family:'Oswald',sans-serif;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem}
+.pick-label.left{color:var(--orange)}
+.pick-label.right{color:var(--blue)}
+.search-input{width:100%;background:var(--surface2);border:1px solid #2a2a3a;border-radius:8px;padding:.7rem 1rem;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .3s}
+.search-input:focus{border-color:var(--orange)}
+.right .search-input:focus{border-color:var(--blue)}
+.dropdown{position:absolute;left:1.2rem;right:1.2rem;top:100%;background:var(--surface2);border:1px solid #2a2a3a;border-radius:8px;max-height:240px;overflow-y:auto;z-index:10;display:none}
+.dropdown.show{display:block}
+.dropdown-item{padding:.6rem 1rem;cursor:pointer;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;transition:background .15s}
+.dropdown-item:hover,.dropdown-item.active{background:#2a2a3a}
+.dropdown-item .team{color:var(--text3);font-size:.75rem}
+.vs-badge{align-self:center;flex-shrink:0;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;box-shadow:0 0 30px rgba(255,107,43,.3)}
+.compare-btn{display:block;margin:1.5rem auto;padding:.8rem 3rem;background:linear-gradient(135deg,var(--orange),#ff3c6f);border:none;border-radius:50px;color:#fff;font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;z-index:1}
+.compare-btn:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(255,107,43,.4)}
+.compare-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.results{max-width:900px;margin:0 auto 3rem;padding:0 1rem;position:relative;z-index:1;display:none}
+.results.show{display:block}
+.player-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;gap:1rem}
+.player-name{font-family:'Oswald',sans-serif;font-size:clamp(1.3rem,4vw,2rem);font-weight:600}
+.player-name.left{color:var(--orange)}
+.player-name.right{color:var(--blue)}
+.player-meta{font-size:.8rem;color:var(--text3);margin-top:.2rem}
+.stat-row{margin-bottom:1rem}
+.stat-label{text-align:center;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem;font-weight:500}
+.stat-bars{display:flex;gap:4px;align-items:center;height:36px}
+.bar-left,.bar-right{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 .7rem;font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:500;transition:width .8s cubic-bezier(.4,0,.2,1);min-width:40px}
+.bar-left{background:var(--orange);justify-content:flex-end;margin-left:auto;border-radius:4px 0 0 4px}
+.bar-right{background:var(--blue);justify-content:flex-start;border-radius:0 4px 4px 0}
+.bar-left.winner{background:var(--orange);box-shadow:0 0 15px rgba(255,107,43,.4)}
+.bar-right.winner{background:var(--blue);box-shadow:0 0 15px rgba(74,124,255,.4)}
+.bar-left:not(.winner){background:#3a2a1a;color:var(--text3)}
+.bar-right:not(.winner){background:#1a2a4a;color:var(--text3)}
+.verdict{text-align:center;margin:2.5rem 0;padding:2rem;background:var(--surface);border-radius:16px;border:1px solid #2a2a3a}
+.verdict h2{font-family:'Oswald',sans-serif;font-size:1.8rem;margin-bottom:.5rem;letter-spacing:.05em}
+.verdict .winner-name{font-size:2.5rem;background:linear-gradient(135deg,var(--gold),#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.verdict .score{color:var(--text2);font-size:1rem;margin-top:.3rem}
+.merch{margin:2rem 0;padding:1.5rem;background:var(--surface);border-radius:12px;border:1px solid #2a2a3a}
+.merch h3{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:.15em;color:var(--gold);margin-bottom:1rem;text-transform:uppercase}
+.merch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.merch-item{background:var(--surface2);border-radius:8px;padding:1rem;text-align:center;transition:transform .2s}
+.merch-item:hover{transform:translateY(-2px)}
+.merch-item a{color:var(--text);text-decoration:none;display:block}
+.merch-item .emoji{font-size:2rem;margin-bottom:.5rem}
+.merch-item .name{font-weight:500;font-size:.9rem;margin-bottom:.3rem}
+.merch-item .cta{color:var(--orange);font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-top:.5rem}
+.email-capture{text-align:center;margin:2.5rem 0;padding:2rem;background:linear-gradient(135deg,#1a1025,#0f1a2e);border-radius:16px;border:1px solid #2a2a3a}
+.email-capture h3{font-family:'Oswald',sans-serif;font-size:1.3rem;letter-spacing:.08em;margin-bottom:.4rem}
+.email-capture p{color:var(--text2);font-size:.85rem;margin-bottom:1rem}
+.email-row{display:flex;gap:.5rem;max-width:400px;margin:0 auto}
+.email-row input{flex:1;padding:.7rem 1rem;background:var(--surface2);border:1px solid #2a2a3a;border-radius:8px;color:var(--text);font-size:.9rem;outline:none}
+.email-row button{padding:.7rem 1.5rem;background:var(--orange);border:none;border-radius:8px;color:#fff;font-family:'Oswald',sans-serif;font-size:.85rem;letter-spacing:.1em;cursor:pointer;white-space:nowrap}
+.popular{max-width:900px;margin:2rem auto;padding:0 1rem;position:relative;z-index:1}
+.popular h3{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:1rem}
+.popular-grid{display:flex;flex-wrap:wrap;gap:.5rem}
+.pop-chip{padding:.5rem 1rem;background:var(--surface);border:1px solid #2a2a3a;border-radius:50px;font-size:.8rem;cursor:pointer;transition:all .2s;color:var(--text2)}
+.pop-chip:hover{border-color:var(--orange);color:var(--text)}
+footer{text-align:center;padding:2rem;color:var(--text3);font-size:.75rem;position:relative;z-index:1;border-top:1px solid #1a1a2a;margin-top:3rem}
+footer a{color:var(--orange);text-decoration:none}
+.ad-slot{max-width:900px;margin:1.5rem auto;padding:0 1rem;position:relative;z-index:1}
+.ad-placeholder{background:var(--surface);border:1px dashed #2a2a3a;border-radius:8px;padding:1rem;text-align:center;color:var(--text3);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase}
+@media(max-width:600px){
+.pick-row{flex-direction:column}
+.vs-badge{align-self:center;width:40px;height:40px;font-size:.9rem}
+.player-header{flex-direction:column;text-align:center}
+.email-row{flex-direction:column}
+.stat-bars{height:30px}
+.bar-left,.bar-right{font-size:.8rem;padding:0 .5rem}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<header>
+<h1>VERSUS</h1>
+<p>NBA Head-to-Head Player Comparison</p>
+</header>
+
+<div class="pick-section">
+<div class="pick-row">
+<div class="pick-card left">
+<div class="pick-label left">Player 1</div>
+<input class="search-input" id="search1" type="text" placeholder="Search player..." autocomplete="off">
+<div class="dropdown" id="dd1"></div>
+</div>
+<div class="vs-badge">VS</div>
+<div class="pick-card right">
+<div class="pick-label right">Player 2</div>
+<input class="search-input" id="search2" type="text" placeholder="Search player..." autocomplete="off">
+<div class="dropdown" id="dd2"></div>
+</div>
+</div>
+</div>
+
+<button class="compare-btn" id="compareBtn" disabled>COMPARE</button>
+
+<div class="popular">
+<h3>🔥 Popular Matchups</h3>
+<div class="popular-grid" id="popGrid"></div>
+</div>
+
+<div class="ad-slot"><div class="ad-placeholder">— Ad Space —</div></div>
+
+<div class="results" id="results">
+<div class="player-header">
+<div><div class="player-name left" id="name1"></div><div class="player-meta" id="meta1"></div></div>
+<div style="text-align:center;font-family:'Oswald',sans-serif;color:var(--text3);font-size:.9rem">HEAD TO HEAD</div>
+<div style="text-align:right"><div class="player-name right" id="name2"></div><div class="player-meta" id="meta2"></div></div>
+</div>
+<div id="statRows"></div>
+<div class="verdict" id="verdict"></div>
+<div class="merch" id="merch"></div>
+<div class="email-capture">
+<h3>🏀 Get Weekly NBA Debates</h3>
+<p>Hot takes, deep stats, and the matchups that matter — every Friday.</p>
+<div class="email-row">
+<input type="email" placeholder="your@email.com" id="emailInput">
+<button onclick="document.getElementById('emailInput').value='';this.textContent='Subscribed!';this.style.background='#2a6'">JOIN</button>
+</div>
+</div>
+</div>
+
+<footer>
+<p>VERSUS — Built by <a href="https://stirman.net">Stirman</a> · Stats are career averages · Not affiliated with the NBA</p>
+<p style="margin-top:.3rem">As an Amazon Associate, this site may earn from qualifying purchases.</p>
+</footer>
+
+<script>
+const PLAYERS=[
+{name:"LeBron James",team:"LAL",pos:"SF",years:"2003-",ppg:27.1,rpg:7.5,apg:7.4,spg:1.5,bpg:0.8,fg:50.6,tp:34.8,ft:73.5,gp:1492,ws:267.2,mvps:4,rings:4,allstar:20,jersey:"lebron-james",img:"👑"},
+{name:"Michael Jordan",team:"CHI",pos:"SG",years:"1984-2003",ppg:30.1,rpg:6.2,apg:5.3,spg:2.3,bpg:0.8,fg:49.7,tp:32.7,ft:83.5,gp:1072,ws:214.0,mvps:5,rings:6,allstar:14,jersey:"michael-jordan",img:"🐐"},
+{name:"Stephen Curry",team:"GSW",pos:"PG",years:"2009-",ppg:24.8,rpg:4.7,apg:6.4,spg:1.4,bpg:0.2,fg:47.3,tp:42.6,ft:91.0,gp:956,ws:134.8,mvps:2,rings:4,allstar:10,jersey:"stephen-curry",img:"🎯"},
+{name:"Kevin Durant",team:"PHX",pos:"SF",years:"2007-",ppg:27.3,rpg:7.0,apg:4.4,spg:1.1,bpg:1.1,fg:50.1,tp:38.7,ft:88.3,gp:1042,ws:162.3,mvps:1,rings:2,allstar:14,jersey:"kevin-durant",img:"🐍"},
+{name:"Kobe Bryant",team:"LAL",pos:"SG",years:"1996-2016",ppg:25.0,rpg:5.2,apg:4.7,spg:1.4,bpg:0.5,fg:44.7,tp:32.9,ft:83.7,gp:1346,ws:172.7,mvps:1,rings:5,allstar:18,jersey:"kobe-bryant",img:"🐍"},
+{name:"Giannis Antetokounmpo",team:"MIL",pos:"PF",years:"2013-",ppg:23.4,rpg:9.8,apg:4.9,spg:1.1,bpg:1.3,fg:54.5,tp:28.6,ft:68.8,gp:814,ws:120.5,mvps:2,rings:1,allstar:8,jersey:"giannis-antetokounmpo",img:"🦌"},
+{name:"Nikola Jokić",team:"DEN",pos:"C",years:"2015-",ppg:21.0,rpg:10.5,apg:7.0,spg:1.3,bpg:0.7,fg:56.2,tp:34.2,ft:82.1,gp:700,ws:120.1,mvps:3,rings:1,allstar:6,jersey:"nikola-jokic",img:"🃏"},
+{name:"Luka Dončić",team:"LAL",pos:"PG",years:"2018-",ppg:28.7,rpg:8.3,apg:8.3,spg:1.1,bpg:0.4,fg:46.0,tp:34.4,ft:76.1,gp:420,ws:52.8,mvps:0,rings:0,allstar:5,jersey:"luka-doncic",img:"🇸🇮"},
+{name:"Shaquille O'Neal",team:"LAL",pos:"C",years:"1992-2011",ppg:23.7,rpg:10.9,apg:2.5,spg:0.6,bpg:2.3,fg:58.2,tp:4.5,ft:52.7,gp:1207,ws:181.7,mvps:1,rings:4,allstar:15,jersey:"shaquille-oneal",img:"🦸"},
+{name:"Tim Duncan",team:"SAS",pos:"PF",years:"1997-2016",ppg:19.0,rpg:10.8,apg:3.0,spg:0.7,bpg:2.2,fg:50.6,tp:17.9,ft:69.6,gp:1392,ws:206.4,mvps:2,rings:5,allstar:15,jersey:"tim-duncan",img:"🪨"},
+{name:"Magic Johnson",team:"LAL",pos:"PG",years:"1979-1996",ppg:19.5,rpg:7.2,apg:11.2,spg:1.9,bpg:0.4,fg:52.0,tp:30.3,ft:84.8,gp:906,ws:155.8,mvps:3,rings:5,allstar:12,jersey:"magic-johnson",img:"✨"},
+{name:"Larry Bird",team:"BOS",pos:"SF",years:"1979-1992",ppg:24.3,rpg:10.0,apg:6.3,spg:1.7,bpg:0.8,fg:49.6,tp:37.6,ft:88.6,gp:897,ws:145.8,mvps:3,rings:3,allstar:12,jersey:"larry-bird",img:"🐦"},
+{name:"Kareem Abdul-Jabbar",team:"LAL",pos:"C",years:"1969-1989",ppg:24.6,rpg:11.2,apg:3.6,spg:0.9,bpg:2.6,fg:55.9,tp:5.6,ft:72.1,gp:1560,ws:273.4,mvps:6,rings:6,allstar:19,jersey:"kareem-abdul-jabbar",img:"🏔️"},
+{name:"Wilt Chamberlain",team:"PHI",pos:"C",years:"1959-1973",ppg:30.1,rpg:22.9,apg:4.4,spg:0,bpg:0,fg:54.0,tp:0,ft:51.1,gp:1045,ws:247.3,mvps:4,rings:2,allstar:13,jersey:"wilt-chamberlain",img:"💯"},
+{name:"Bill Russell",team:"BOS",pos:"C",years:"1956-1969",ppg:15.1,rpg:22.5,apg:4.3,spg:0,bpg:0,fg:44.0,tp:0,ft:56.1,gp:963,ws:163.5,mvps:5,rings:11,allstar:12,jersey:"bill-russell",img:"🏆"},
+{name:"Hakeem Olajuwon",team:"HOU",pos:"C",years:"1984-2002",ppg:21.8,rpg:11.1,apg:2.5,spg:1.7,bpg:3.1,fg:51.2,tp:20.2,ft:71.2,gp:1238,ws:162.8,mvps:1,rings:2,allstar:12,jersey:"hakeem-olajuwon",img:"🌀"},
+{name:"Allen Iverson",team:"PHI",pos:"SG",years:"1996-2010",ppg:26.7,rpg:3.7,apg:6.2,spg:2.2,bpg:0.2,fg:42.5,tp:31.3,ft:78.0,gp:914,ws:74.0,mvps:1,rings:0,allstar:11,jersey:"allen-iverson",img:"💎"},
+{name:"Dirk Nowitzki",team:"DAL",pos:"PF",years:"1998-2019",ppg:20.7,rpg:7.5,apg:2.4,spg:0.9,bpg:0.8,fg:47.1,tp:38.0,ft:87.9,gp:1522,ws:206.3,mvps:1,rings:1,allstar:14,jersey:"dirk-nowitzki",img:"🇩🇪"},
+{name:"Dwyane Wade",team:"MIA",pos:"SG",years:"2003-2019",ppg:22.0,rpg:4.7,apg:5.4,spg:1.5,bpg:0.9,fg:48.0,tp:29.3,ft:76.5,gp:1054,ws:120.7,mvps:0,rings:3,allstar:13,jersey:"dwyane-wade",img:"⚡"},
+{name:"Kevin Garnett",team:"MIN",pos:"PF",years:"1995-2016",ppg:17.8,rpg:10.0,apg:3.7,spg:1.3,bpg:1.4,fg:49.7,tp:27.5,ft:78.9,gp:1462,ws:191.4,mvps:1,rings:1,allstar:15,jersey:"kevin-garnett",img:"🐺"},
+{name:"Charles Barkley",team:"PHX",pos:"PF",years:"1984-2000",ppg:22.1,rpg:11.7,apg:3.9,spg:1.5,bpg:0.8,fg:54.1,tp:26.6,ft:73.5,gp:1073,ws:177.2,mvps:1,rings:0,allstar:11,jersey:"charles-barkley",img:"🔥"},
+{name:"Julius Erving",team:"PHI",pos:"SF",years:"1976-1987",ppg:22.0,rpg:6.7,apg:3.9,spg:1.8,bpg:1.5,fg:50.7,tp:26.0,ft:77.7,gp:836,ws:104.7,mvps:1,rings:1,allstar:11,jersey:"julius-erving",img:"🏀"},
+{name:"Karl Malone",team:"UTA",pos:"PF",years:"1985-2004",ppg:25.0,rpg:10.1,apg:3.6,spg:1.4,bpg:0.8,fg:51.6,tp:27.4,ft:74.2,gp:1476,ws:234.6,mvps:2,rings:0,allstar:14,jersey:"karl-malone",img:"📬"},
+{name:"John Stockton",team:"UTA",pos:"PG",years:"1984-2003",ppg:13.1,rpg:2.7,apg:10.5,spg:2.2,bpg:0.2,fg:51.5,tp:38.4,ft:82.6,gp:1504,ws:207.7,mvps:0,rings:0,allstar:10,jersey:"john-stockton",img:"🎯"},
+{name:"Scottie Pippen",team:"CHI",pos:"SF",years:"1987-2004",ppg:16.1,rpg:6.4,apg:5.2,spg:2.0,bpg:0.8,fg:47.3,tp:32.6,ft:70.4,gp:1178,ws:127.7,mvps:0,rings:6,allstar:7,jersey:"scottie-pippen",img:"🦇"},
+{name:"James Harden",team:"LAC",pos:"SG",years:"2009-",ppg:24.1,rpg:5.3,apg:7.1,spg:1.4,bpg:0.5,fg:44.2,tp:36.3,ft:86.1,gp:1100,ws:137.9,mvps:1,rings:0,allstar:10,jersey:"james-harden",img:"🧔"},
+{name:"Russell Westbrook",team:"DEN",pos:"PG",years:"2008-",ppg:21.7,rpg:7.1,apg:8.1,spg:1.6,bpg:0.3,fg:43.4,tp:30.5,ft:79.8,gp:1100,ws:112.0,mvps:1,rings:0,allstar:9,jersey:"russell-westbrook",img:"⚡"},
+{name:"Kawhi Leonard",team:"LAC",pos:"SF",years:"2011-",ppg:20.0,rpg:6.4,apg:3.0,spg:1.7,bpg:0.6,fg:49.6,tp:38.5,ft:87.0,gp:550,ws:73.2,mvps:0,rings:2,allstar:5,jersey:"kawhi-leonard",img:"🤖"},
+{name:"Anthony Davis",team:"LAL",pos:"PF",years:"2012-",ppg:23.8,rpg:10.4,apg:2.4,spg:1.3,bpg:2.2,fg:51.8,tp:29.6,ft:79.5,gp:750,ws:95.5,mvps:0,rings:1,allstar:9,jersey:"anthony-davis",img:"🦅"},
+{name:"Joel Embiid",team:"PHI",pos:"C",years:"2016-",ppg:27.9,rpg:11.2,apg:3.6,spg:0.9,bpg:1.7,fg:50.4,tp:33.0,ft:85.8,gp:433,ws:61.5,mvps:1,rings:0,allstar:7,jersey:"joel-embiid",img:"🤷"},
+{name:"Jayson Tatum",team:"BOS",pos:"SF",years:"2017-",ppg:23.1,rpg:7.2,apg:4.6,spg:1.1,bpg:0.7,fg:45.3,tp:37.2,ft:85.2,gp:540,ws:62.3,mvps:0,rings:1,allstar:5,jersey:"jayson-tatum",img:"🍀"},
+{name:"Shai Gilgeous-Alexander",team:"OKC",pos:"SG",years:"2018-",ppg:24.2,rpg:5.0,apg:5.5,spg:1.5,bpg:0.8,fg:49.8,tp:34.5,ft:87.4,gp:410,ws:52.0,mvps:1,rings:0,allstar:4,jersey:"shai-gilgeous-alexander",img:"🇨🇦"},
+{name:"Damian Lillard",team:"MIL",pos:"PG",years:"2012-",ppg:25.1,rpg:4.2,apg:6.7,spg:0.9,bpg:0.3,fg:44.0,tp:37.1,ft:89.4,gp:850,ws:93.5,mvps:0,rings:0,allstar:7,jersey:"damian-lillard",img:"⌚"},
+{name:"Chris Paul",team:"SAS",pos:"PG",years:"2005-",ppg:17.5,rpg:4.5,apg:9.4,spg:2.1,bpg:0.2,fg:47.1,tp:36.9,ft:87.0,gp:1272,ws:177.3,mvps:0,rings:0,allstar:12,jersey:"chris-paul",img:"🎩"},
+{name:"Victor Wembanyama",team:"SAS",pos:"C",years:"2023-",ppg:22.0,rpg:10.5,apg:3.8,spg:1.2,bpg:3.6,fg:47.2,tp:33.5,ft:79.0,gp:150,ws:18.5,mvps:0,rings:0,allstar:2,jersey:"victor-wembanyama",img:"🗼"},
+{name:"Jalen Brunson",team:"NYK",pos:"PG",years:"2018-",ppg:17.8,rpg:3.5,apg:5.2,spg:0.8,bpg:0.2,fg:48.0,tp:38.0,ft:84.5,gp:440,ws:40.2,mvps:0,rings:0,allstar:3,jersey:"jalen-brunson",img:"🗽"},
+{name:"Tyrese Haliburton",team:"IND",pos:"PG",years:"2020-",ppg:16.5,rpg:3.8,apg:8.5,spg:1.5,bpg:0.3,fg:47.8,tp:38.8,ft:84.2,gp:310,ws:35.0,mvps:0,rings:0,allstar:2,jersey:"tyrese-haliburton",img:"🎪"},
+{name:"Anthony Edwards",team:"MIN",pos:"SG",years:"2020-",ppg:23.5,rpg:5.5,apg:4.2,spg:1.3,bpg:0.5,fg:45.8,tp:36.2,ft:79.5,gp:350,ws:35.5,mvps:0,rings:0,allstar:3,jersey:"anthony-edwards",img:"🐜"},
+{name:"Trae Young",team:"ATL",pos:"PG",years:"2018-",ppg:25.2,rpg:3.7,apg:9.5,spg:0.9,bpg:0.2,fg:43.8,tp:35.2,ft:86.8,gp:430,ws:40.8,mvps:0,rings:0,allstar:3,jersey:"trae-young",img:"🧊"},
+{name:"Ja Morant",team:"MEM",pos:"PG",years:"2019-",ppg:22.5,rpg:4.3,apg:7.2,spg:0.9,bpg:0.3,fg:47.2,tp:31.5,ft:75.8,gp:280,ws:28.0,mvps:0,rings:0,allstar:2,jersey:"ja-morant",img:"💫"},
+];
+
+const STATS=[
+{key:"ppg",label:"Points Per Game",higher:true},
+{key:"rpg",label:"Rebounds Per Game",higher:true},
+{key:"apg",label:"Assists Per Game",higher:true},
+{key:"spg",label:"Steals Per Game",higher:true},
+{key:"bpg",label:"Blocks Per Game",higher:true},
+{key:"fg",label:"FG%",higher:true},
+{key:"tp",label:"3PT%",higher:true},
+{key:"ft",label:"FT%",higher:true},
+{key:"gp",label:"Games Played",higher:true},
+{key:"rings",label:"Championships",higher:true},
+{key:"mvps",label:"MVP Awards",higher:true},
+{key:"allstar",label:"All-Star Selections",higher:true},
+];
+
+const POPULAR=[
+["LeBron James","Michael Jordan"],
+["Stephen Curry","Kevin Durant"],
+["Kobe Bryant","Michael Jordan"],
+["LeBron James","Stephen Curry"],
+["Giannis Antetokounmpo","Nikola Jokić"],
+["Luka Dončić","Shai Gilgeous-Alexander"],
+["Shaquille O'Neal","Hakeem Olajuwon"],
+["Victor Wembanyama","Anthony Edwards"],
+["Magic Johnson","Larry Bird"],
+];
+
+let sel1=null,sel2=null;
+
+function init(){
+const grid=document.getElementById('popGrid');
+POPULAR.forEach(([a,b])=>{
+const chip=document.createElement('div');
+chip.className='pop-chip';
+chip.textContent=`${a} vs ${b}`;
+chip.onclick=()=>{
+sel1=PLAYERS.find(p=>p.name===a);
+sel2=PLAYERS.find(p=>p.name===b);
+document.getElementById('search1').value=a;
+document.getElementById('search2').value=b;
+document.getElementById('compareBtn').disabled=false;
+compare();
+};
+grid.appendChild(chip);
+});
+
+['1','2'].forEach(n=>{
+const input=document.getElementById('search'+n);
+const dd=document.getElementById('dd'+n);
+input.addEventListener('input',()=>{
+const q=input.value.toLowerCase().trim();
+dd.innerHTML='';
+if(q.length<1){dd.classList.remove('show');return}
+const matches=PLAYERS.filter(p=>p.name.toLowerCase().includes(q)).slice(0,8);
+if(!matches.length){dd.classList.remove('show');return}
+matches.forEach(p=>{
+const d=document.createElement('div');
+d.className='dropdown-item';
+d.innerHTML=`<span>${p.img} ${p.name}</span><span class="team">${p.team} · ${p.pos}</span>`;
+d.onclick=()=>{
+if(n==='1')sel1=p;else sel2=p;
+input.value=p.name;
+dd.classList.remove('show');
+document.getElementById('compareBtn').disabled=!(sel1&&sel2);
+};
+dd.appendChild(d);
+});
+dd.classList.add('show');
+});
+input.addEventListener('blur',()=>setTimeout(()=>dd.classList.remove('show'),200));
+});
+}
+
+function compare(){
+if(!sel1||!sel2)return;
+const r=document.getElementById('results');
+r.classList.add('show');
+document.getElementById('name1').textContent=`${sel1.img} ${sel1.name}`;
+document.getElementById('name2').textContent=`${sel2.name} ${sel2.img}`;
+document.getElementById('meta1').textContent=`${sel1.team} · ${sel1.pos} · ${sel1.years}`;
+document.getElementById('meta2').textContent=`${sel2.team} · ${sel2.pos} · ${sel2.years}`;
+
+const rows=document.getElementById('statRows');
+rows.innerHTML='';
+let w1=0,w2=0,ties=0;
+
+STATS.forEach((s,i)=>{
+const v1=sel1[s.key],v2=sel2[s.key];
+const max=Math.max(v1,v2)||1;
+const p1=Math.max((v1/max)*100,15);
+const p2=Math.max((v2/max)*100,15);
+const win1=s.higher?v1>v2:v1<v2;
+const win2=s.higher?v2>v1:v2<v1;
+if(win1)w1++;else if(win2)w2++;else ties++;
+
+const row=document.createElement('div');
+row.className='stat-row';
+row.innerHTML=`
+<div class="stat-label">${s.label}</div>
+<div class="stat-bars">
+<div class="bar-left ${win1?'winner':''}" style="width:0%">${s.key==='fg'||s.key==='tp'||s.key==='ft'?v1.toFixed(1)+'%':v1}</div>
+<div class="bar-right ${win2?'winner':''}" style="width:0%">${s.key==='fg'||s.key==='tp'||s.key==='ft'?v2.toFixed(1)+'%':v2}</div>
+</div>`;
+rows.appendChild(row);
+
+setTimeout(()=>{
+row.querySelector('.bar-left').style.width=p1+'%';
+row.querySelector('.bar-right').style.width=p2+'%';
+},50+i*80);
+});
+
+const v=document.getElementById('verdict');
+const winner=w1>w2?sel1:w2>w1?sel2:null;
+v.innerHTML=winner?`
+<h2>THE VERDICT</h2>
+<div class="winner-name">${winner.img} ${winner.name}</div>
+<div class="score">Wins ${Math.max(w1,w2)} of ${STATS.length} categories (${Math.min(w1,w2)} to opponent${ties?', '+ties+' tied':''})</div>
+`:`<h2>IT'S A TIE</h2><div class="score">${w1} - ${w2}${ties?' ('+ties+' tied)':''}</div>`;
+
+const merch=document.getElementById('merch');
+const tag='stirman-20';
+merch.innerHTML=`
+<h3>🛒 Rep Your Pick</h3>
+<div class="merch-grid">
+<div class="merch-item"><a href="https://www.amazon.com/s?k=${encodeURIComponent(sel1.name+' jersey')}&tag=${tag}" target="_blank" rel="noopener">
+<div class="emoji">${sel1.img}</div><div class="name">${sel1.name} Jersey</div><div class="cta">Shop on Amazon →</div></a></div>
+<div class="merch-item"><a href="https://www.amazon.com/s?k=${encodeURIComponent(sel2.name+' jersey')}&tag=${tag}" target="_blank" rel="noopener">
+<div class="emoji">${sel2.img}</div><div class="name">${sel2.name} Jersey</div><div class="cta">Shop on Amazon →</div></a></div>
+<div class="merch-item"><a href="https://www.amazon.com/s?k=basketball+shoes&tag=${tag}" target="_blank" rel="noopener">
+<div class="emoji">👟</div><div class="name">Basketball Shoes</div><div class="cta">Shop on Amazon →</div></a></div>
+<div class="merch-item"><a href="https://www.amazon.com/s?k=NBA+memorabilia&tag=${tag}" target="_blank" rel="noopener">
+<div class="emoji">🏆</div><div class="name">NBA Memorabilia</div><div class="cta">Shop on Amazon →</div></a></div>
+</div>`;
+
+r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('compareBtn').onclick=compare;
+init();
+</script>
+</body>
+</html>

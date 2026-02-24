@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitStack — Home Workout Generator | Quick Custom Workouts</title>
+<meta name="description" content="Generate custom home workouts in seconds. Pick your equipment, time, and target muscles. Free workout generator with exercise guides.">
+<meta name="keywords" content="home workout generator, custom workout, home exercise, no equipment workout, bodyweight workout, HIIT workout generator">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#141420;--accent:#ff4d4d;--accent2:#4dff91;--accent3:#4d8cff;--text:#f0f0f5;--muted:#8888a0;--border:#2a2a3a}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 50%,rgba(255,77,77,.08),transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(77,255,145,.06),transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(77,140,255,.06),transparent 50%);pointer-events:none;z-index:0}
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;opacity:.035;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px}
+.container{max-width:680px;margin:0 auto;padding:24px 20px;position:relative;z-index:2}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,5rem);letter-spacing:2px;line-height:.95;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tagline{color:var(--muted);font-size:1rem;margin-bottom:40px}
+h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px;margin-bottom:16px;color:var(--accent)}
+.section{margin-bottom:36px}
+.section-label{font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:10px 18px;border-radius:50px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.chip.active-green{background:var(--accent2);border-color:var(--accent2);color:#000;font-weight:600}
+.chip.active-blue{background:var(--accent3);border-color:var(--accent3);color:#000;font-weight:600}
+.generate-btn{width:100%;padding:18px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--accent),#ff8c4d);color:#000;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 30px rgba(255,77,77,.3)}
+.generate-btn:hover{transform:translateY(-2px);box-shadow:0 6px 40px rgba(255,77,77,.45)}
+.generate-btn:active{transform:translateY(0)}
+.generate-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+#workout{display:none;margin-top:40px}
+.workout-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+.workout-header h2{margin-bottom:0}
+.workout-meta{font-size:.8rem;color:var(--muted)}
+.exercise-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:12px;animation:slideUp .4s ease both}
+.exercise-card:nth-child(2){animation-delay:.05s}
+.exercise-card:nth-child(3){animation-delay:.1s}
+.exercise-card:nth-child(4){animation-delay:.15s}
+.exercise-card:nth-child(5){animation-delay:.2s}
+.exercise-card:nth-child(6){animation-delay:.25s}
+.exercise-card:nth-child(7){animation-delay:.3s}
+.exercise-card:nth-child(8){animation-delay:.35s}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ex-name{font-weight:700;font-size:1.1rem}
+.ex-badge{font-size:.7rem;padding:4px 10px;border-radius:50px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.ex-badge.strength{background:rgba(255,77,77,.15);color:var(--accent)}
+.ex-badge.cardio{background:rgba(77,255,145,.15);color:var(--accent2)}
+.ex-badge.core{background:rgba(77,140,255,.15);color:var(--accent3)}
+.ex-badge.flexibility{background:rgba(255,200,77,.15);color:#ffc84d}
+.ex-details{display:flex;gap:16px;font-size:.85rem;color:var(--muted);margin-bottom:8px;flex-wrap:wrap}
+.ex-details span::before{margin-right:4px}
+.ex-how{font-size:.8rem;color:var(--muted);line-height:1.5;border-top:1px solid var(--border);padding-top:10px;margin-top:8px}
+.ex-muscles{font-size:.75rem;color:var(--accent);margin-top:6px}
+.rest-card{text-align:center;padding:14px;color:var(--muted);font-size:.85rem;font-style:italic;margin-bottom:12px;border-left:2px solid var(--border);animation:slideUp .4s ease both}
+.gear-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:32px}
+.gear-section h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;margin-bottom:4px}
+.gear-section .sub{font-size:.8rem;color:var(--muted);margin-bottom:16px}
+.gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gear-link{display:block;padding:12px 14px;background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.2);border-radius:10px;text-decoration:none;color:var(--text);font-size:.85rem;font-weight:500;transition:all .2s}
+.gear-link:hover{background:rgba(255,77,77,.15);border-color:var(--accent);transform:translateY(-1px)}
+.gear-link .price{display:block;font-size:.75rem;color:var(--accent);margin-top:2px}
+.email-section{background:linear-gradient(135deg,rgba(255,77,77,.1),rgba(77,255,145,.08));border:1px solid var(--border);border-radius:14px;padding:28px;margin-top:24px;text-align:center}
+.email-section h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;margin-bottom:6px}
+.email-section p{font-size:.85rem;color:var(--muted);margin-bottom:16px}
+.email-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.email-row input{flex:1;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.9rem}
+.email-row button{padding:12px 20px;border-radius:10px;border:none;background:var(--accent);color:#000;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;font-size:.85rem;white-space:nowrap}
+.footer{text-align:center;padding:40px 0 20px;font-size:.75rem;color:var(--muted)}
+.footer a{color:var(--accent);text-decoration:none}
+.share-btn{padding:10px 20px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s}
+.share-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.timer-section{margin-top:24px;text-align:center}
+.timer-display{font-family:'Bebas Neue',sans-serif;font-size:4rem;letter-spacing:2px;margin:16px 0}
+.timer-controls{display:flex;gap:10px;justify-content:center}
+.timer-btn{padding:10px 24px;border-radius:50px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.timer-btn.start{border-color:var(--accent2);color:var(--accent2)}
+.timer-btn.start:hover{background:var(--accent2);color:#000}
+.timer-btn.stop{border-color:var(--accent);color:var(--accent)}
+.timer-btn.stop:hover{background:var(--accent);color:#000}
+@media(max-width:500px){
+.gear-grid{grid-template-columns:1fr}
+.email-row{flex-direction:column}
+.email-row button{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+<h1>FIT<span>STACK</span></h1>
+<p class="tagline">Custom workouts in 10 seconds. No gym required.</p>
+
+<div class="section">
+<div class="section-label">🏋️ Your Equipment</div>
+<div class="chips" id="equipChips"></div>
+</div>
+
+<div class="section">
+<div class="section-label">⏱️ How Long</div>
+<div class="chips" id="timeChips"></div>
+</div>
+
+<div class="section">
+<div class="section-label">🎯 Target Muscles</div>
+<div class="chips" id="muscleChips"></div>
+</div>
+
+<div class="section">
+<div class="section-label">🔥 Intensity</div>
+<div class="chips" id="intensityChips"></div>
+</div>
+
+<button class="generate-btn" id="generateBtn" onclick="generate()">GENERATE WORKOUT</button>
+
+<div id="workout"></div>
+</div>
+
+<script>
+const EQUIP = ['None (Bodyweight)','Dumbbells','Resistance Bands','Kettlebell','Pull-up Bar','Jump Rope','Yoga Mat','Foam Roller'];
+const TIMES = [{l:'10 min',v:10},{l:'15 min',v:15},{l:'20 min',v:20},{l:'30 min',v:30},{l:'45 min',v:45}];
+const MUSCLES = ['Full Body','Upper Body','Lower Body','Core','Arms','Chest','Back','Shoulders','Glutes','Legs'];
+const INTENSITY = [{l:'Easy',v:1},{l:'Moderate',v:2},{l:'Hard',v:3},{l:'Beast Mode',v:4}];
+
+const EXERCISES = [
+// Bodyweight
+{name:'Push-ups',equip:['None (Bodyweight)'],muscles:['Chest','Upper Body','Arms','Full Body'],type:'strength',sets:'3',reps:'12-15',how:'Hands shoulder-width, lower chest to floor, push back up. Keep core tight.',intensity:[1,2,3]},
+{name:'Diamond Push-ups',equip:['None (Bodyweight)'],muscles:['Chest','Arms','Upper Body'],type:'strength',sets:'3',reps:'8-12',how:'Hands together forming diamond shape under chest. Squeeze triceps at top.',intensity:[2,3,4]},
+{name:'Pike Push-ups',equip:['None (Bodyweight)'],muscles:['Shoulders','Upper Body'],type:'strength',sets:'3',reps:'8-10',how:'Hips high in inverted V. Lower head toward floor between hands.',intensity:[2,3]},
+{name:'Bodyweight Squats',equip:['None (Bodyweight)'],muscles:['Legs','Lower Body','Glutes','Full Body'],type:'strength',sets:'3',reps:'15-20',how:'Feet shoulder-width, sit back and down, drive through heels to stand.',intensity:[1,2]},
+{name:'Jump Squats',equip:['None (Bodyweight)'],muscles:['Legs','Lower Body','Glutes','Full Body'],type:'cardio',sets:'3',reps:'10-12',how:'Squat down, explode up into a jump. Land softly, immediately squat again.',intensity:[3,4]},
+{name:'Lunges',equip:['None (Bodyweight)'],muscles:['Legs','Lower Body','Glutes'],type:'strength',sets:'3',reps:'12 each',how:'Step forward, lower back knee toward floor. Push back to start. Alternate legs.',intensity:[1,2,3]},
+{name:'Bulgarian Split Squats',equip:['None (Bodyweight)'],muscles:['Legs','Lower Body','Glutes'],type:'strength',sets:'3',reps:'10 each',how:'Rear foot on chair/couch. Lower until front thigh is parallel. Drive up.',intensity:[3,4]},
+{name:'Plank',equip:['None (Bodyweight)','Yoga Mat'],muscles:['Core','Full Body'],type:'core',sets:'3',reps:'30-60 sec',how:'Forearms and toes on floor. Straight line from head to heels. Squeeze everything.',intensity:[1,2]},
+{name:'Mountain Climbers',equip:['None (Bodyweight)'],muscles:['Core','Full Body'],type:'cardio',sets:'3',reps:'30 sec',how:'Plank position. Drive knees to chest alternately, fast. Keep hips low.',intensity:[2,3,4]},
+{name:'Burpees',equip:['None (Bodyweight)'],muscles:['Full Body'],type:'cardio',sets:'3',reps:'8-12',how:'Squat, kick feet back to plank, push-up, jump feet forward, explode up.',intensity:[3,4]},
+{name:'Bicycle Crunches',equip:['None (Bodyweight)','Yoga Mat'],muscles:['Core'],type:'core',sets:'3',reps:'20 each',how:'Lying down, bring opposite elbow to knee. Slow and controlled.',intensity:[1,2,3]},
+{name:'Glute Bridges',equip:['None (Bodyweight)','Yoga Mat'],muscles:['Glutes','Lower Body'],type:'strength',sets:'3',reps:'15-20',how:'Lie on back, knees bent. Squeeze glutes, lift hips. Hold 2 sec at top.',intensity:[1,2]},
+{name:'Superman Holds',equip:['None (Bodyweight)','Yoga Mat'],muscles:['Back','Core'],type:'strength',sets:'3',reps:'10-12',how:'Lie face down, lift arms and legs off floor simultaneously. Hold 3 sec.',intensity:[1,2]},
+{name:'High Knees',equip:['None (Bodyweight)'],muscles:['Full Body','Legs'],type:'cardio',sets:'3',reps:'30 sec',how:'Run in place, driving knees above hip height. Pump arms. Stay on toes.',intensity:[2,3]},
+{name:'Tricep Dips',equip:['None (Bodyweight)'],muscles:['Arms','Upper Body'],type:'strength',sets:'3',reps:'10-15',how:'Hands on chair edge behind you. Lower body by bending elbows to 90°. Push up.',intensity:[2,3]},
+{name:'Wall Sit',equip:['None (Bodyweight)'],muscles:['Legs','Lower Body'],type:'strength',sets:'3',reps:'30-45 sec',how:'Back flat against wall, slide down until thighs parallel. Hold. Suffer.',intensity:[2,3]},
+{name:'Calf Raises',equip:['None (Bodyweight)'],muscles:['Legs','Lower Body'],type:'strength',sets:'3',reps:'20-25',how:'Stand on edge of step. Rise onto toes, slow lower below step level.',intensity:[1,2]},
+{name:'Dead Bug',equip:['None (Bodyweight)','Yoga Mat'],muscles:['Core'],type:'core',sets:'3',reps:'10 each',how:'Lie on back, arms up, knees at 90°. Extend opposite arm/leg. Keep back flat.',intensity:[1,2]},
+{name:'Bear Crawl',equip:['None (Bodyweight)'],muscles:['Full Body','Core','Shoulders'],type:'cardio',sets:'3',reps:'30 sec',how:'Hands and feet on floor, knees hovering. Crawl forward and back. Keep low.',intensity:[3,4]},
+{name:'Side Plank',equip:['None (Bodyweight)','Yoga Mat'],muscles:['Core'],type:'core',sets:'3',reps:'20-30 sec each',how:'Forearm and side of foot. Stack hips. Hold. Squeeze obliques.',intensity:[2,3]},
+
+// Dumbbell
+{name:'Dumbbell Rows',equip:['Dumbbells'],muscles:['Back','Upper Body'],type:'strength',sets:'3',reps:'10-12 each',how:'One hand on bench, pull dumbbell to hip. Squeeze shoulder blade at top.',intensity:[2,3]},
+{name:'Dumbbell Floor Press',equip:['Dumbbells'],muscles:['Chest','Upper Body','Arms'],type:'strength',sets:'3',reps:'10-12',how:'Lie on floor, press dumbbells up. Elbows touch floor at bottom, full lockout at top.',intensity:[2,3]},
+{name:'Goblet Squats',equip:['Dumbbells','Kettlebell'],muscles:['Legs','Lower Body','Glutes','Full Body'],type:'strength',sets:'3',reps:'12-15',how:'Hold weight at chest. Squat deep, elbows inside knees. Drive up through heels.',intensity:[2,3]},
+{name:'Dumbbell Shoulder Press',equip:['Dumbbells'],muscles:['Shoulders','Upper Body'],type:'strength',sets:'3',reps:'10-12',how:'Press dumbbells overhead from shoulder height. Full lockout. Controlled lower.',intensity:[2,3]},
+{name:'Dumbbell Lunges',equip:['Dumbbells'],muscles:['Legs','Lower Body','Glutes'],type:'strength',sets:'3',reps:'10 each',how:'Hold dumbbells at sides. Step forward into lunge. Alternate legs.',intensity:[2,3]},
+{name:'Bicep Curls',equip:['Dumbbells'],muscles:['Arms','Upper Body'],type:'strength',sets:'3',reps:'12-15',how:'Palms forward, curl weights to shoulders. Squeeze at top. Slow negative.',intensity:[1,2,3]},
+{name:'Dumbbell Deadlifts',equip:['Dumbbells'],muscles:['Back','Legs','Glutes','Full Body'],type:'strength',sets:'3',reps:'10-12',how:'Dumbbells in front of thighs. Hinge at hips, slide weights down legs. Squeeze glutes to stand.',intensity:[2,3]},
+{name:'Lateral Raises',equip:['Dumbbells'],muscles:['Shoulders','Upper Body'],type:'strength',sets:'3',reps:'12-15',how:'Arms at sides, lift dumbbells out to shoulder height. Slight bend in elbows.',intensity:[1,2,3]},
+{name:'Dumbbell Thrusters',equip:['Dumbbells'],muscles:['Full Body','Shoulders','Legs'],type:'cardio',sets:'3',reps:'10-12',how:'Squat with dumbbells at shoulders. Stand and press overhead in one motion.',intensity:[3,4]},
+{name:'Renegade Rows',equip:['Dumbbells'],muscles:['Back','Core','Upper Body'],type:'strength',sets:'3',reps:'8 each',how:'Plank on dumbbells. Row one up while stabilizing. Alternate. Keep hips square.',intensity:[3,4]},
+
+// Resistance Bands
+{name:'Band Pull-Aparts',equip:['Resistance Bands'],muscles:['Back','Shoulders','Upper Body'],type:'strength',sets:'3',reps:'15-20',how:'Hold band at chest height, arms extended. Pull apart squeezing shoulder blades.',intensity:[1,2]},
+{name:'Banded Squats',equip:['Resistance Bands'],muscles:['Legs','Glutes','Lower Body'],type:'strength',sets:'3',reps:'15-20',how:'Band above knees. Squat, pushing knees out against band. Squeeze glutes at top.',intensity:[2,3]},
+{name:'Band Rows',equip:['Resistance Bands'],muscles:['Back','Upper Body'],type:'strength',sets:'3',reps:'12-15',how:'Anchor band at waist height. Pull handles to sides, squeeze shoulder blades.',intensity:[1,2,3]},
+{name:'Band Chest Press',equip:['Resistance Bands'],muscles:['Chest','Upper Body'],type:'strength',sets:'3',reps:'12-15',how:'Band behind back. Press forward at chest height. Slow return.',intensity:[2,3]},
+{name:'Band Lateral Walks',equip:['Resistance Bands'],muscles:['Glutes','Lower Body'],type:'strength',sets:'3',reps:'12 each way',how:'Band above ankles. Quarter squat. Step sideways maintaining tension.',intensity:[2,3]},
+
+// Kettlebell
+{name:'Kettlebell Swings',equip:['Kettlebell'],muscles:['Full Body','Glutes','Back'],type:'cardio',sets:'4',reps:'15-20',how:'Hinge at hips, swing bell between legs. Snap hips forward to chest height. Arms are just hooks.',intensity:[2,3,4]},
+{name:'Turkish Get-up',equip:['Kettlebell'],muscles:['Full Body','Core','Shoulders'],type:'strength',sets:'2',reps:'3 each',how:'Lie down, press bell up. Stand up while keeping bell overhead. Reverse. Slow and controlled.',intensity:[3,4]},
+{name:'Kettlebell Clean & Press',equip:['Kettlebell'],muscles:['Full Body','Shoulders'],type:'strength',sets:'3',reps:'8 each',how:'Clean bell to rack position, press overhead. Lower to rack, drop to swing. Repeat.',intensity:[3,4]},
+
+// Pull-up Bar
+{name:'Pull-ups',equip:['Pull-up Bar'],muscles:['Back','Arms','Upper Body'],type:'strength',sets:'3',reps:'5-10',how:'Overhand grip, pull chin over bar. Full dead hang at bottom. Controlled descent.',intensity:[3,4]},
+{name:'Chin-ups',equip:['Pull-up Bar'],muscles:['Back','Arms','Upper Body'],type:'strength',sets:'3',reps:'6-10',how:'Underhand grip. Pull chin over bar. Great for biceps. Full hang at bottom.',intensity:[2,3]},
+{name:'Hanging Leg Raises',equip:['Pull-up Bar'],muscles:['Core'],type:'core',sets:'3',reps:'8-12',how:'Hang from bar. Raise straight legs to 90°. No swinging. Slow lower.',intensity:[3,4]},
+{name:'Dead Hangs',equip:['Pull-up Bar'],muscles:['Back','Arms','Full Body'],type:'strength',sets:'3',reps:'30-45 sec',how:'Just hang. Full dead hang, relax shoulders. Grip strength and decompression.',intensity:[1,2]},
+
+// Jump Rope
+{name:'Jump Rope',equip:['Jump Rope'],muscles:['Full Body','Legs'],type:'cardio',sets:'3',reps:'60 sec',how:'Light bounces on balls of feet. Wrists do the work, not arms. Stay relaxed.',intensity:[1,2,3]},
+{name:'Double Unders',equip:['Jump Rope'],muscles:['Full Body','Legs'],type:'cardio',sets:'3',reps:'30 sec',how:'Jump higher, spin rope faster — two passes per jump. Wrists snap quick.',intensity:[3,4]},
+{name:'Jump Rope Intervals',equip:['Jump Rope'],muscles:['Full Body'],type:'cardio',sets:'5',reps:'30 on / 15 off',how:'Max effort 30 seconds, rest 15. Alternate between regular and high knees.',intensity:[3,4]},
+];
+
+const AFF_TAG = 'stirman-20';
+const GEAR = [
+{name:'Adjustable Dumbbells',price:'$149',url:'https://www.amazon.com/dp/B074DZ5MS9?tag='+AFF_TAG,equip:'Dumbbells'},
+{name:'Resistance Band Set',price:'$29',url:'https://www.amazon.com/dp/B01AVDVHTI?tag='+AFF_TAG,equip:'Resistance Bands'},
+{name:'Kettlebell (35lb)',price:'$45',url:'https://www.amazon.com/dp/B003J9E5MG?tag='+AFF_TAG,equip:'Kettlebell'},
+{name:'Pull-up Bar',price:'$30',url:'https://www.amazon.com/dp/B001EJMS6K?tag='+AFF_TAG,equip:'Pull-up Bar'},
+{name:'Speed Jump Rope',price:'$10',url:'https://www.amazon.com/dp/B01HBI9AIA?tag='+AFF_TAG,equip:'Jump Rope'},
+{name:'Thick Yoga Mat',price:'$25',url:'https://www.amazon.com/dp/B01LP0V340?tag='+AFF_TAG,equip:'Yoga Mat'},
+{name:'Foam Roller',price:'$18',url:'https://www.amazon.com/dp/B00XM2MXK8?tag='+AFF_TAG,equip:'Foam Roller'},
+{name:'Workout Timer App',price:'Free',url:'https://www.amazon.com/dp/B07MXDL4Y3?tag='+AFF_TAG,equip:null},
+];
+
+let selectedEquip = new Set(['None (Bodyweight)']);
+let selectedTime = 20;
+let selectedMuscles = new Set(['Full Body']);
+let selectedIntensity = 2;
+let timerInterval = null;
+let timerSeconds = 0;
+
+function renderChips(){
+  const ec=document.getElementById('equipChips');
+  ec.innerHTML=EQUIP.map(e=>`<button class="chip${selectedEquip.has(e)?' active':''}" onclick="toggleEquip('${e}')">${e}</button>`).join('');
+  
+  const tc=document.getElementById('timeChips');
+  tc.innerHTML=TIMES.map(t=>`<button class="chip${selectedTime===t.v?' active-green':''}" onclick="selectTime(${t.v})">${t.l}</button>`).join('');
+  
+  const mc=document.getElementById('muscleChips');
+  mc.innerHTML=MUSCLES.map(m=>`<button class="chip${selectedMuscles.has(m)?' active-blue':''}" onclick="toggleMuscle('${m}')">${m}</button>`).join('');
+  
+  const ic=document.getElementById('intensityChips');
+  ic.innerHTML=INTENSITY.map(i=>`<button class="chip${selectedIntensity===i.v?' active':''}" onclick="selectIntensity(${i.v})">${i.l}</button>`).join('');
+}
+
+function toggleEquip(e){selectedEquip.has(e)?selectedEquip.delete(e):selectedEquip.add(e);renderChips()}
+function selectTime(t){selectedTime=t;renderChips()}
+function toggleMuscle(m){
+  if(m==='Full Body'){selectedMuscles.clear();selectedMuscles.add('Full Body')}
+  else{selectedMuscles.delete('Full Body');selectedMuscles.has(m)?selectedMuscles.delete(m):selectedMuscles.add(m);if(!selectedMuscles.size)selectedMuscles.add('Full Body')}
+  renderChips()
+}
+function selectIntensity(i){selectedIntensity=i;renderChips()}
+
+function generate(){
+  let pool = EXERCISES.filter(ex=>{
+    const hasEquip = ex.equip.some(e=>selectedEquip.has(e));
+    const hasMuscle = selectedMuscles.has('Full Body') || ex.muscles.some(m=>selectedMuscles.has(m));
+    const hasIntensity = ex.intensity.includes(selectedIntensity);
+    return hasEquip && hasMuscle && hasIntensity;
+  });
+  
+  // Shuffle
+  pool.sort(()=>Math.random()-.5);
+  
+  // Pick exercises based on time
+  const count = Math.max(4, Math.min(pool.length, Math.floor(selectedTime/3.5)));
+  const picked = pool.slice(0, count);
+  
+  if(!picked.length){
+    document.getElementById('workout').style.display='block';
+    document.getElementById('workout').innerHTML='<p style="color:var(--muted);text-align:center;padding:40px">No exercises match your criteria. Try selecting more equipment or muscles.</p>';
+    return;
+  }
+  
+  const restSec = selectedIntensity >= 3 ? 45 : 60;
+  const intensityLabel = INTENSITY.find(i=>i.v===selectedIntensity).l;
+  
+  let html = `<div class="workout-header"><h2>Your Workout</h2><div class="workout-meta">${picked.length} exercises · ~${selectedTime} min · ${intensityLabel}</div></div>`;
+  
+  picked.forEach((ex, i) => {
+    html += `<div class="exercise-card">
+      <div class="ex-top">
+        <span class="ex-name">${i+1}. ${ex.name}</span>
+        <span class="ex-badge ${ex.type}">${ex.type}</span>
+      </div>
+      <div class="ex-details">
+        <span>📦 ${ex.sets} sets</span>
+        <span>🔁 ${ex.reps}</span>
+        <span>⏸️ ${restSec}s rest</span>
+      </div>
+      <div class="ex-how">${ex.how}</div>
+      <div class="ex-muscles">Targets: ${ex.muscles.join(', ')}</div>
+    </div>`;
+    if(i < picked.length - 1) {
+      html += `<div class="rest-card">— Rest ${restSec} seconds —</div>`;
+    }
+  });
+  
+  // Timer
+  html += `<div class="timer-section">
+    <h2>WORKOUT TIMER</h2>
+    <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-controls">
+      <button class="timer-btn start" onclick="startTimer()">▶ Start</button>
+      <button class="timer-btn" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="timer-btn stop" onclick="resetTimer()">↺ Reset</button>
+    </div>
+  </div>`;
+  
+  // Gear recommendations
+  const relevantGear = GEAR.filter(g => !g.equip || !selectedEquip.has(g.equip));
+  const showGear = relevantGear.length ? relevantGear : GEAR;
+  const gearToShow = showGear.sort(()=>Math.random()-.5).slice(0,4);
+  
+  html += `<div class="gear-section">
+    <h3>⚡ Level Up Your Home Gym</h3>
+    <div class="sub">Gear that makes these workouts even better</div>
+    <div class="gear-grid">
+      ${gearToShow.map(g=>`<a href="${g.url}" target="_blank" rel="noopener" class="gear-link">${g.name}<span class="price">${g.price}</span></a>`).join('')}
+    </div>
+  </div>`;
+  
+  // Email capture
+  html += `<div class="email-section">
+    <h3>📧 Weekly Workout Plans</h3>
+    <p>Get a fresh workout stack delivered every Monday. No spam, just gains.</p>
+    <div class="email-row">
+      <input type="email" placeholder="your@email.com" id="emailInput">
+      <button onclick="captureEmail()">Subscribe</button>
+    </div>
+  </div>`;
+  
+  // Share
+  html += `<div style="text-align:center;margin-top:24px"><button class="share-btn" onclick="shareWorkout()">📤 Share This Workout</button></div>`;
+  
+  html += `<div class="footer">Built with 💪 by <a href="https://stirman.net">stirman.net</a> · Affiliate links help keep this free</div>`;
+  
+  document.getElementById('workout').style.display='block';
+  document.getElementById('workout').innerHTML=html;
+  document.getElementById('workout').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function startTimer(){
+  if(timerInterval) return;
+  timerInterval=setInterval(()=>{
+    timerSeconds++;
+    const m=String(Math.floor(timerSeconds/60)).padStart(2,'0');
+    const s=String(timerSeconds%60).padStart(2,'0');
+    document.getElementById('timerDisplay').textContent=m+':'+s;
+  },1000);
+}
+function pauseTimer(){clearInterval(timerInterval);timerInterval=null}
+function resetTimer(){pauseTimer();timerSeconds=0;document.getElementById('timerDisplay').textContent='00:00'}
+
+function captureEmail(){
+  const email=document.getElementById('emailInput').value;
+  if(email&&email.includes('@')){
+    document.querySelector('.email-section').innerHTML='<h3>🎉 You\'re In!</h3><p style="color:var(--accent2);margin-top:8px">First workout plan drops Monday. Let\'s go.</p>';
+  }
+}
+
+function shareWorkout(){
+  const text='Just generated a custom home workout on FitStack! 💪\n\nhttps://stirman.net/fitstack/';
+  if(navigator.share){navigator.share({title:'FitStack Workout',text,url:'https://stirman.net/fitstack/'})}
+  else{navigator.clipboard.writeText(text);alert('Copied to clipboard!')}
+}
+
+renderChips();
+</script>
+</body>
+</html>

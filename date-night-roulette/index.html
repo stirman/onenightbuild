@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Date Night Roulette — Spin for Your Perfect Evening</title>
+<meta name="description" content="Can't decide what to do tonight? Spin the wheel and get a complete date night plan with ideas for every budget and mood.">
+<meta name="keywords" content="date night ideas, romantic date ideas, couple activities, date night generator, fun date ideas">
+<meta property="og:title" content="Date Night Roulette — Spin for Your Perfect Evening">
+<meta property="og:description" content="Can't decide what to do? Spin the wheel for a complete date night plan.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;
+  --accent:#ff6b6b;
+  --gold:#ffd93d;
+  --pink:#ff8fab;
+  --violet:#c77dff;
+  --teal:#72efdd;
+  --text:#f0ede6;
+  --muted:#8a8693;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Noisy gradient overlay */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,107,107,.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(199,125,255,.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(114,239,221,.08) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* Grain texture */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px;
+  pointer-events:none;
+  z-index:1;
+}
+
+.container{position:relative;z-index:2;max-width:800px;margin:0 auto;padding:2rem 1.5rem}
+
+/* Hero */
+.hero{text-align:center;padding:3rem 0 2rem}
+.hero h1{
+  font-family:'Playfair Display',serif;
+  font-weight:900;
+  font-size:clamp(2.8rem,8vw,5rem);
+  line-height:1;
+  letter-spacing:-0.02em;
+  background:linear-gradient(135deg,var(--accent),var(--pink),var(--violet));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:.5rem;
+}
+.hero .tagline{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:1.15rem;
+  color:var(--muted);
+  margin-bottom:2rem;
+}
+
+/* Wheel */
+.wheel-section{display:flex;flex-direction:column;align-items:center;margin:1rem 0 2rem}
+.wheel-wrapper{position:relative;width:min(340px,85vw);height:min(340px,85vw)}
+canvas{width:100%;height:100%;border-radius:50%;filter:drop-shadow(0 0 40px rgba(255,107,107,.2))}
+.wheel-pointer{
+  position:absolute;
+  top:-12px;
+  left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  border-left:14px solid transparent;
+  border-right:14px solid transparent;
+  border-top:28px solid var(--gold);
+  filter:drop-shadow(0 2px 6px rgba(255,217,61,.5));
+  z-index:3;
+}
+.spin-btn{
+  margin-top:1.5rem;
+  padding:1rem 3rem;
+  font-family:'Playfair Display',serif;
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--bg);
+  background:linear-gradient(135deg,var(--gold),#ffb347);
+  border:none;
+  border-radius:60px;
+  cursor:pointer;
+  transition:all .3s ease;
+  letter-spacing:.02em;
+}
+.spin-btn:hover{transform:scale(1.05);box-shadow:0 8px 30px rgba(255,217,61,.3)}
+.spin-btn:active{transform:scale(.97)}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* Filters */
+.filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.5rem;
+  justify-content:center;
+  margin:1.5rem 0;
+}
+.filter-chip{
+  padding:.45rem 1rem;
+  font-size:.82rem;
+  font-weight:500;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:40px;
+  background:rgba(255,255,255,.04);
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .25s;
+}
+.filter-chip:hover{border-color:rgba(255,255,255,.25);color:var(--text)}
+.filter-chip.active{
+  border-color:var(--accent);
+  color:var(--accent);
+  background:rgba(255,107,107,.08);
+}
+
+/* Result Card */
+.result-card{
+  display:none;
+  margin:2rem 0;
+  padding:2.5rem 2rem;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  backdrop-filter:blur(20px);
+  animation:cardIn .5s ease;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.result-card.visible{display:block}
+.result-category{
+  font-size:.75rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--violet);
+  margin-bottom:.5rem;
+}
+.result-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.6rem,5vw,2.2rem);
+  font-weight:700;
+  margin-bottom:.75rem;
+  line-height:1.15;
+}
+.result-desc{
+  font-size:1rem;
+  line-height:1.7;
+  color:var(--muted);
+  margin-bottom:1.5rem;
+}
+.result-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+.meta-tag{
+  display:flex;
+  align-items:center;
+  gap:.35rem;
+  font-size:.82rem;
+  color:var(--text);
+  opacity:.7;
+}
+.meta-tag .icon{font-size:1rem}
+.result-checklist{list-style:none;margin-bottom:1.5rem}
+.result-checklist li{
+  padding:.4rem 0;
+  font-size:.9rem;
+  color:var(--text);
+  opacity:.8;
+}
+.result-checklist li::before{
+  content:'✦';
+  margin-right:.6rem;
+  color:var(--gold);
+}
+.result-links{display:flex;flex-wrap:wrap;gap:.6rem}
+.result-link{
+  padding:.5rem 1.2rem;
+  font-size:.8rem;
+  font-weight:600;
+  border-radius:40px;
+  text-decoration:none;
+  transition:all .2s;
+}
+.result-link.primary{
+  background:linear-gradient(135deg,var(--accent),var(--pink));
+  color:white;
+}
+.result-link.secondary{
+  border:1px solid rgba(255,255,255,.15);
+  color:var(--text);
+}
+.result-link:hover{transform:translateY(-2px);opacity:.9}
+
+/* CTA Section */
+.cta-section{
+  text-align:center;
+  margin:3rem 0;
+  padding:2.5rem 2rem;
+  border-radius:20px;
+  background:linear-gradient(135deg,rgba(255,107,107,.06),rgba(199,125,255,.06));
+  border:1px solid rgba(255,255,255,.06);
+}
+.cta-section h3{
+  font-family:'Playfair Display',serif;
+  font-size:1.5rem;
+  margin-bottom:.5rem;
+}
+.cta-section p{color:var(--muted);font-size:.9rem;margin-bottom:1.2rem}
+.email-form{display:flex;gap:.5rem;max-width:400px;margin:0 auto}
+.email-form input{
+  flex:1;
+  padding:.7rem 1rem;
+  border-radius:40px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  font-size:.9rem;
+  outline:none;
+}
+.email-form input::placeholder{color:var(--muted)}
+.email-form input:focus{border-color:var(--accent)}
+.email-form button{
+  padding:.7rem 1.5rem;
+  border-radius:40px;
+  border:none;
+  background:var(--accent);
+  color:white;
+  font-weight:600;
+  font-size:.85rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+/* Footer */
+footer{
+  text-align:center;
+  padding:2rem 0;
+  font-size:.75rem;
+  color:var(--muted);
+  border-top:1px solid rgba(255,255,255,.05);
+  margin-top:2rem;
+}
+footer a{color:var(--pink);text-decoration:none}
+
+/* History */
+.history{margin:2rem 0}
+.history h3{
+  font-family:'Playfair Display',serif;
+  font-size:1.1rem;
+  margin-bottom:1rem;
+  color:var(--muted);
+}
+.history-list{display:flex;flex-direction:column;gap:.5rem}
+.history-item{
+  display:flex;
+  align-items:center;
+  gap:.7rem;
+  padding:.6rem 1rem;
+  background:rgba(255,255,255,.02);
+  border-radius:12px;
+  font-size:.85rem;
+  border:1px solid rgba(255,255,255,.04);
+}
+.history-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+/* Ad placeholder */
+.ad-slot{
+  margin:2rem 0;
+  padding:1.5rem;
+  border:1px dashed rgba(255,255,255,.08);
+  border-radius:12px;
+  text-align:center;
+  font-size:.7rem;
+  color:var(--muted);
+  opacity:.5;
+  display:none; /* hidden until ads are live */
+}
+
+@media(max-width:500px){
+  .container{padding:1.5rem 1rem}
+  .result-card{padding:1.5rem 1.2rem}
+  .email-form{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="hero">
+    <h1>Date Night Roulette</h1>
+    <p class="tagline">Can't decide? Let fate plan your evening.</p>
+  </header>
+
+  <div class="filters">
+    <button class="filter-chip active" data-filter="all">All Vibes</button>
+    <button class="filter-chip" data-filter="romantic">🕯️ Romantic</button>
+    <button class="filter-chip" data-filter="adventure">🎯 Adventure</button>
+    <button class="filter-chip" data-filter="cozy">🛋️ Cozy Night In</button>
+    <button class="filter-chip" data-filter="foodie">🍷 Foodie</button>
+    <button class="filter-chip" data-filter="budget">💸 Budget</button>
+    <button class="filter-chip" data-filter="surprise">✨ Surprise Me</button>
+  </div>
+
+  <div class="wheel-section">
+    <div class="wheel-wrapper">
+      <div class="wheel-pointer"></div>
+      <canvas id="wheel" width="680" height="680"></canvas>
+    </div>
+    <button class="spin-btn" id="spinBtn">Spin the Wheel</button>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-category" id="resCat"></div>
+    <h2 class="result-title" id="resTitle"></h2>
+    <p class="result-desc" id="resDesc"></p>
+    <div class="result-meta" id="resMeta"></div>
+    <ul class="result-checklist" id="resChecklist"></ul>
+    <div class="result-links" id="resLinks"></div>
+  </div>
+
+  <!-- Ad slot placeholder for future monetization -->
+  <div class="ad-slot">— Ad Space —</div>
+
+  <div class="history" id="historySection" style="display:none">
+    <h3>Tonight's Spins</h3>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <section class="cta-section">
+    <h3>Get Weekly Date Inspo 💌</h3>
+    <p>One email a week. Curated date ideas + exclusive deals for couples.</p>
+    <form class="email-form" id="emailForm">
+      <input type="email" placeholder="your@email.com" required>
+      <button type="submit">Subscribe</button>
+    </form>
+    <p id="emailThanks" style="display:none;color:var(--teal);margin-top:.8rem;font-size:.85rem">You're in! First issue drops Friday. 💕</p>
+  </section>
+
+  <footer>
+    <p>Made with ❤️ by <a href="https://stirman.net" target="_blank">stirman.net</a> · Some links may earn us a small commission.</p>
+  </footer>
+</div>
+
+<script>
+const IDEAS = [
+  {
+    category:"romantic",label:"Romantic",color:"#ff6b6b",
+    title:"Stargazing Picnic",
+    desc:"Grab a blanket, a bottle of wine, and find somewhere dark. Use a stargazing app to spot constellations together. Bonus points for a Bluetooth speaker with a curated playlist.",
+    time:"2-3 hrs",cost:"$",mood:"Intimate",
+    checklist:["Blanket + pillows","Wine or hot cocoa","Star chart app (Sky Tonight is free)","Portable speaker","Bug spray (trust us)"],
+    links:[{text:"Shop Picnic Kits on Amazon",url:"https://www.amazon.com/s?k=picnic+blanket+set&tag=datenight0e-20",primary:true},{text:"Sky Tonight App",url:"https://starwalk.space/sky-tonight",primary:false}]
+  },
+  {
+    category:"adventure",label:"Adventure",color:"#ffd93d",
+    title:"Midnight Bowling + Arcade",
+    desc:"Hit up a cosmic bowling alley with the black lights and neon. Make it competitive — loser buys dessert after. Then waste $10 in quarters on arcade games like teenagers.",
+    time:"2-3 hrs",cost:"$$",mood:"Playful",
+    checklist:["Find a bowling alley with cosmic nights","Wear fun socks","Budget for arcade tokens","Pick a dessert spot nearby"],
+    links:[{text:"Find Bowling Near You",url:"https://www.google.com/maps/search/bowling+alley+near+me",primary:true},{text:"Shop Matching Bowling Shirts",url:"https://www.amazon.com/s?k=retro+bowling+shirt+couples&tag=datenight0e-20",primary:false}]
+  },
+  {
+    category:"cozy",label:"Cozy Night In",color:"#c77dff",
+    title:"Movie Marathon + Homemade Popcorn Bar",
+    desc:"Pick a trilogy or a director's filmography. Set up a popcorn bar with 5-6 toppings (truffle salt, M&Ms, cayenne, Parmesan). Build a proper blanket fort if you're feeling ambitious.",
+    time:"4+ hrs",cost:"$",mood:"Relaxed",
+    checklist:["Pick your trilogy/series","Popcorn kernels + toppings","Blankets for the fort","Matching PJs (optional but elite)","No phones rule"],
+    links:[{text:"Popcorn Seasoning Kits",url:"https://www.amazon.com/s?k=gourmet+popcorn+seasoning+set&tag=datenight0e-20",primary:true},{text:"Projector for Movie Nights",url:"https://www.amazon.com/s?k=mini+projector+bedroom&tag=datenight0e-20",primary:false}]
+  },
+  {
+    category:"foodie",label:"Foodie",color:"#72efdd",
+    title:"Cook a Meal from a Random Country",
+    desc:"Spin a globe (or use a random country generator). Whatever you land on, cook that cuisine together. Watch a YouTube tutorial, buy the ingredients, make it an event. Playlist from that country while you cook.",
+    time:"2-3 hrs",cost:"$$",mood:"Creative",
+    checklist:["Random country generator","Find a recipe on YouTube","Grocery run together","Music from that country","Try to eat with proper utensils/traditions"],
+    links:[{text:"Country Cuisine Cookbook",url:"https://www.amazon.com/s?k=world+cuisine+cookbook+for+couples&tag=datenight0e-20",primary:true},{text:"Random Country Generator",url:"https://www.randomlists.com/random-country",primary:false}]
+  },
+  {
+    category:"romantic",label:"Romantic",color:"#ff6b6b",
+    title:"Sunset Drive + Hilltop Dinner",
+    desc:"Pack a fancy dinner (or grab takeout from somewhere great), find the best viewpoint in your area, and eat while watching the sunset. Dress up like it's a real restaurant. Candles and everything.",
+    time:"2-3 hrs",cost:"$$",mood:"Romantic",
+    checklist:["Scout your viewpoint beforehand","Real plates & silverware (not paper)","Battery-powered candles","A great takeout order","Dress code: overdressed"],
+    links:[{text:"Portable Wine Table",url:"https://www.amazon.com/s?k=portable+wine+picnic+table&tag=datenight0e-20",primary:true},{text:"LED Candle Set",url:"https://www.amazon.com/s?k=flameless+candles+romantic&tag=datenight0e-20",primary:false}]
+  },
+  {
+    category:"adventure",label:"Adventure",color:"#ffd93d",
+    title:"Photo Walk Challenge",
+    desc:"Each person gets a list of 10 things to photograph (something red, a stranger's smile, your partner being goofy). Walk around downtown and race to complete the list. Compare photos over coffee after.",
+    time:"2 hrs",cost:"$",mood:"Creative",
+    checklist:["Charge your phones","Write 10 photo prompts each","Pick a walkable neighborhood","End-point coffee shop picked","Share album after"],
+    links:[{text:"Couple Photo Challenge Cards",url:"https://www.amazon.com/s?k=couple+photo+challenge+cards&tag=datenight0e-20",primary:true},{text:"Instax Mini Camera",url:"https://www.amazon.com/s?k=instax+mini+camera&tag=datenight0e-20",primary:false}]
+  },
+  {
+    category:"cozy",label:"Cozy Night In",color:"#c77dff",
+    title:"Wine & Paint Night",
+    desc:"YouTube has incredible step-by-step painting tutorials. Grab two canvases, some acrylics, a bottle of wine, and follow along together. The worse you are, the funnier it gets.",
+    time:"2-3 hrs",cost:"$$",mood:"Creative",
+    checklist:["2 canvases + paint set","Wine or cocktails","YouTube tutorial queued up","Drop cloth for the floor","Frame the results (seriously)"],
+    links:[{text:"Couples Paint Kit",url:"https://www.amazon.com/s?k=couples+paint+night+kit&tag=datenight0e-20",primary:true},{text:"Best Paint Tutorial Channels",url:"https://www.youtube.com/results?search_query=couples+paint+night+tutorial",primary:false}]
+  },
+  {
+    category:"foodie",label:"Foodie",color:"#72efdd",
+    title:"Progressive Dinner Crawl",
+    desc:"Pick 3-4 restaurants in walking distance. Appetizer at the first, soup/salad at the second, entrée at the third, dessert at the fourth. You eat at places you'd never normally try.",
+    time:"3-4 hrs",cost:"$$$",mood:"Social",
+    checklist:["Scout 3-4 restaurants in a walkable strip","Make reservations if needed","Wear comfortable shoes","Pace yourself (small portions!)","Document each stop"],
+    links:[{text:"Find Restaurants Near You",url:"https://www.google.com/maps/search/restaurants+near+me",primary:true},{text:"Foodie Date Night Journal",url:"https://www.amazon.com/s?k=couples+food+journal&tag=datenight0e-20",primary:false}]
+  },
+  {
+    category:"budget",label:"Budget",color:"#ff8fab",
+    title:"Free Museum + People Watching",
+    desc:"Most cities have free museum days or always-free galleries. Wander through, make up stories about the art, then grab coffee and people-watch from a park bench. Simple. Perfect.",
+    time:"2-3 hrs",cost:"Free",mood:"Chill",
+    checklist:["Google 'free museum day [your city]'","Pick a coffee shop nearby","Bring a sketchbook","Make up backstories for paintings","No rushing — linger"],
+    links:[{text:"Find Free Museums",url:"https://www.google.com/search?q=free+museum+day+near+me",primary:true}]
+  },
+  {
+    category:"surprise",label:"Surprise",color:"#ffd93d",
+    title:"Yes Night",
+    desc:"Take turns suggesting things. The other person has to say yes to everything (within reason). 'Let's get ice cream.' Yes. 'Let's sing karaoke.' Yes. 'Let's drive somewhere random.' Yes. The magic is in the spontaneity.",
+    time:"???",cost:"??",mood:"Spontaneous",
+    checklist:["Set a time limit (3 hours?)","Set a budget cap","Agree on veto rules (safety only)","Take turns suggesting","Document the chaos"],
+    links:[{text:"Adventure Challenge Book",url:"https://www.amazon.com/s?k=adventure+challenge+couples+book&tag=datenight0e-20",primary:true}]
+  },
+  {
+    category:"budget",label:"Budget",color:"#ff8fab",
+    title:"Bookstore Date",
+    desc:"Go to a bookstore. Each person has 20 minutes and a $15 budget to find a book for the other person. Swap, read the first chapter aloud to each other at a café. Now you both have a book to discuss later.",
+    time:"2 hrs",cost:"$",mood:"Thoughtful",
+    checklist:["Find an indie bookstore","Set budget ($15 each)","Set timer (20 min to shop)","Café for the reveal","Read chapter 1 aloud"],
+    links:[{text:"Find Indie Bookstores",url:"https://www.indiebound.org/indie-store-finder",primary:true},{text:"Book Lover Couple Gifts",url:"https://www.amazon.com/s?k=book+lover+couple+gifts&tag=datenight0e-20",primary:false}]
+  },
+  {
+    category:"surprise",label:"Surprise",color:"#ffd93d",
+    title:"Recreate Your First Date",
+    desc:"Go back to where it all started. Same restaurant (or closest equivalent), same vibe, but with all the history you've built since. It's nostalgic, it's sweet, and it costs nothing extra to make it meaningful.",
+    time:"2-3 hrs",cost:"Varies",mood:"Nostalgic",
+    checklist:["Remember where you went","Same outfits if possible","Take the same route","Order the same food","Write what's changed since then"],
+    links:[{text:"Couple Memory Book",url:"https://www.amazon.com/s?k=couples+memory+book+journal&tag=datenight0e-20",primary:true}]
+  }
+];
+
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const spinBtn = document.getElementById('spinBtn');
+const resultCard = document.getElementById('resultCard');
+let currentFilter = 'all';
+let spinning = false;
+let currentAngle = 0;
+let history = [];
+
+function getFiltered(){
+  if(currentFilter==='all') return IDEAS;
+  return IDEAS.filter(i=>i.category===currentFilter);
+}
+
+function drawWheel(){
+  const items = getFiltered();
+  const n = items.length;
+  const cx = 340, cy = 340, r = 320;
+  ctx.clearRect(0,0,680,680);
+  
+  const arc = (Math.PI*2)/n;
+  items.forEach((item,i)=>{
+    const start = currentAngle + i*arc;
+    const end = start + arc;
+    
+    // Segment
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle = item.color + '22';
+    ctx.fill();
+    ctx.strokeStyle = item.color + '44';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // Text
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(start + arc/2);
+    ctx.textAlign = 'right';
+    ctx.font = '600 13px Inter';
+    ctx.fillStyle = item.color;
+    const label = item.title.length > 22 ? item.title.slice(0,20)+'…' : item.title;
+    ctx.fillText(label, r-20, 5);
+    ctx.restore();
+  });
+  
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx,cy,40,0,Math.PI*2);
+  ctx.fillStyle = '#151520';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.1)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  ctx.font = '700 18px Playfair Display';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('♥',cx,cy);
+}
+
+function spin(){
+  if(spinning) return;
+  spinning = true;
+  spinBtn.disabled = true;
+  resultCard.classList.remove('visible');
+  
+  const items = getFiltered();
+  const n = items.length;
+  const winIdx = Math.floor(Math.random()*n);
+  const arc = (Math.PI*2)/n;
+  
+  // Target: pointer is at top (3π/2). We want winIdx segment center under pointer.
+  const targetCenter = winIdx * arc + arc/2;
+  const pointerAngle = -Math.PI/2;
+  const targetAngle = pointerAngle - targetCenter;
+  
+  // Add several full rotations
+  const fullSpins = 5 + Math.random()*3;
+  const totalRotation = fullSpins * Math.PI * 2 + (targetAngle - currentAngle) % (Math.PI*2);
+  const endAngle = currentAngle + totalRotation;
+  
+  const duration = 4000;
+  const startTime = performance.now();
+  const startAngle = currentAngle;
+  
+  function easeOut(t){
+    return 1 - Math.pow(1-t,4);
+  }
+  
+  function animate(now){
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed/duration, 1);
+    currentAngle = startAngle + totalRotation * easeOut(t);
+    drawWheel();
+    
+    if(t < 1){
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      spinBtn.disabled = false;
+      showResult(items[winIdx]);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function showResult(idea){
+  document.getElementById('resCat').textContent = idea.label;
+  document.getElementById('resTitle').textContent = idea.title;
+  document.getElementById('resDesc').textContent = idea.desc;
+  
+  const meta = document.getElementById('resMeta');
+  meta.innerHTML = `
+    <span class="meta-tag"><span class="icon">⏱</span>${idea.time}</span>
+    <span class="meta-tag"><span class="icon">💰</span>${idea.cost}</span>
+    <span class="meta-tag"><span class="icon">✨</span>${idea.mood}</span>
+  `;
+  
+  const cl = document.getElementById('resChecklist');
+  cl.innerHTML = idea.checklist.map(c=>`<li>${c}</li>`).join('');
+  
+  const links = document.getElementById('resLinks');
+  links.innerHTML = idea.links.map(l=>
+    `<a href="${l.url}" target="_blank" rel="noopener" class="result-link ${l.primary?'primary':'secondary'}">${l.text}</a>`
+  ).join('');
+  
+  resultCard.classList.add('visible');
+  resultCard.scrollIntoView({behavior:'smooth',block:'nearest'});
+  
+  // Add to history
+  history.unshift(idea);
+  updateHistory();
+}
+
+function updateHistory(){
+  if(!history.length) return;
+  document.getElementById('historySection').style.display='block';
+  const list = document.getElementById('historyList');
+  list.innerHTML = history.slice(0,5).map(h=>
+    `<div class="history-item"><span class="history-dot" style="background:${h.color}"></span>${h.title} <span style="color:var(--muted);margin-left:auto;font-size:.75rem">${h.label}</span></div>`
+  ).join('');
+}
+
+// Filters
+document.querySelectorAll('.filter-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.dataset.filter;
+    resultCard.classList.remove('visible');
+    drawWheel();
+  });
+});
+
+spinBtn.addEventListener('click', spin);
+
+// Email form
+document.getElementById('emailForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  e.target.style.display='none';
+  document.getElementById('emailThanks').style.display='block';
+  // In production: send to email service (ConvertKit, Mailchimp, etc.)
+});
+
+drawWheel();
+</script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Office Score — Rate Your Workspace & Get Upgrade Picks</title>
+<meta name="description" content="Take the 60-second quiz to score your home office setup. Get personalized upgrade recommendations for desks, chairs, monitors, and more.">
+<meta name="keywords" content="home office setup, best standing desk, ergonomic chair, home office score, workspace setup guide, remote work desk">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--card-border:#1e1e2e;--text:#e8e6e3;--muted:#8a8a9a;--accent-1:#3b82f6;--accent-2:#8b5cf6;--accent-3:#06b6d4;--green:#22c55e;--orange:#f59e0b;--red:#ef4444}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 20%,rgba(59,130,246,.12),transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(139,92,246,.12),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.06),transparent 60%);pointer-events:none;z-index:0}
+/* noise */
+body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.container{max-width:640px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1.1;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent-1),var(--accent-2),var(--accent-3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:40px;line-height:1.5}
+/* progress */
+.progress-bar{display:flex;gap:6px;margin-bottom:32px}
+.progress-dot{height:4px;flex:1;border-radius:4px;background:var(--card-border);transition:background .3s}
+.progress-dot.active{background:linear-gradient(90deg,var(--accent-1),var(--accent-2))}
+/* question */
+.question-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 24px;margin-bottom:24px;animation:slideUp .4s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.q-number{font-size:.8rem;color:var(--accent-2);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.q-text{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:20px;line-height:1.3}
+.options{display:flex;flex-direction:column;gap:10px}
+.option{background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s;font-size:.95rem;display:flex;align-items:center;gap:12px}
+.option:hover{border-color:var(--accent-1);background:rgba(59,130,246,.06)}
+.option.selected{border-color:var(--accent-2);background:rgba(139,92,246,.1)}
+.option-icon{font-size:1.3rem;width:32px;text-align:center;flex-shrink:0}
+.option-text{flex:1}
+/* results */
+#results{display:none}
+.score-ring{width:180px;height:180px;margin:0 auto 24px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:8}
+.score-ring .bg{stroke:var(--card-border)}
+.score-ring .fg{stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.score-number{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-number .num{font-family:'Instrument Serif',serif;font-size:3.2rem;line-height:1;display:block}
+.score-number .label{font-size:.8rem;color:var(--muted);margin-top:4px;display:block}
+.grade{text-align:center;font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:8px}
+.grade-sub{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:32px}
+.section-title{font-family:'Instrument Serif',serif;font-size:1.3rem;margin:28px 0 14px;display:flex;align-items:center;gap:8px}
+.upgrade-card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:20px;margin-bottom:14px;animation:slideUp .4s ease;animation-fill-mode:both}
+.upgrade-card:nth-child(2){animation-delay:.1s}
+.upgrade-card:nth-child(3){animation-delay:.2s}
+.upgrade-card:nth-child(4){animation-delay:.3s}
+.upgrade-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.upgrade-name{font-weight:600;font-size:1.05rem}
+.upgrade-impact{font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.impact-high{background:rgba(34,197,94,.15);color:var(--green)}
+.impact-med{background:rgba(245,158,11,.15);color:var(--orange)}
+.upgrade-why{color:var(--muted);font-size:.88rem;line-height:1.5;margin-bottom:12px}
+.upgrade-pick{display:flex;align-items:center;gap:12px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:12px 14px}
+.pick-info{flex:1}
+.pick-name{font-weight:600;font-size:.9rem}
+.pick-price{color:var(--muted);font-size:.82rem;margin-top:2px}
+.pick-link{background:linear-gradient(135deg,var(--accent-1),var(--accent-2));color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:8px;white-space:nowrap;transition:opacity .2s}
+.pick-link:hover{opacity:.85}
+.category-bar{display:flex;gap:4px;margin-bottom:20px}
+.cat-segment{height:6px;border-radius:3px;transition:width .8s ease}
+.cat-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.breakdown-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--card-border)}
+.breakdown-item:last-child{border:none}
+.breakdown-cat{display:flex;align-items:center;gap:8px}
+.breakdown-dot{width:10px;height:10px;border-radius:50%}
+.breakdown-score{font-weight:600}
+/* email */
+.email-section{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:24px;margin:28px 0;text-align:center}
+.email-section h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:6px}
+.email-section p{color:var(--muted);font-size:.88rem;margin-bottom:14px}
+.email-row{display:flex;gap:8px;max-width:380px;margin:0 auto}
+.email-row input{flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--card-border);background:var(--bg);color:var(--text);font-size:.9rem;font-family:inherit}
+.email-row button{background:linear-gradient(135deg,var(--accent-1),var(--accent-2));color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:.9rem;white-space:nowrap}
+.share-btn{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--card-border);color:var(--text);padding:10px 20px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:.9rem;margin-top:16px;transition:border-color .2s}
+.share-btn:hover{border-color:var(--accent-1)}
+.footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:48px;padding-bottom:32px;line-height:1.6}
+.footer a{color:var(--accent-1);text-decoration:none}
+.hidden{display:none!important}
+/* retake */
+.retake-btn{display:block;margin:24px auto 0;background:none;border:1px solid var(--card-border);color:var(--muted);padding:10px 24px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:.88rem;transition:all .2s}
+.retake-btn:hover{border-color:var(--accent-1);color:var(--text)}
+</style>
+</head>
+<body>
+<div class="container">
+<!-- HERO -->
+<div id="hero">
+<h1>How Does Your <span>Home Office</span> Score?</h1>
+<p class="subtitle">8 quick questions. Personalized upgrade picks. Build a workspace that actually works for you.</p>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- QUESTIONS -->
+<div id="quiz"></div>
+
+<!-- RESULTS -->
+<div id="results">
+<div class="score-ring">
+<svg viewBox="0 0 180 180" width="180" height="180">
+<circle class="bg" cx="90" cy="90" r="78"/>
+<circle class="fg" id="scoreCircle" cx="90" cy="90" r="78" stroke-dasharray="490" stroke-dashoffset="490"/>
+</svg>
+<div class="score-number">
+<span class="num" id="scoreNum">0</span>
+<span class="label">out of 100</span>
+</div>
+</div>
+<div class="grade" id="gradeLabel"></div>
+<div class="grade-sub" id="gradeSub"></div>
+
+<!-- Breakdown -->
+<div class="section-title">📊 Category Breakdown</div>
+<div style="background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:20px;margin-bottom:8px" id="breakdownCard"></div>
+
+<!-- Upgrades -->
+<div class="section-title">🚀 Your Top Upgrades</div>
+<div id="upgradesList"></div>
+
+<!-- Email capture -->
+<div class="email-section">
+<h3>Get Your Full Report</h3>
+<p>Weekly workspace tips + exclusive deals on office gear</p>
+<div class="email-row">
+<input type="email" id="emailInput" placeholder="you@example.com">
+<button onclick="captureEmail()">Send It</button>
+</div>
+</div>
+
+<button class="share-btn" onclick="shareResults()">📋 Share Your Score</button>
+<button class="retake-btn" onclick="location.reload()">↻ Retake Quiz</button>
+</div>
+
+<div class="footer">
+<p>Built with ☕ by <a href="https://stirman.net">stirman.net</a></p>
+<p>Affiliate links help keep this free. We only recommend gear we'd actually use.</p>
+</div>
+</div>
+
+<script>
+const questions = [
+  {
+    cat: "Desk", q: "What's your desk situation?",
+    options: [
+      { icon: "🪑", text: "Kitchen table or couch", score: 1 },
+      { icon: "🗄️", text: "Basic fixed-height desk", score: 2 },
+      { icon: "📐", text: "Dedicated desk, decent size", score: 3 },
+      { icon: "⬆️", text: "Standing desk (sit/stand)", score: 4 }
+    ]
+  },
+  {
+    cat: "Chair", q: "How's your chair?",
+    options: [
+      { icon: "🪑", text: "Dining chair or whatever's around", score: 1 },
+      { icon: "💺", text: "Basic office chair, no adjustments", score: 2 },
+      { icon: "🔧", text: "Adjustable office chair with lumbar", score: 3 },
+      { icon: "👑", text: "Ergonomic chair (Herman Miller, Steelcase, etc.)", score: 4 }
+    ]
+  },
+  {
+    cat: "Monitor", q: "What are you looking at all day?",
+    options: [
+      { icon: "💻", text: "Just my laptop screen", score: 1 },
+      { icon: "🖥️", text: "One external monitor", score: 2 },
+      { icon: "🖥️", text: "Ultrawide or dual monitors", score: 3 },
+      { icon: "🤩", text: "Premium display (4K/5K, calibrated)", score: 4 }
+    ]
+  },
+  {
+    cat: "Lighting", q: "How's your lighting?",
+    options: [
+      { icon: "💡", text: "Overhead room light only", score: 1 },
+      { icon: "🪟", text: "Natural light from a window", score: 2 },
+      { icon: "🔆", text: "Desk lamp + natural light", score: 3 },
+      { icon: "✨", text: "Dedicated task light + bias lighting behind monitor", score: 4 }
+    ]
+  },
+  {
+    cat: "Audio", q: "What's your audio/call setup?",
+    options: [
+      { icon: "🔊", text: "Laptop speakers and mic", score: 1 },
+      { icon: "🎧", text: "Basic earbuds or headphones", score: 2 },
+      { icon: "🎙️", text: "Good headset with noise cancellation", score: 3 },
+      { icon: "🎤", text: "Dedicated mic + studio headphones/speakers", score: 4 }
+    ]
+  },
+  {
+    cat: "Peripherals", q: "Keyboard and mouse?",
+    options: [
+      { icon: "⌨️", text: "Laptop keyboard + trackpad only", score: 1 },
+      { icon: "🖱️", text: "Basic external keyboard and mouse", score: 2 },
+      { icon: "⚡", text: "Mechanical keyboard + ergonomic mouse", score: 3 },
+      { icon: "🏆", text: "Split/ergo keyboard + vertical mouse + wrist rests", score: 4 }
+    ]
+  },
+  {
+    cat: "Cable Management", q: "How tidy is your setup?",
+    options: [
+      { icon: "🍝", text: "Cable spaghetti everywhere", score: 1 },
+      { icon: "🤷", text: "Some cables visible but manageable", score: 2 },
+      { icon: "📎", text: "Cable clips/trays, mostly hidden", score: 3 },
+      { icon: "✨", text: "Clean desk, everything routed and hidden", score: 4 }
+    ]
+  },
+  {
+    cat: "Environment", q: "What about your overall environment?",
+    options: [
+      { icon: "😬", text: "Shared space, noisy, no privacy", score: 1 },
+      { icon: "🚪", text: "Dedicated corner but open plan", score: 2 },
+      { icon: "🏠", text: "Own room, basic setup", score: 3 },
+      { icon: "🧘", text: "Private room, plants, art, temperature control", score: 4 }
+    ]
+  }
+];
+
+const upgrades = {
+  Desk: {
+    why: "A sit-stand desk reduces back pain by 54% and boosts afternoon energy. It's the single highest-impact upgrade for your workspace.",
+    impact: "high",
+    picks: [
+      { name: "FlexiSpot E7 Standing Desk", price: "$479", url: "https://www.amazon.com/dp/B08GN48GJM?tag=stirman-20" },
+      { name: "UPLIFT V2 Standing Desk", price: "$599", url: "https://www.amazon.com/dp/B07GBRQYS6?tag=stirman-20" }
+    ]
+  },
+  Chair: {
+    why: "You sit 8+ hours a day. A proper ergonomic chair prevents chronic back issues and improves focus. This is a 10-year investment in your body.",
+    impact: "high",
+    picks: [
+      { name: "Herman Miller Aeron (Renewed)", price: "$749", url: "https://www.amazon.com/dp/B01DGM7ZII?tag=stirman-20" },
+      { name: "Secretlab Titan Evo 2022", price: "$449", url: "https://www.amazon.com/dp/B09MZ6NJT9?tag=stirman-20" }
+    ]
+  },
+  Monitor: {
+    why: "More screen real estate = fewer alt-tabs = deeper focus. A quality monitor reduces eye strain and makes everything feel more spacious.",
+    impact: "high",
+    picks: [
+      { name: "LG 27\" 4K IPS Monitor", price: "$299", url: "https://www.amazon.com/dp/B08T5Z3SXS?tag=stirman-20" },
+      { name: "Dell S3422DW 34\" Ultrawide", price: "$389", url: "https://www.amazon.com/dp/B09DTDRJWP?tag=stirman-20" }
+    ]
+  },
+  Lighting: {
+    why: "Bad lighting causes eye strain, headaches, and fatigue. A desk lamp with adjustable color temperature keeps you alert during the day and relaxed at night.",
+    impact: "med",
+    picks: [
+      { name: "BenQ ScreenBar Monitor Light", price: "$109", url: "https://www.amazon.com/dp/B076VNFZJG?tag=stirman-20" },
+      { name: "BenQ ScreenBar Halo", price: "$179", url: "https://www.amazon.com/dp/B08WT889V3?tag=stirman-20" }
+    ]
+  },
+  Audio: {
+    why: "Clear audio on calls makes you sound professional. Noise cancellation helps you focus in noisy environments. Your ears deserve better than laptop speakers.",
+    impact: "med",
+    picks: [
+      { name: "Sony WH-1000XM5", price: "$328", url: "https://www.amazon.com/dp/B0BX2L8PCP?tag=stirman-20" },
+      { name: "Elgato Wave:3 USB Mic", price: "$149", url: "https://www.amazon.com/dp/B088HHWC47?tag=stirman-20" }
+    ]
+  },
+  Peripherals: {
+    why: "A mechanical keyboard and ergonomic mouse reduce wrist strain and make typing feel incredible. Once you switch, you never go back.",
+    impact: "med",
+    picks: [
+      { name: "Logitech MX Keys S", price: "$99", url: "https://www.amazon.com/dp/B0BKP35CR5?tag=stirman-20" },
+      { name: "Logitech MX Master 3S", price: "$89", url: "https://www.amazon.com/dp/B09HM94VDS?tag=stirman-20" }
+    ]
+  },
+  "Cable Management": {
+    why: "A cluttered desk = a cluttered mind. Cable management takes 30 minutes and makes your workspace feel completely different.",
+    impact: "med",
+    picks: [
+      { name: "Under-Desk Cable Management Tray", price: "$15", url: "https://www.amazon.com/dp/B08QV8LKCH?tag=stirman-20" },
+      { name: "Velcro Cable Ties (100 pack)", price: "$9", url: "https://www.amazon.com/dp/B001E1Y5O6?tag=stirman-20" }
+    ]
+  },
+  Environment: {
+    why: "Plants, good temperature, and minimal noise measurably improve productivity and creativity. Your environment shapes your output.",
+    impact: "med",
+    picks: [
+      { name: "Levoit Air Purifier", price: "$89", url: "https://www.amazon.com/dp/B08R794ZMX?tag=stirman-20" },
+      { name: "White Noise Machine (LectroFan)", price: "$44", url: "https://www.amazon.com/dp/B00MY8V86Q?tag=stirman-20" }
+    ]
+  }
+};
+
+const catColors = {
+  Desk: "#3b82f6", Chair: "#8b5cf6", Monitor: "#06b6d4", Lighting: "#f59e0b",
+  Audio: "#ef4444", Peripherals: "#22c55e", "Cable Management": "#ec4899", Environment: "#f97316"
+};
+
+let answers = [];
+let current = 0;
+
+function init() {
+  const bar = document.getElementById("progressBar");
+  for (let i = 0; i < questions.length; i++) {
+    const d = document.createElement("div");
+    d.className = "progress-dot";
+    bar.appendChild(d);
+  }
+  showQuestion(0);
+}
+
+function showQuestion(idx) {
+  current = idx;
+  const quiz = document.getElementById("quiz");
+  const q = questions[idx];
+  // Update progress
+  document.querySelectorAll(".progress-dot").forEach((d, i) => {
+    d.className = "progress-dot" + (i <= idx ? " active" : "");
+  });
+  quiz.innerHTML = `
+    <div class="question-card">
+      <div class="q-number">Question ${idx + 1} of ${questions.length} — ${q.cat}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">
+        ${q.options.map((o, i) => `
+          <div class="option" onclick="selectOption(${idx}, ${i}, ${o.score})">
+            <span class="option-icon">${o.icon}</span>
+            <span class="option-text">${o.text}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>`;
+}
+
+function selectOption(qIdx, optIdx, score) {
+  answers[qIdx] = { cat: questions[qIdx].cat, score, max: 4 };
+  document.querySelectorAll(".option").forEach((o, i) => {
+    o.className = "option" + (i === optIdx ? " selected" : "");
+  });
+  setTimeout(() => {
+    if (qIdx < questions.length - 1) {
+      showQuestion(qIdx + 1);
+    } else {
+      showResults();
+    }
+  }, 350);
+}
+
+function showResults() {
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("hero").classList.add("hidden");
+  document.querySelector(".progress-bar").classList.add("hidden");
+  document.getElementById("results").style.display = "block";
+
+  const totalScore = answers.reduce((s, a) => s + a.score, 0);
+  const maxScore = answers.length * 4;
+  const pct = Math.round((totalScore / maxScore) * 100);
+
+  // Animate score
+  const circ = document.getElementById("scoreCircle");
+  const circumference = 2 * Math.PI * 78;
+  circ.style.strokeDasharray = circumference;
+  circ.style.strokeDashoffset = circumference;
+
+  let color;
+  if (pct >= 80) color = "var(--green)";
+  else if (pct >= 60) color = "var(--accent-1)";
+  else if (pct >= 40) color = "var(--orange)";
+  else color = "var(--red)";
+  circ.style.stroke = color;
+
+  setTimeout(() => {
+    circ.style.strokeDashoffset = circumference - (circumference * pct / 100);
+  }, 100);
+
+  // Animate number
+  let n = 0;
+  const numEl = document.getElementById("scoreNum");
+  const interval = setInterval(() => {
+    n += 2;
+    if (n >= pct) { n = pct; clearInterval(interval); }
+    numEl.textContent = n;
+  }, 20);
+
+  // Grade
+  const gradeEl = document.getElementById("gradeLabel");
+  const subEl = document.getElementById("gradeSub");
+  if (pct >= 85) { gradeEl.textContent = "🏆 Command Center"; subEl.textContent = "Your setup is elite. Minor tweaks only."; }
+  else if (pct >= 70) { gradeEl.textContent = "💪 Solid Foundation"; subEl.textContent = "You're ahead of most. A few upgrades will level you up."; }
+  else if (pct >= 50) { gradeEl.textContent = "🔧 Room to Grow"; subEl.textContent = "Some clear wins below. Your back and eyes will thank you."; }
+  else if (pct >= 30) { gradeEl.textContent = "⚠️ Needs Work"; subEl.textContent = "You're leaving performance (and comfort) on the table."; }
+  else { gradeEl.textContent = "🚨 Emergency Upgrade"; subEl.textContent = "Your future self is begging you to invest here."; }
+
+  // Breakdown
+  const breakdownCard = document.getElementById("breakdownCard");
+  breakdownCard.innerHTML = answers.map(a => {
+    const p = Math.round((a.score / a.max) * 100);
+    const c = catColors[a.cat];
+    return `<div class="breakdown-item">
+      <div class="breakdown-cat"><div class="breakdown-dot" style="background:${c}"></div>${a.cat}</div>
+      <div class="breakdown-score" style="color:${p >= 75 ? 'var(--green)' : p >= 50 ? 'var(--accent-1)' : 'var(--orange)'}">${a.score}/4</div>
+    </div>`;
+  }).join("");
+
+  // Upgrades — show categories scoring < 4, sorted by score ascending (worst first)
+  const weak = answers.filter(a => a.score < 4).sort((a, b) => a.score - b.score);
+  const list = document.getElementById("upgradesList");
+  list.innerHTML = weak.slice(0, 4).map(a => {
+    const u = upgrades[a.cat];
+    const pick = u.picks[0];
+    return `<div class="upgrade-card">
+      <div class="upgrade-header">
+        <div class="upgrade-name">${a.cat} Upgrade</div>
+        <div class="upgrade-impact ${u.impact === 'high' ? 'impact-high' : 'impact-med'}">${u.impact === 'high' ? '↑ High Impact' : '↑ Medium Impact'}</div>
+      </div>
+      <div class="upgrade-why">${u.why}</div>
+      <div class="upgrade-pick">
+        <div class="pick-info">
+          <div class="pick-name">${pick.name}</div>
+          <div class="pick-price">${pick.price} on Amazon</div>
+        </div>
+        <a class="pick-link" href="${pick.url}" target="_blank" rel="noopener">View →</a>
+      </div>
+      ${u.picks[1] ? `<div class="upgrade-pick" style="margin-top:8px">
+        <div class="pick-info">
+          <div class="pick-name">${u.picks[1].name}</div>
+          <div class="pick-price">${u.picks[1].price} on Amazon</div>
+        </div>
+        <a class="pick-link" href="${u.picks[1].url}" target="_blank" rel="noopener">View →</a>
+      </div>` : ""}
+    </div>`;
+  }).join("");
+
+  if (weak.length === 0) {
+    list.innerHTML = `<div class="upgrade-card"><div class="upgrade-name">Perfect score! 🎉</div><div class="upgrade-why">Your setup is maxed out. You're living the dream. Maybe treat yourself to something nice anyway?</div></div>`;
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function captureEmail() {
+  const input = document.getElementById("emailInput");
+  if (input.value && input.value.includes("@")) {
+    input.parentElement.innerHTML = `<span style="color:var(--green);font-weight:600">✓ You're in! Check your inbox.</span>`;
+  }
+}
+
+function shareResults() {
+  const totalScore = answers.reduce((s, a) => s + a.score, 0);
+  const pct = Math.round((totalScore / (answers.length * 4)) * 100);
+  const text = `My home office scored ${pct}/100 on Home Office Score! How does yours rate? 🏠💻\n\nhttps://stirman.net/home-office-score/`;
+  if (navigator.share) {
+    navigator.share({ text });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      document.querySelector(".share-btn").textContent = "✓ Copied!";
+    });
+  }
+}
+
+init();
+</script>
+</body>
+</html>

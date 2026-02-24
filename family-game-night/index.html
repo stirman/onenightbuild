@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Game Night Picker — Find Your Perfect Board Game</title>
+<meta name="description" content="Find the perfect board game for your family in 30 seconds. Filter by ages, group size, time, and vibe. Curated picks with reviews and where to buy.">
+<meta name="keywords" content="family board games, game night ideas, best board games for kids, family game night, board games for families">
+<meta property="og:title" content="Family Game Night Picker">
+<meta property="og:description" content="Find your family's perfect board game in 30 seconds.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a1a;
+  --card:#141428;
+  --accent:#ff6b35;
+  --accent2:#ffd23f;
+  --accent3:#06d6a0;
+  --accent4:#118ab2;
+  --text:#f0ead6;
+  --muted:#8b8ba3;
+  --radius:16px;
+}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* Noisy gradient bg */
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(255,107,53,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(6,214,160,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,210,63,0.08) 0%, transparent 60%);
+  filter:url(#noise);
+}
+svg.noise-svg{position:absolute;width:0;height:0}
+
+.container{max-width:900px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+
+/* HEADER */
+header{text-align:center;padding:48px 0 32px}
+header h1{
+  font-family:'Lilita One',cursive;
+  font-size:clamp(2.4rem,6vw,4rem);
+  line-height:1.05;
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:12px;
+}
+header p{color:var(--muted);font-size:1.1rem;max-width:500px;margin:0 auto}
+.dice-row{font-size:2.4rem;margin-bottom:8px;letter-spacing:8px}
+
+/* STEPS */
+.step{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:32px 28px;
+  margin-bottom:20px;
+  border:1px solid rgba(255,255,255,0.06);
+  display:none;
+  animation:fadeUp .4s ease;
+}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.step-label{
+  font-family:'Lilita One',cursive;
+  font-size:1rem;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:2px;
+  margin-bottom:8px;
+}
+.step h2{font-size:1.5rem;margin-bottom:20px;font-weight:700}
+
+/* Option buttons */
+.options{display:flex;flex-wrap:wrap;gap:10px}
+.opt{
+  padding:12px 20px;
+  border-radius:40px;
+  border:2px solid rgba(255,255,255,0.12);
+  background:transparent;
+  color:var(--text);
+  font-size:.95rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  font-family:'Inter',sans-serif;
+}
+.opt:hover{border-color:var(--accent);background:rgba(255,107,53,0.1)}
+.opt.selected{border-color:var(--accent);background:rgba(255,107,53,0.2);color:#fff}
+.opt .emoji{margin-right:6px;font-size:1.1rem}
+
+/* Slider */
+.slider-wrap{margin-top:8px}
+.slider-wrap input[type=range]{
+  width:100%;-webkit-appearance:none;background:rgba(255,255,255,0.1);
+  height:6px;border-radius:3px;outline:none;
+}
+.slider-wrap input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:var(--accent);cursor:pointer;border:3px solid var(--bg);
+}
+.slider-val{font-family:'Lilita One',cursive;font-size:2rem;color:var(--accent2);margin:12px 0 4px}
+
+/* Results */
+#results{display:none}
+#results.active{display:block;animation:fadeUp .5s ease}
+.results-header{text-align:center;margin-bottom:28px}
+.results-header h2{font-family:'Lilita One',cursive;font-size:2rem;margin-bottom:8px}
+.results-header p{color:var(--muted)}
+
+.game-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:28px;
+  margin-bottom:16px;
+  border:1px solid rgba(255,255,255,0.06);
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+  transition:transform .2s,border-color .2s;
+}
+.game-card:hover{transform:translateY(-2px);border-color:rgba(255,107,53,0.3)}
+.game-icon{
+  font-size:3rem;
+  min-width:64px;
+  height:64px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.04);
+  border-radius:12px;
+}
+.game-info{flex:1}
+.game-info h3{font-size:1.25rem;margin-bottom:4px}
+.game-meta{display:flex;gap:16px;color:var(--muted);font-size:.85rem;margin-bottom:10px;flex-wrap:wrap}
+.game-meta span{display:flex;align-items:center;gap:4px}
+.game-desc{color:#c8c8d8;font-size:.95rem;line-height:1.5;margin-bottom:14px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tag{
+  font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:20px;
+  background:rgba(6,214,160,0.15);color:var(--accent3);
+}
+.buy-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;
+  border-radius:40px;
+  background:linear-gradient(135deg,var(--accent),#e85d2c);
+  color:#fff;font-weight:700;font-size:.9rem;
+  text-decoration:none;
+  transition:transform .15s,box-shadow .15s;
+}
+.buy-btn:hover{transform:scale(1.04);box-shadow:0 4px 20px rgba(255,107,53,0.4)}
+
+.match-score{
+  font-family:'Lilita One',cursive;
+  font-size:.85rem;
+  color:var(--accent2);
+  margin-bottom:8px;
+}
+
+/* Nav buttons */
+.nav-row{display:flex;gap:12px;margin-top:24px;justify-content:flex-end}
+.nav-btn{
+  padding:12px 28px;border-radius:40px;border:none;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;
+  transition:all .2s;
+}
+.nav-btn.back{background:rgba(255,255,255,0.08);color:var(--text)}
+.nav-btn.back:hover{background:rgba(255,255,255,0.14)}
+.nav-btn.next{
+  background:linear-gradient(135deg,var(--accent),#e85d2c);color:#fff;
+}
+.nav-btn.next:hover{transform:scale(1.03);box-shadow:0 4px 16px rgba(255,107,53,0.3)}
+.nav-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* Progress */
+.progress{display:flex;gap:6px;justify-content:center;margin-bottom:28px}
+.progress .dot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,0.12);transition:all .3s;
+}
+.progress .dot.done{background:var(--accent)}
+.progress .dot.current{background:var(--accent2);transform:scale(1.3)}
+
+/* Email capture */
+.email-box{
+  background:linear-gradient(135deg,rgba(255,107,53,0.1),rgba(6,214,160,0.1));
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:var(--radius);
+  padding:28px;
+  margin-top:32px;
+  text-align:center;
+}
+.email-box h3{font-family:'Lilita One',cursive;font-size:1.3rem;margin-bottom:8px}
+.email-box p{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+.email-row{display:flex;gap:8px;max-width:420px;margin:0 auto}
+.email-row input{
+  flex:1;padding:12px 16px;border-radius:40px;border:2px solid rgba(255,255,255,0.12);
+  background:rgba(0,0,0,0.3);color:#fff;font-size:.95rem;outline:none;
+  font-family:'Inter',sans-serif;
+}
+.email-row input:focus{border-color:var(--accent)}
+.email-row button{
+  padding:12px 24px;border-radius:40px;border:none;
+  background:var(--accent);color:#fff;font-weight:700;cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+
+/* Restart */
+.restart-btn{
+  display:block;margin:24px auto 0;padding:12px 28px;border-radius:40px;
+  border:2px solid rgba(255,255,255,0.12);background:transparent;
+  color:var(--text);font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all .2s;
+}
+.restart-btn:hover{border-color:var(--accent);background:rgba(255,107,53,0.1)}
+
+/* Footer */
+footer{text-align:center;padding:48px 0 32px;color:var(--muted);font-size:.8rem}
+footer a{color:var(--accent);text-decoration:none}
+
+/* Responsive */
+@media(max-width:600px){
+  .game-card{flex-direction:column}
+  .game-icon{min-width:auto;width:56px;height:56px;font-size:2.4rem}
+  .email-row{flex-direction:column}
+  .step{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+
+<svg class="noise-svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feBlend in="SourceGraphic" mode="multiply" result="blend"/><feComponentTransfer><feFuncA type="linear" slope="0.08"/></feComponentTransfer></filter></svg>
+
+<div class="container">
+
+<header>
+  <div class="dice-row">🎲🃏🎯</div>
+  <h1>Family Game Night Picker</h1>
+  <p>Answer 4 quick questions. Get the perfect board game for tonight.</p>
+</header>
+
+<div class="progress" id="progress">
+  <div class="dot current" data-step="0"></div>
+  <div class="dot" data-step="1"></div>
+  <div class="dot" data-step="2"></div>
+  <div class="dot" data-step="3"></div>
+</div>
+
+<!-- STEP 1: Players -->
+<div class="step active" data-step="0">
+  <div class="step-label">Step 1 of 4</div>
+  <h2>How many players tonight?</h2>
+  <div class="options" id="players-opts">
+    <button class="opt" data-val="2"><span class="emoji">👫</span> 2 players</button>
+    <button class="opt" data-val="3-4"><span class="emoji">👨‍👩‍👧</span> 3–4 players</button>
+    <button class="opt" data-val="5-6"><span class="emoji">👨‍👩‍👧‍👦</span> 5–6 players</button>
+    <button class="opt" data-val="7+"><span class="emoji">🎉</span> 7+ (party!)</button>
+  </div>
+  <div class="nav-row"><button class="nav-btn next" disabled onclick="nextStep()">Next →</button></div>
+</div>
+
+<!-- STEP 2: Ages -->
+<div class="step" data-step="1">
+  <div class="step-label">Step 2 of 4</div>
+  <h2>Youngest player's age?</h2>
+  <div class="slider-wrap">
+    <div class="slider-val" id="age-display">8 years old</div>
+    <input type="range" min="4" max="18" value="8" id="age-slider">
+    <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;margin-top:4px"><span>4</span><span>18+</span></div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn back" onclick="prevStep()">← Back</button>
+    <button class="nav-btn next" onclick="nextStep()">Next →</button>
+  </div>
+</div>
+
+<!-- STEP 3: Time -->
+<div class="step" data-step="2">
+  <div class="step-label">Step 3 of 4</div>
+  <h2>How much time do you have?</h2>
+  <div class="options" id="time-opts">
+    <button class="opt" data-val="quick"><span class="emoji">⚡</span> Quick (15–30 min)</button>
+    <button class="opt" data-val="medium"><span class="emoji">⏱️</span> Medium (30–60 min)</button>
+    <button class="opt" data-val="long"><span class="emoji">🕰️</span> Long (1–2 hours)</button>
+    <button class="opt" data-val="epic"><span class="emoji">🏰</span> Epic (2+ hours)</button>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn back" onclick="prevStep()">← Back</button>
+    <button class="nav-btn next" disabled onclick="nextStep()">Next →</button>
+  </div>
+</div>
+
+<!-- STEP 4: Vibe -->
+<div class="step" data-step="3">
+  <div class="step-label">Step 4 of 4</div>
+  <h2>What's the vibe?</h2>
+  <div class="options" id="vibe-opts">
+    <button class="opt" data-val="silly"><span class="emoji">🤪</span> Silly &amp; laughing</button>
+    <button class="opt" data-val="strategy"><span class="emoji">🧠</span> Strategy &amp; thinking</button>
+    <button class="opt" data-val="cooperative"><span class="emoji">🤝</span> Work together</button>
+    <button class="opt" data-val="competitive"><span class="emoji">🔥</span> Cutthroat competitive</button>
+    <button class="opt" data-val="creative"><span class="emoji">🎨</span> Creative &amp; storytelling</button>
+    <button class="opt" data-val="trivia"><span class="emoji">📚</span> Trivia &amp; knowledge</button>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn back" onclick="prevStep()">← Back</button>
+    <button class="nav-btn next" disabled onclick="showResults()">Show My Games 🎲</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+  <div class="results-header">
+    <h2>🎯 Your Perfect Games</h2>
+    <p>Picked just for your crew. Tap to grab one!</p>
+  </div>
+  <div id="results-list"></div>
+
+  <div class="email-box">
+    <h3>🎲 Weekly Game Night Ideas</h3>
+    <p>Get a new curated game recommendation every Friday — matched to your family.</p>
+    <div class="email-row">
+      <input type="email" placeholder="you@email.com" id="email-input">
+      <button onclick="captureEmail()">Subscribe</button>
+    </div>
+    <div id="email-thanks" style="display:none;color:var(--accent3);margin-top:12px;font-weight:600">✓ You're in! First pick drops Friday.</div>
+  </div>
+
+  <button class="restart-btn" onclick="restart()">🔄 Start Over</button>
+</div>
+
+<footer>
+  <p>Built with 🎲 by <a href="https://stirman.net">stirman.net</a> · Game links may earn a small commission</p>
+</footer>
+
+</div>
+
+<script>
+const GAMES = [
+  // SILLY
+  {name:"Exploding Kittens",emoji:"🐱",ages:7,minP:2,maxP:5,time:"quick",vibes:["silly","competitive"],
+   desc:"Russian roulette with kittens. Draw cards, avoid exploding, deploy laser pointers and catnip sandwiches to survive.",
+   tags:["Card Game","Easy to Learn","Hilarious"],
+   url:"https://www.amazon.com/dp/B010TQY7A8?tag=stirman-20",price:"$20"},
+  {name:"Throw Throw Burrito",emoji:"🌯",ages:7,minP:2,maxP:6,time:"quick",vibes:["silly","competitive"],
+   desc:"It's a card game AND a dodgeball game. Collect matching sets while dodging soft foam burritos thrown across the table.",
+   tags:["Active","Card Game","Physical"],
+   url:"https://www.amazon.com/dp/B07TS96J4F?tag=stirman-20",price:"$25"},
+  {name:"Telestrations",emoji:"✏️",ages:8,minP:4,maxP:8,time:"quick",vibes:["silly","creative"],
+   desc:"Telephone meets Pictionary. Draw what you see, guess what was drawn. Watch your sketches hilariously devolve.",
+   tags:["Drawing","Party","Laugh Out Loud"],
+   url:"https://www.amazon.com/dp/B001SN8GF4?tag=stirman-20",price:"$24"},
+  {name:"Quelf",emoji:"🤡",ages:12,minP:3,maxP:8,time:"medium",vibes:["silly"],
+   desc:"The unpredictable party game where you might end up speaking in an accent, wearing a sock puppet, or standing on one foot.",
+   tags:["Party","Unpredictable","Wild"],
+   url:"https://www.amazon.com/dp/B001P30590?tag=stirman-20",price:"$22"},
+
+  // STRATEGY
+  {name:"Ticket to Ride",emoji:"🚂",ages:8,minP:2,maxP:5,time:"medium",vibes:["strategy","competitive"],
+   desc:"Build train routes across the country. Collect cards, claim routes, connect cities. Easy to learn, impossible to put down.",
+   tags:["Classic","Route Building","Gateway Game"],
+   url:"https://www.amazon.com/dp/B0060I4AGG?tag=stirman-20",price:"$40"},
+  {name:"Catan",emoji:"🏝️",ages:10,minP:3,maxP:4,time:"long",vibes:["strategy","competitive"],
+   desc:"Trade, build, settle. Collect resources, negotiate with rivals, and be the first to build a thriving island civilization.",
+   tags:["Classic","Trading","Iconic"],
+   url:"https://www.amazon.com/dp/B00U26V4VQ?tag=stirman-20",price:"$35"},
+  {name:"Azul",emoji:"🔷",ages:8,minP:2,maxP:4,time:"medium",vibes:["strategy"],
+   desc:"Draft beautiful tiles and arrange them into stunning mosaic patterns. Elegant, tactile, and surprisingly cutthroat.",
+   tags:["Tile Placement","Beautiful","Award Winner"],
+   url:"https://www.amazon.com/dp/B077MZ2MPB?tag=stirman-20",price:"$30"},
+  {name:"Splendor",emoji:"💎",ages:10,minP:2,maxP:4,time:"medium",vibes:["strategy"],
+   desc:"Collect gem tokens, buy development cards, attract noble patrons. An engine-building gem that plays in 30 minutes.",
+   tags:["Engine Building","Elegant","Replayable"],
+   url:"https://www.amazon.com/dp/B00IZEUFIA?tag=stirman-20",price:"$32"},
+  {name:"Wingspan",emoji:"🦅",ages:10,minP:1,maxP:5,time:"long",vibes:["strategy","creative"],
+   desc:"Attract birds to your wildlife preserves. Gorgeous art, satisfying combos, surprisingly deep engine building.",
+   tags:["Engine Building","Nature","Stunning Art"],
+   url:"https://www.amazon.com/dp/B07YQ641NQ?tag=stirman-20",price:"$45"},
+
+  // COOPERATIVE
+  {name:"Pandemic",emoji:"🦠",ages:8,minP:2,maxP:4,time:"medium",vibes:["cooperative","strategy"],
+   desc:"Work together to save the world from four deadly diseases. Coordinate roles, share knowledge, race against outbreaks.",
+   tags:["Co-op","Tense","Teamwork"],
+   url:"https://www.amazon.com/dp/B00A2HD40E?tag=stirman-20",price:"$35"},
+  {name:"Forbidden Island",emoji:"🏝️",ages:10,minP:2,maxP:4,time:"medium",vibes:["cooperative"],
+   desc:"Your island is sinking! Work as a team to collect four sacred treasures and escape before it's too late.",
+   tags:["Co-op","Adventure","Family Friendly"],
+   url:"https://www.amazon.com/dp/B003MYHGNS?tag=stirman-20",price:"$18"},
+  {name:"The Crew",emoji:"🚀",ages:10,minP:2,maxP:5,time:"quick",vibes:["cooperative","strategy"],
+   desc:"A cooperative trick-taking card game set in space. Complete missions together without talking about your cards.",
+   tags:["Card Game","Co-op","Clever"],
+   url:"https://www.amazon.com/dp/B084GMP2GN?tag=stirman-20",price:"$15"},
+  {name:"Mysterium",emoji:"👻",ages:10,minP:2,maxP:7,time:"medium",vibes:["cooperative","creative"],
+   desc:"One player is a ghost sending cryptic visions. Everyone else interprets the surreal art to solve the mystery.",
+   tags:["Mystery","Art","Atmospheric"],
+   url:"https://www.amazon.com/dp/B013TJ5P80?tag=stirman-20",price:"$38"},
+
+  // COMPETITIVE
+  {name:"King of Tokyo",emoji:"🦖",ages:8,minP:2,maxP:6,time:"quick",vibes:["competitive","silly"],
+   desc:"Be a giant monster battling for control of Tokyo. Roll dice, smash rivals, power up with crazy abilities. Last monster standing wins.",
+   tags:["Dice Rolling","Monsters","Fast"],
+   url:"https://www.amazon.com/dp/B004U5R5BI?tag=stirman-20",price:"$32"},
+  {name:"7 Wonders",emoji:"🏛️",ages:10,minP:2,maxP:7,time:"medium",vibes:["competitive","strategy"],
+   desc:"Draft cards across three ages to build an ancient civilization. Military, science, commerce — multiple paths to glory.",
+   tags:["Card Drafting","Civilization","Deep"],
+   url:"https://www.amazon.com/dp/B004MKMVPE?tag=stirman-20",price:"$38"},
+  {name:"Codenames",emoji:"🕵️",ages:10,minP:4,maxP:8,time:"quick",vibes:["competitive","creative","trivia"],
+   desc:"Two spymasters give one-word clues to help their team find secret agents. One wrong guess and you contact the assassin.",
+   tags:["Word Game","Team","Clever"],
+   url:"https://www.amazon.com/dp/B014Q1XX9S?tag=stirman-20",price:"$16"},
+
+  // CREATIVE
+  {name:"Dixit",emoji:"🐇",ages:8,minP:3,maxP:8,time:"quick",vibes:["creative","silly"],
+   desc:"Describe a surreal card with a word or phrase. Others try to match it. Be creative enough to fool some — but not all.",
+   tags:["Imagination","Art","Poetic"],
+   url:"https://www.amazon.com/dp/B001OH9EDW?tag=stirman-20",price:"$28"},
+  {name:"Wavelength",emoji:"📡",ages:10,minP:2,maxP:12,time:"quick",vibes:["creative","silly"],
+   desc:"How hot is the sun? How famous is your mailman? Guess where concepts land on a spectrum. Mind-melding party fun.",
+   tags:["Party","Discussion","Hilarious"],
+   url:"https://www.amazon.com/dp/B07Y61HKQ3?tag=stirman-20",price:"$35"},
+
+  // TRIVIA
+  {name:"Trivial Pursuit: Family Edition",emoji:"🧩",ages:8,minP:2,maxP:6,time:"medium",vibes:["trivia","competitive"],
+   desc:"The classic trivia game with questions for both kids and adults. Two difficulty levels keep it fair for everyone.",
+   tags:["Trivia","Classic","All Ages"],
+   url:"https://www.amazon.com/dp/B07MYXDKQB?tag=stirman-20",price:"$22"},
+  {name:"Wits & Wagers",emoji:"🎰",ages:10,minP:3,maxP:7,time:"quick",vibes:["trivia","competitive","silly"],
+   desc:"Answer numerical trivia questions, then bet on whose guess is closest. You don't need to know — you need to bet smart.",
+   tags:["Betting","Trivia","Clever"],
+   url:"https://www.amazon.com/dp/B009JLDKZS?tag=stirman-20",price:"$25"},
+
+  // PARTY / BIG GROUPS
+  {name:"Just One",emoji:"💬",ages:8,minP:3,maxP:7,time:"quick",vibes:["cooperative","silly","creative"],
+   desc:"Everyone writes a one-word clue. Identical clues cancel out. Can the guesser figure out the mystery word?",
+   tags:["Word Game","Co-op","Party"],
+   url:"https://www.amazon.com/dp/B07W3PJTL2?tag=stirman-20",price:"$20"},
+  {name:"Sushi Go Party!",emoji:"🍣",ages:8,minP:2,maxP:8,time:"quick",vibes:["strategy","silly"],
+   desc:"Draft adorable sushi cards to build the best meal. Tons of card combos to customize every game differently.",
+   tags:["Card Drafting","Cute","Quick"],
+   url:"https://www.amazon.com/dp/B01CETNKE2?tag=stirman-20",price:"$22"},
+
+  // EPIC
+  {name:"Betrayal at House on the Hill",emoji:"🏚️",ages:12,minP:3,maxP:6,time:"long",vibes:["creative","cooperative","competitive"],
+   desc:"Explore a haunted house together... until one player turns traitor. 50 different haunt scenarios — never the same game twice.",
+   tags:["Horror","Traitor","Storytelling"],
+   url:"https://www.amazon.com/dp/B003HC9734?tag=stirman-20",price:"$38"},
+  {name:"Risk",emoji:"🌍",ages:10,minP:2,maxP:6,time:"epic",vibes:["strategy","competitive"],
+   desc:"The classic world domination game. Deploy armies, attack territories, forge and break alliances. Just one more turn...",
+   tags:["War","Classic","Epic"],
+   url:"https://www.amazon.com/dp/B01AHAEYIG?tag=stirman-20",price:"$30"},
+  {name:"Clue",emoji:"🔍",ages:8,minP:2,maxP:6,time:"medium",vibes:["strategy","trivia"],
+   desc:"Who did it, where, and with what? Move through the mansion, make accusations, use deduction to solve the murder mystery.",
+   tags:["Deduction","Classic","Mystery"],
+   url:"https://www.amazon.com/dp/B00349MPQQ?tag=stirman-20",price:"$15"},
+];
+
+let currentStep = 0;
+let selections = {players:null, age:8, time:null, vibe:null};
+
+// Option click handlers
+document.querySelectorAll('.options').forEach(group => {
+  group.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const step = btn.closest('.step');
+      const key = step.dataset.step==='0'?'players':step.dataset.step==='2'?'time':'vibe';
+      selections[key] = btn.dataset.val;
+      step.querySelector('.nav-btn.next').disabled = false;
+    });
+  });
+});
+
+// Age slider
+const ageSlider = document.getElementById('age-slider');
+const ageDisplay = document.getElementById('age-display');
+ageSlider.addEventListener('input', () => {
+  const v = parseInt(ageSlider.value);
+  selections.age = v;
+  ageDisplay.textContent = v >= 18 ? '18+ (adults)' : v + ' years old';
+});
+
+function updateProgress(){
+  document.querySelectorAll('.progress .dot').forEach((d,i) => {
+    d.className = 'dot';
+    if(i < currentStep) d.classList.add('done');
+    if(i === currentStep) d.classList.add('current');
+  });
+}
+
+function nextStep(){
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  currentStep++;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateProgress();
+}
+
+function prevStep(){
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  currentStep--;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateProgress();
+}
+
+function playerMatch(game, sel){
+  const p = sel.players;
+  if(p==='2') return game.minP<=2;
+  if(p==='3-4') return game.minP<=4 && game.maxP>=3;
+  if(p==='5-6') return game.minP<=6 && game.maxP>=5;
+  if(p==='7+') return game.maxP>=7;
+  return true;
+}
+
+function timeMatch(game, sel){
+  return game.time === sel.time || 
+    (sel.time==='epic' && (game.time==='long'||game.time==='epic')) ||
+    (sel.time==='long' && game.time==='medium');
+}
+
+function showResults(){
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  document.getElementById('progress').style.display='none';
+
+  let scored = GAMES.map(g => {
+    let score = 0;
+    if(playerMatch(g, selections)) score += 3;
+    if(g.ages <= selections.age) score += 3;
+    if(timeMatch(g, selections)) score += 2;
+    if(g.vibes.includes(selections.vibe)) score += 4;
+    // Partial vibe matches
+    g.vibes.forEach(v => { if(v===selections.vibe) score+=1; });
+    return {...g, score};
+  });
+
+  scored = scored.filter(g => g.score >= 5).sort((a,b) => b.score - a.score);
+  if(scored.length < 3) {
+    scored = GAMES.map(g => ({...g, score: g.ages <= selections.age ? 5 : 3}))
+      .sort(() => Math.random()-0.5).slice(0,5);
+  }
+  scored = scored.slice(0, 5);
+
+  const list = document.getElementById('results-list');
+  const labels = ['🏆 Best Match','🥈 Runner Up','🥉 Great Pick','⭐ Also Perfect','✨ Wild Card'];
+  list.innerHTML = scored.map((g,i) => `
+    <div class="game-card">
+      <div class="game-icon">${g.emoji}</div>
+      <div class="game-info">
+        <div class="match-score">${labels[i]||'⭐ Great Pick'}</div>
+        <h3>${g.name}</h3>
+        <div class="game-meta">
+          <span>👥 ${g.minP}–${g.maxP} players</span>
+          <span>🎂 Ages ${g.ages}+</span>
+          <span>⏱ ${g.time==='quick'?'15–30 min':g.time==='medium'?'30–60 min':g.time==='long'?'1–2 hrs':'2+ hrs'}</span>
+          <span>💰 ~${g.price}</span>
+        </div>
+        <p class="game-desc">${g.desc}</p>
+        <div class="tags">${g.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <a class="buy-btn" href="${g.url}" target="_blank" rel="noopener">🛒 Check Price on Amazon</a>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('results').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function captureEmail(){
+  const input = document.getElementById('email-input');
+  if(input.value && input.value.includes('@')){
+    document.getElementById('email-thanks').style.display='block';
+    input.style.display='none';
+    input.parentElement.querySelector('button').style.display='none';
+  }
+}
+
+function restart(){
+  currentStep=0;
+  selections={players:null,age:8,time:null,vibe:null};
+  document.getElementById('results').classList.remove('active');
+  document.getElementById('progress').style.display='flex';
+  document.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.nav-btn.next').forEach(b=>b.disabled=true);
+  document.querySelector('[data-step="1"] .nav-btn.next').disabled=false;
+  ageSlider.value=8; ageDisplay.textContent='8 years old';
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelector('[data-step="0"]').classList.add('active');
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

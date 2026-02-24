@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubAudit — How Much Do Your Subscriptions Really Cost?</title>
+<meta name="description" content="Add up all your subscriptions and see the shocking total. Find out what you spend monthly, yearly, and over 5 years. Get tips to cut the fat.">
+<meta name="keywords" content="subscription calculator, subscription tracker, how much do I spend on subscriptions, cancel subscriptions, subscription audit">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--surface:#14141f;--surface2:#1e1e2e;--border:#2a2a3a;
+--text:#e8e8f0;--text2:#9898a8;--accent:#ff6b35;--accent2:#e8396b;
+--green:#2dd4a0;--red:#ff4757;--purple:#a855f7;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+canvas#grain{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:.04;z-index:0}
+.wrap{max-width:720px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+
+/* HEADER */
+header{text-align:center;padding:60px 0 40px}
+header h1{font-family:'Instrument Serif',serif;font-size:clamp(3rem,8vw,5rem);font-weight:400;line-height:1;margin-bottom:8px}
+header h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--text2);font-size:1.1rem;max-width:420px;margin:0 auto}
+
+/* QUICK ADD */
+.quick-add{margin-bottom:32px}
+.quick-add h3{font-size:.85rem;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:8px 16px;font-size:.9rem;color:var(--text);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.chip:hover{border-color:var(--accent);background:var(--surface2)}
+.chip.added{border-color:var(--green);color:var(--green)}
+.chip .price{color:var(--text2);font-size:.8rem}
+
+/* CUSTOM ADD */
+.custom-add{display:flex;gap:8px;margin-bottom:32px}
+.custom-add input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--text);font-size:1rem;font-family:inherit}
+.custom-add input:focus{outline:none;border-color:var(--accent)}
+.custom-add input::placeholder{color:var(--text2)}
+.custom-add .price-input{width:100px}
+.custom-add button{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 20px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .15s}
+.custom-add button:hover{transform:scale(1.05)}
+
+/* LIST */
+.sub-list{margin-bottom:32px}
+.sub-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:all .3s}
+.sub-item .info{display:flex;align-items:center;gap:12px}
+.sub-item .icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.sub-item .name{font-weight:500}
+.sub-item .freq{font-size:.8rem;color:var(--text2)}
+.sub-item .cost{font-weight:600;font-size:1.1rem;color:var(--accent)}
+.sub-item .remove{background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px 8px;transition:color .2s}
+.sub-item .remove:hover{color:var(--red)}
+.sub-item.entering{animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* DASHBOARD */
+.dashboard{margin-bottom:40px}
+.total-card{background:linear-gradient(135deg,#1a1028,#1e1430,#141028);border:1px solid #2a2040;border-radius:20px;padding:32px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.total-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(168,85,247,.08),transparent 60%);pointer-events:none}
+.total-card .label{font-size:.85rem;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:4px}
+.total-card .amount{font-family:'Instrument Serif',serif;font-size:clamp(3rem,10vw,5rem);font-weight:400;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.total-card .sub-amounts{display:flex;justify-content:center;gap:32px;margin-top:16px}
+.total-card .sub-amt{text-align:center}
+.total-card .sub-amt .val{font-size:1.4rem;font-weight:600;color:var(--text)}
+.total-card .sub-amt .lbl{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+
+/* BREAKDOWN BAR */
+.breakdown{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+.breakdown h3{font-size:.85rem;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:12px}
+.bar-container{height:24px;border-radius:12px;overflow:hidden;display:flex;margin-bottom:12px}
+.bar-seg{height:100%;transition:width .5s ease}
+.bar-legend{display:flex;flex-wrap:wrap;gap:8px}
+.bar-legend span{font-size:.8rem;display:flex;align-items:center;gap:4px}
+.bar-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* INSIGHTS */
+.insights{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+.insights h3{font-size:.85rem;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:12px}
+.insight-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:.95rem;line-height:1.5}
+.insight-item:last-child{margin-bottom:0}
+.insight-item .emoji{font-size:1.2rem;flex-shrink:0}
+
+/* SAVINGS TIPS */
+.tips{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+.tips h3{font-size:.85rem;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:12px}
+.tip{padding:12px;background:var(--surface2);border-radius:10px;margin-bottom:8px;font-size:.9rem;line-height:1.5}
+.tip:last-child{margin-bottom:0}
+.tip a{color:var(--accent);text-decoration:none}
+.tip a:hover{text-decoration:underline}
+.tip .save{color:var(--green);font-weight:600}
+
+/* CTA */
+.cta-box{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:16px;padding:24px;text-align:center;margin-bottom:40px}
+.cta-box h3{font-size:1.3rem;margin-bottom:8px;color:#fff}
+.cta-box p{color:rgba(255,255,255,.8);font-size:.9rem;margin-bottom:16px}
+.cta-box .email-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.cta-box input{flex:1;padding:12px 16px;border-radius:10px;border:none;font-size:1rem;font-family:inherit}
+.cta-box button{background:#000;color:#fff;border:none;padding:12px 20px;border-radius:10px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+
+/* SHARE */
+.share-bar{text-align:center;margin-bottom:40px}
+.share-bar p{color:var(--text2);margin-bottom:12px;font-size:.9rem}
+.share-bar button{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 20px;color:var(--text);font-family:inherit;cursor:pointer;font-size:.9rem;margin:0 4px;transition:all .2s}
+.share-bar button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* FOOTER */
+footer{text-align:center;padding:40px 0;border-top:1px solid var(--border);color:var(--text2);font-size:.8rem}
+footer a{color:var(--accent);text-decoration:none}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty .big{font-size:3rem;margin-bottom:12px}
+.empty p{font-size:1rem}
+
+/* TOGGLE */
+.freq-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;width:fit-content}
+.freq-toggle button{background:none;border:none;padding:6px 14px;color:var(--text2);font-family:inherit;font-size:.85rem;cursor:pointer}
+.freq-toggle button.active{background:var(--accent);color:#fff}
+
+@media(max-width:600px){
+.custom-add{flex-wrap:wrap}
+.custom-add .price-input{width:80px}
+.total-card .sub-amounts{flex-direction:column;gap:12px}
+.cta-box .email-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<canvas id="grain"></canvas>
+<div class="wrap">
+<header>
+<h1><span>SubAudit</span></h1>
+<p>Add your subscriptions. See the real cost. Cut the ones that don't spark joy.</p>
+</header>
+
+<div class="quick-add">
+<h3>Quick Add Popular Services</h3>
+<div class="chips" id="chips"></div>
+</div>
+
+<div class="custom-add">
+<input type="text" id="customName" placeholder="Service name...">
+<input type="number" id="customPrice" class="price-input" placeholder="$/mo" step="0.01" min="0">
+<button onclick="addCustom()">+ Add</button>
+</div>
+
+<div class="sub-list" id="subList"></div>
+<div id="dashboard"></div>
+</div>
+
+<script>
+// GRAIN
+const c=document.getElementById('grain'),ctx=c.getContext('2d');
+function grain(){c.width=window.innerWidth;c.height=window.innerHeight;const d=ctx.createImageData(c.width,c.height);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}ctx.putImageData(d,0,0)}
+grain();window.addEventListener('resize',grain);
+
+const POPULAR = [
+  {name:'Netflix',price:15.49,icon:'🎬',cat:'Entertainment'},
+  {name:'Spotify',price:11.99,icon:'🎵',cat:'Entertainment'},
+  {name:'YouTube Premium',price:13.99,icon:'▶️',cat:'Entertainment'},
+  {name:'Disney+',price:13.99,icon:'🏰',cat:'Entertainment'},
+  {name:'Hulu',price:17.99,icon:'📺',cat:'Entertainment'},
+  {name:'HBO Max',price:16.99,icon:'🎭',cat:'Entertainment'},
+  {name:'Apple TV+',price:9.99,icon:'🍎',cat:'Entertainment'},
+  {name:'Amazon Prime',price:14.99,icon:'📦',cat:'Shopping'},
+  {name:'Apple Music',price:10.99,icon:'🎶',cat:'Entertainment'},
+  {name:'ChatGPT Plus',price:20,icon:'🤖',cat:'Productivity'},
+  {name:'Claude Pro',price:20,icon:'🧠',cat:'Productivity'},
+  {name:'iCloud+',price:2.99,icon:'☁️',cat:'Cloud'},
+  {name:'Google One',price:2.99,icon:'🔵',cat:'Cloud'},
+  {name:'Dropbox',price:11.99,icon:'📁',cat:'Cloud'},
+  {name:'Adobe CC',price:59.99,icon:'🎨',cat:'Productivity'},
+  {name:'Microsoft 365',price:9.99,icon:'📊',cat:'Productivity'},
+  {name:'Notion',price:10,icon:'📝',cat:'Productivity'},
+  {name:'Gym Membership',price:49.99,icon:'💪',cat:'Health'},
+  {name:'Peloton',price:44,icon:'🚴',cat:'Health'},
+  {name:'Headspace',price:12.99,icon:'🧘',cat:'Health'},
+  {name:'NYT',price:4.25,icon:'📰',cat:'News'},
+  {name:'WSJ',price:12.99,icon:'📈',cat:'News'},
+  {name:'Paramount+',price:12.99,icon:'⭐',cat:'Entertainment'},
+  {name:'Peacock',price:7.99,icon:'🦚',cat:'Entertainment'},
+  {name:'DoorDash DashPass',price:9.99,icon:'🍔',cat:'Food'},
+  {name:'Uber One',price:9.99,icon:'🚗',cat:'Transport'},
+  {name:'Instacart+',price:9.99,icon:'🛒',cat:'Shopping'},
+  {name:'Xbox Game Pass',price:16.99,icon:'🎮',cat:'Entertainment'},
+  {name:'PlayStation Plus',price:13.33,icon:'🕹️',cat:'Entertainment'},
+  {name:'NordVPN',price:12.99,icon:'🔒',cat:'Tech'},
+  {name:'1Password',price:4.99,icon:'🔑',cat:'Tech'},
+];
+
+const CAT_COLORS = {
+  Entertainment:'#a855f7',Productivity:'#3b82f6',Health:'#2dd4a0',
+  Cloud:'#06b6d4',Shopping:'#f59e0b',News:'#ef4444',Food:'#f97316',
+  Transport:'#8b5cf6',Tech:'#64748b'
+};
+
+let subs = JSON.parse(localStorage.getItem('subaudit')||'[]');
+
+function renderChips(){
+  const el=document.getElementById('chips');
+  el.innerHTML=POPULAR.map(p=>{
+    const added=subs.find(s=>s.name===p.name);
+    return `<div class="chip ${added?'added':''}" onclick="togglePopular('${p.name}')">${p.icon} ${p.name} <span class="price">$${p.price}</span></div>`;
+  }).join('');
+}
+
+function togglePopular(name){
+  const idx=subs.findIndex(s=>s.name===name);
+  if(idx>-1){subs.splice(idx,1)}
+  else{const p=POPULAR.find(x=>x.name===name);subs.push({...p})}
+  save();render();
+}
+
+function addCustom(){
+  const name=document.getElementById('customName').value.trim();
+  const price=parseFloat(document.getElementById('customPrice').value);
+  if(!name||isNaN(price)||price<=0)return;
+  subs.push({name,price,icon:'💳',cat:'Other'});
+  document.getElementById('customName').value='';
+  document.getElementById('customPrice').value='';
+  save();render();
+}
+
+document.getElementById('customName').addEventListener('keydown',e=>{if(e.key==='Enter')addCustom()});
+document.getElementById('customPrice').addEventListener('keydown',e=>{if(e.key==='Enter')addCustom()});
+
+function removeSub(i){subs.splice(i,1);save();render()}
+
+function save(){localStorage.setItem('subaudit',JSON.stringify(subs))}
+
+function render(){
+  renderChips();
+  const list=document.getElementById('subList');
+  const dash=document.getElementById('dashboard');
+
+  if(subs.length===0){
+    list.innerHTML='<div class="empty"><div class="big">👆</div><p>Tap services above or add your own to start your audit</p></div>';
+    dash.innerHTML='';
+    return;
+  }
+
+  list.innerHTML=subs.map((s,i)=>`
+    <div class="sub-item entering">
+      <div class="info">
+        <div class="icon" style="background:${CAT_COLORS[s.cat]||'#444'}22;color:${CAT_COLORS[s.cat]||'#888'}">${s.icon}</div>
+        <div><div class="name">${s.name}</div><div class="freq">${s.cat||'Other'}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="cost">$${s.price.toFixed(2)}/mo</div>
+        <button class="remove" onclick="removeSub(${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  const monthly=subs.reduce((a,s)=>a+s.price,0);
+  const yearly=monthly*12;
+  const fiveYear=yearly*5;
+
+  // Category breakdown
+  const cats={};
+  subs.forEach(s=>{const c=s.cat||'Other';cats[c]=(cats[c]||0)+s.price});
+  const catEntries=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+
+  const barHTML=catEntries.map(([cat,amt])=>{
+    const pct=(amt/monthly*100).toFixed(1);
+    return `<div class="bar-seg" style="width:${pct}%;background:${CAT_COLORS[cat]||'#666'}"></div>`;
+  }).join('');
+
+  const legendHTML=catEntries.map(([cat,amt])=>
+    `<span><span class="dot" style="background:${CAT_COLORS[cat]||'#666'}"></span>${cat} $${amt.toFixed(2)}</span>`
+  ).join('');
+
+  // Insights
+  const most=subs.reduce((a,b)=>a.price>b.price?a:b);
+  const coffees=Math.floor(monthly/6);
+  const vacay=Math.floor(yearly/150);
+  const entTotal=subs.filter(s=>s.cat==='Entertainment').reduce((a,s)=>a+s.price,0);
+
+  // Tips
+  let tips='';
+  if(entTotal>50)tips+=`<div class="tip">🎬 You spend <strong>$${entTotal.toFixed(2)}/mo</strong> on entertainment streaming. Consider rotating services — watch one for a month, then switch. <span class="save">Potential savings: $${(entTotal*0.5).toFixed(2)}/mo</span></div>`;
+  if(subs.find(s=>s.name==='Adobe CC'))tips+=`<div class="tip">🎨 Adobe CC is your priciest tool at $59.99/mo. Alternatives like <a href="https://www.figma.com" target="_blank">Figma</a> (free), <a href="https://affinity.serif.com" target="_blank">Affinity</a> ($70 one-time), or <a href="https://www.canva.com" target="_blank">Canva Pro</a> ($13/mo) might cover your needs. <span class="save">Potential savings: $47/mo</span></div>`;
+  if(subs.find(s=>s.name==='Gym Membership'))tips+=`<div class="tip">💪 Gym at $49.99/mo = $600/year. If you go &lt;3x/week, consider <a href="https://www.amazon.com/dp/B0BQ6BCBKM?tag=stirman-20" target="_blank">home workout gear</a> (one-time ~$200) or free YouTube workouts. <span class="save">Potential savings: $50/mo</span></div>`;
+  if(subs.length>=10)tips+=`<div class="tip">📋 You have ${subs.length} subscriptions. Try the <strong>"subscription audit" method</strong>: cancel everything, then only re-subscribe to services you actively miss after 2 weeks.</div>`;
+  if(monthly>100)tips+=`<div class="tip">💡 Track all your spending (not just subscriptions) with <a href="https://www.amazon.com/dp/B0CTRJXM6Y?tag=stirman-20" target="_blank">a budgeting journal</a> or apps like <a href="https://www.ynab.com" target="_blank">YNAB</a>. People who track spending save 15-20% more on average.</div>`;
+  if(!tips)tips='<div class="tip">✅ Your subscription spending looks reasonable! Keep auditing quarterly to stay on track.</div>';
+
+  dash.innerHTML=`
+    <div class="dashboard">
+      <div class="total-card">
+        <div class="label">You spend</div>
+        <div class="amount">$${monthly.toFixed(2)}<span style="font-size:.4em;-webkit-text-fill-color:var(--text2)">/mo</span></div>
+        <div class="sub-amounts">
+          <div class="sub-amt"><div class="val">$${yearly.toFixed(0)}</div><div class="lbl">Per Year</div></div>
+          <div class="sub-amt"><div class="val">$${fiveYear.toFixed(0)}</div><div class="lbl">Over 5 Years</div></div>
+          <div class="sub-amt"><div class="val">☕ ${coffees}</div><div class="lbl">Coffees/mo</div></div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <h3>Spending by Category</h3>
+        <div class="bar-container">${barHTML}</div>
+        <div class="bar-legend">${legendHTML}</div>
+      </div>
+
+      <div class="insights">
+        <h3>Reality Check</h3>
+        <div class="insight-item"><span class="emoji">👑</span><span>Your priciest subscription is <strong>${most.name}</strong> at $${most.price.toFixed(2)}/mo</span></div>
+        <div class="insight-item"><span class="emoji">✈️</span><span>Your yearly total ($${yearly.toFixed(0)}) could fund <strong>${vacay} weekend getaway${vacay!==1?'s':''}</strong></span></div>
+        <div class="insight-item"><span class="emoji">📱</span><span>You have <strong>${subs.length} active subscription${subs.length!==1?'s':''}</strong> — the average American has 12</span></div>
+        ${entTotal>0?`<div class="insight-item"><span class="emoji">🎬</span><span>Entertainment alone costs you <strong>$${(entTotal*12).toFixed(0)}/year</strong></span></div>`:''}
+      </div>
+
+      <div class="tips">
+        <h3>💰 Ways to Save</h3>
+        ${tips}
+      </div>
+
+      <div class="cta-box">
+        <h3>Get Monthly Audit Reminders</h3>
+        <p>We'll remind you to review your subscriptions every month. Most people save $50-100 after their first audit.</p>
+        <div class="email-row">
+          <input type="email" placeholder="your@email.com" id="emailInput">
+          <button onclick="subscribe()">Remind Me</button>
+        </div>
+      </div>
+
+      <div class="share-bar">
+        <p>Shocked by your total? Your friends will be too.</p>
+        <button onclick="shareText()">📋 Copy Results</button>
+        <button onclick="shareTwitter()">𝕏 Share</button>
+      </div>
+    </div>
+
+    <footer>
+      <p>Built by <a href="https://stirman.net">stirman.net</a> · No data leaves your browser · ${new Date().getFullYear()}</p>
+      <p style="margin-top:8px;font-size:.75rem">Some links may be affiliate links. We only recommend stuff we'd actually use.</p>
+    </footer>
+  `;
+}
+
+function subscribe(){
+  const email=document.getElementById('emailInput');
+  if(!email.value.includes('@'))return;
+  email.value='✅ You\'re in!';
+  email.disabled=true;
+}
+
+function shareText(){
+  const monthly=subs.reduce((a,s)=>a+s.price,0);
+  const text=`I just audited my subscriptions with SubAudit:\n\n💸 ${subs.length} subscriptions\n💰 $${monthly.toFixed(2)}/month ($${(monthly*12).toFixed(0)}/year)\n\nHow much are YOU spending? Find out: https://stirman.net/subaudit/`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=event.target;btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy Results',2000);
+  });
+}
+
+function shareTwitter(){
+  const monthly=subs.reduce((a,s)=>a+s.price,0);
+  const text=`I spend $${monthly.toFixed(2)}/mo on ${subs.length} subscriptions 😳\n\nThat's $${(monthly*12).toFixed(0)}/year!\n\nAudit yours: https://stirman.net/subaudit/`;
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank');
+}
+
+render();
+</script>
+</body>
+</html>
