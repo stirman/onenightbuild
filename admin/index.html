@@ -460,30 +460,54 @@
 
     const avgPotential = (builds.reduce((s, b) => s + b.potential, 0) / builds.length).toFixed(1);
 
+    // Load analytics data
+    const analytics = JSON.parse(localStorage.getItem('onb_analytics') || '{}');
+    const globalStats = analytics.global || { totalViews: 0, uniqueVisitors: [], dailyViews: {} };
+    const appStats = analytics.apps || {};
+
+    // Enrich builds with analytics
+    builds.forEach(b => {
+        const slug = b.url.replace(/^\/|\/$/g, '');
+        const stats = appStats[slug] || {};
+        b.views = stats.totalViews || 0;
+        b.visitors = Array.isArray(stats.uniqueVisitors) ? stats.uniqueVisitors.length : 0;
+        b.avgTime = stats.avgTimeOnPage || 0;
+        b.completions = stats.completedSessions || 0;
+        b.affiliateClicks = stats.affiliateClicks || 0;
+        b.shareCount = stats.shares || 0;
+        b.interactions = stats.interactions || {};
+        b.sources = stats.sources || {};
+        b.engagementRate = b.views > 0 ? Math.round((b.completions / b.views) * 100) : 0;
+    });
+
+    const totalVisitors = globalStats.uniqueVisitors ? globalStats.uniqueVisitors.length : 0;
+    const totalViews = globalStats.totalViews || 0;
+    const totalAffiliateClicks = builds.reduce((s, b) => s + b.affiliateClicks, 0);
+
     document.getElementById('summary-grid').innerHTML = `
         <div class="summary-card">
             <div class="summary-value pink">${builds.length}</div>
             <div class="summary-label">Apps Shipped</div>
         </div>
         <div class="summary-card">
-            <div class="summary-value orange">${Object.keys(types).length}</div>
-            <div class="summary-label">App Types</div>
+            <div class="summary-value orange">${totalViews || '—'}</div>
+            <div class="summary-label">Total Pageviews</div>
         </div>
         <div class="summary-card">
-            <div class="summary-value teal">${revenues.affiliate || 0}</div>
-            <div class="summary-label">With Affiliate</div>
+            <div class="summary-value teal">${totalVisitors || '—'}</div>
+            <div class="summary-label">Unique Visitors</div>
         </div>
         <div class="summary-card">
-            <div class="summary-value purple">${types.game || 0}</div>
-            <div class="summary-label">Games</div>
+            <div class="summary-value purple">${totalAffiliateClicks || '—'}</div>
+            <div class="summary-label">Affiliate Clicks</div>
         </div>
         <div class="summary-card">
             <div class="summary-value green">${avgPotential}</div>
             <div class="summary-label">Avg Potential</div>
         </div>
         <div class="summary-card">
-            <div class="summary-value pink">—</div>
-            <div class="summary-label">Total Visitors</div>
+            <div class="summary-value pink">${Object.keys(globalStats.dailyViews || {}).length || '—'}</div>
+            <div class="summary-label">Active Days</div>
         </div>
     `;
 
@@ -520,9 +544,9 @@
                 <td><span class="type-badge ${b.type}">${b.type}</span></td>
                 <td><span class="revenue-badge ${b.revenue}">${b.revenue}</span></td>
                 <td class="hide-mobile" style="color:#666; white-space:nowrap;">${b.date}</td>
-                <td><span class="metric pending">—</span></td>
-                <td class="hide-mobile"><span class="metric pending">—</span></td>
-                <td class="hide-mobile"><span class="metric pending">—</span></td>
+                <td><span class="metric ${b.views > 0 ? (b.views > 10 ? 'good' : 'mid') : 'pending'}">${b.views || '—'}</span>${b.visitors ? `<br><span style="font-size:0.7rem;color:#555">${b.visitors} uniq</span>` : ''}</td>
+                <td class="hide-mobile"><span class="metric ${b.avgTime > 0 ? (b.avgTime > 60 ? 'good' : 'mid') : 'pending'}">${b.avgTime ? b.avgTime + 's' : '—'}</span>${b.completions ? `<br><span style="font-size:0.7rem;color:#555">${b.engagementRate}% complete</span>` : ''}</td>
+                <td class="hide-mobile"><span class="metric ${b.affiliateClicks > 0 ? 'good' : 'pending'}">${b.affiliateClicks || '—'}</span>${b.shareCount ? `<br><span style="font-size:0.7rem;color:#555">${b.shareCount} shares</span>` : ''}</td>
                 <td><div class="stars">${stars}</div></td>
             </tr>`;
         }).join('');
