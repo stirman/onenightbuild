@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHRONOLIST — Put History in Order</title>
+    <meta name="description" content="Daily game: put 5 events in chronological order. Test your knowledge of history, pop culture, tech, and more.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --pink: #E6007E;
+            --orange: #F5A623;
+            --salmon: #E8836B;
+            --purple: #7B2FBE;
+            --yellow: #FFD700;
+            --dark: #0a0a0a;
+            --darker: #050505;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--darker);
+            color: #f5f5f5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Giant repeating text background */
+        .bg-text {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0.04;
+        }
+
+        .bg-text-inner {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 12vw;
+            line-height: 0.9;
+            color: var(--pink);
+            white-space: nowrap;
+            animation: bgScroll 30s linear infinite;
+        }
+
+        .bg-text-inner span {
+            display: block;
+        }
+
+        .bg-text-inner span:nth-child(even) {
+            color: var(--orange);
+            margin-left: -5vw;
+        }
+
+        @keyframes bgScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
+        /* Noise overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4.5rem;
+            letter-spacing: 0.05em;
+            line-height: 1;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo .main-text {
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Glitch effect */
+        .logo .glitch-1,
+        .logo .glitch-2 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+        }
+
+        .logo .glitch-1 {
+            color: var(--purple);
+            animation: glitch1 3s infinite;
+            clip-path: inset(0 0 60% 0);
+        }
+
+        .logo .glitch-2 {
+            color: var(--yellow);
+            animation: glitch2 3s infinite;
+            clip-path: inset(60% 0 0 0);
+        }
+
+        @keyframes glitch1 {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(-4px, -2px); }
+            94% { transform: translate(3px, 1px); }
+            96% { transform: translate(-2px, 2px); }
+        }
+
+        @keyframes glitch2 {
+            0%, 88%, 100% { transform: translate(0); }
+            90% { transform: translate(3px, 2px); }
+            93% { transform: translate(-4px, -1px); }
+            95% { transform: translate(2px, -2px); }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 8px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .daily-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--pink);
+            background: rgba(230, 0, 126, 0.1);
+            border: 1px solid rgba(230, 0, 126, 0.3);
+            padding: 5px 14px;
+            border-radius: 100px;
+            margin-top: 16px;
+        }
+
+        /* Game area */
+        .game-area {
+            margin-top: 32px;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #888;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .instructions strong {
+            color: var(--pink);
+        }
+
+        /* Event cards */
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 100px;
+        }
+
+        .event-card {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 16px 20px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-card:active {
+            cursor: grabbing;
+        }
+
+        .event-card:hover {
+            border-color: rgba(230, 0, 126, 0.3);
+            background: #151515;
+        }
+
+        .event-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .event-card.drag-over {
+            border-color: var(--pink);
+            box-shadow: 0 0 20px rgba(230, 0, 126, 0.2);
+        }
+
+        .event-card .drag-handle {
+            color: #333;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            transition: color 0.2s;
+        }
+
+        .event-card:hover .drag-handle {
+            color: #666;
+        }
+
+        .event-card .event-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--pink);
+            min-width: 32px;
+            text-align: center;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .event-card .event-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #ddd;
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .event-card .event-emoji {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        /* Result states */
+        .event-card.correct {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .event-card.correct .event-number {
+            color: #22c55e;
+        }
+
+        .event-card.wrong {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .event-card.wrong .event-number {
+            color: #ef4444;
+        }
+
+        .event-card .year-reveal {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #666;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .event-card.revealed .year-reveal {
+            opacity: 1;
+        }
+
+        /* Submit button */
+        .submit-area {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .btn-submit {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+            border: none;
+            padding: 14px 60px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(230, 0, 126, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Score display */
+        .score-area {
+            text-align: center;
+            margin-top: 32px;
+            padding: 32px;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            display: none;
+        }
+
+        .score-area.visible {
+            display: block;
+            animation: scoreReveal 0.5s ease;
+        }
+
+        @keyframes scoreReveal {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+        }
+
+        .score-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 5rem;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-max {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            color: #444;
+            margin-top: 4px;
+        }
+
+        .score-message {
+            font-size: 1.1rem;
+            color: #888;
+            margin-top: 16px;
+        }
+
+        .score-streak {
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        .btn-share {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 10px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        .btn-share:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        .btn-next {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            border: none;
+            padding: 12px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(123, 47, 190, 0.3);
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            margin-top: 32px;
+            padding: 24px;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+        }
+
+        .leaderboard h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 0.05em;
+            color: var(--orange);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .lb-entry {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .lb-entry:nth-child(odd) {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .lb-entry.you {
+            background: rgba(230, 0, 126, 0.08);
+            border: 1px solid rgba(230, 0, 126, 0.2);
+        }
+
+        .lb-rank {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            color: #444;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .lb-rank.gold { color: var(--yellow); }
+        .lb-rank.silver { color: #c0c0c0; }
+        .lb-rank.bronze { color: #cd7f32; }
+
+        .lb-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .lb-score {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: var(--pink);
+            font-size: 0.95rem;
+        }
+
+        .lb-rounds {
+            font-size: 0.75rem;
+            color: #555;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Name input modal */
+        .name-prompt {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .name-prompt.hidden { display: none; }
+
+        .name-modal {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+        }
+
+        .name-modal h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .name-modal p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .name-input {
+            width: 100%;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .name-input:focus {
+            border-color: var(--pink);
+        }
+
+        .name-input::placeholder {
+            color: #333;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .btn-play {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+            border: none;
+            padding: 14px 50px;
+            border-radius: 14px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-play:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(230, 0, 126, 0.3);
+        }
+
+        /* Category badge */
+        .category-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+        }
+
+        .category-badge.history { color: var(--orange); background: rgba(245, 166, 35, 0.1); border: 1px solid rgba(245, 166, 35, 0.2); }
+        .category-badge.pop-culture { color: var(--pink); background: rgba(230, 0, 126, 0.1); border: 1px solid rgba(230, 0, 126, 0.2); }
+        .category-badge.tech { color: var(--purple); background: rgba(123, 47, 190, 0.1); border: 1px solid rgba(123, 47, 190, 0.2); }
+        .category-badge.sports { color: #22c55e; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .category-badge.science { color: #06b6d4; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); }
+        .category-badge.music { color: var(--salmon); background: rgba(232, 131, 107, 0.1); border: 1px solid rgba(232, 131, 107, 0.2); }
+
+        .round-counter {
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            color: #444;
+            margin-bottom: 16px;
+            letter-spacing: 0.1em;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #333;
+            font-size: 0.8rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        footer a { color: #555; text-decoration: none; }
+        footer a:hover { color: var(--pink); }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 3;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+        }
+
+        /* Mobile touch reorder */
+        .event-card.touch-active {
+            z-index: 10;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-color: var(--pink);
+        }
+
+        @media (max-width: 600px) {
+            .logo { font-size: 3.5rem; }
+            header { padding: 28px 0 16px; }
+            .event-card { padding: 14px 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-text">
+        <div class="bg-text-inner">
+            <span>CHRONOLIST CHRONOLIST CHRONOLIST</span>
+            <span>PUT IT IN ORDER PUT IT IN ORDER</span>
+            <span>CHRONOLIST CHRONOLIST CHRONOLIST</span>
+            <span>PUT IT IN ORDER PUT IT IN ORDER</span>
+            <span>CHRONOLIST CHRONOLIST CHRONOLIST</span>
+            <span>PUT IT IN ORDER PUT IT IN ORDER</span>
+            <span>CHRONOLIST CHRONOLIST CHRONOLIST</span>
+            <span>PUT IT IN ORDER PUT IT IN ORDER</span>
+            <span>CHRONOLIST CHRONOLIST CHRONOLIST</span>
+            <span>PUT IT IN ORDER PUT IT IN ORDER</span>
+            <span>CHRONOLIST CHRONOLIST CHRONOLIST</span>
+            <span>PUT IT IN ORDER PUT IT IN ORDER</span>
+        </div>
+    </div>
+    <div class="scanlines"></div>
+
+    <!-- Name prompt -->
+    <div class="name-prompt" id="name-prompt">
+        <div class="name-modal">
+            <h2>CHRONOLIST</h2>
+            <p>Put 5 events in chronological order.<br>Drag to reorder. Fewer mistakes = higher score.</p>
+            <input type="text" class="name-input" id="player-name" placeholder="Your name" maxlength="15" autocomplete="off">
+            <button class="btn-play" id="btn-start" onclick="startGame()">LET'S GO</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="glitch-1">CHRONOLIST</span>
+                <span class="glitch-2">CHRONOLIST</span>
+                <span class="main-text">CHRONOLIST</span>
+            </div>
+            <div class="subtitle">Put history in order</div>
+        </header>
+
+        <div class="game-area" id="game-area" style="display:none;">
+            <div class="round-counter" id="round-counter">ROUND 1 / 5</div>
+            <div id="category-display" style="text-align:center;"></div>
+            <p class="instructions">Drag the events into <strong>chronological order</strong> — oldest first ↓</p>
+            <div class="events-list" id="events-list"></div>
+            <div class="submit-area">
+                <button class="btn-submit" id="btn-check" onclick="checkOrder()">LOCK IT IN</button>
+            </div>
+        </div>
+
+        <div class="score-area" id="score-area">
+            <div class="score-label">YOUR SCORE</div>
+            <div class="score-value" id="final-score">0</div>
+            <div class="score-max" id="score-breakdown"></div>
+            <div class="score-message" id="score-message"></div>
+            <div class="score-streak" id="score-streak"></div>
+            <button class="btn-share" onclick="shareScore()">📋 SHARE RESULTS</button>
+            <br>
+            <button class="btn-next" id="btn-next" onclick="nextRound()">NEXT ROUND</button>
+        </div>
+
+        <div class="leaderboard" id="leaderboard" style="display:none;">
+            <h3>🏆 LEADERBOARD</h3>
+            <div id="lb-list"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p><a href="/">One Night Build</a> · CHRONOLIST · Night 15</p>
+    </footer>
+
+    <script>
+    // ============== PUZZLE DATA ==============
+    const puzzleSets = [
+        {
+            category: "tech", label: "Tech & Internet",
+            events: [
+                { text: "First email sent (ARPANET)", year: 1971, emoji: "📧" },
+                { text: "Apple Macintosh released", year: 1984, emoji: "🖥️" },
+                { text: "World Wide Web goes public", year: 1991, emoji: "🌐" },
+                { text: "Google founded", year: 1998, emoji: "🔍" },
+                { text: "iPhone announced by Steve Jobs", year: 2007, emoji: "📱" }
+            ]
+        },
+        {
+            category: "history", label: "World History",
+            events: [
+                { text: "Gutenberg prints the Bible", year: 1455, emoji: "📖" },
+                { text: "Columbus reaches the Americas", year: 1492, emoji: "⛵" },
+                { text: "Declaration of Independence signed", year: 1776, emoji: "🗽" },
+                { text: "French Revolution begins", year: 1789, emoji: "🇫🇷" },
+                { text: "First airplane flight (Wright Bros)", year: 1903, emoji: "✈️" }
+            ]
+        },
+        {
+            category: "pop-culture", label: "Movies & TV",
+            events: [
+                { text: "Star Wars: A New Hope premieres", year: 1977, emoji: "⭐" },
+                { text: "E.T. the Extra-Terrestrial released", year: 1982, emoji: "👽" },
+                { text: "The Matrix hits theaters", year: 1999, emoji: "💊" },
+                { text: "Avatar becomes highest-grossing film", year: 2009, emoji: "🌊" },
+                { text: "Squid Game breaks Netflix records", year: 2021, emoji: "🦑" }
+            ]
+        },
+        {
+            category: "science", label: "Science & Space",
+            events: [
+                { text: "Einstein publishes theory of relativity", year: 1905, emoji: "🧠" },
+                { text: "First nuclear chain reaction", year: 1942, emoji: "⚛️" },
+                { text: "DNA structure discovered", year: 1953, emoji: "🧬" },
+                { text: "Moon landing (Apollo 11)", year: 1969, emoji: "🌙" },
+                { text: "Hubble Space Telescope launched", year: 1990, emoji: "🔭" }
+            ]
+        },
+        {
+            category: "music", label: "Music History",
+            events: [
+                { text: "Elvis Presley's first single", year: 1954, emoji: "🎸" },
+                { text: "Woodstock music festival", year: 1969, emoji: "✌️" },
+                { text: "Michael Jackson releases Thriller", year: 1982, emoji: "🕺" },
+                { text: "Napster launches, disrupting music", year: 1999, emoji: "💿" },
+                { text: "Spotify launches in the US", year: 2011, emoji: "🎵" }
+            ]
+        },
+        {
+            category: "sports", label: "Sports Moments",
+            events: [
+                { text: "First modern Olympic Games (Athens)", year: 1896, emoji: "🏅" },
+                { text: "Jesse Owens wins 4 golds in Berlin", year: 1936, emoji: "🏃" },
+                { text: "Muhammad Ali defeats Sonny Liston", year: 1964, emoji: "🥊" },
+                { text: "Michael Jordan's flu game", year: 1997, emoji: "🏀" },
+                { text: "Leicester City wins Premier League", year: 2016, emoji: "⚽" }
+            ]
+        },
+        {
+            category: "tech", label: "Social Media Era",
+            events: [
+                { text: "MySpace launches", year: 2003, emoji: "👤" },
+                { text: "Facebook opens to the public", year: 2006, emoji: "👍" },
+                { text: "Twitter's first tweet", year: 2006, emoji: "🐦" },
+                { text: "Instagram launches", year: 2010, emoji: "📸" },
+                { text: "TikTok goes global", year: 2018, emoji: "🎶" }
+            ]
+        },
+        {
+            category: "history", label: "20th Century",
+            events: [
+                { text: "Titanic sinks", year: 1912, emoji: "🚢" },
+                { text: "Women gain right to vote (US)", year: 1920, emoji: "🗳️" },
+                { text: "Pearl Harbor attacked", year: 1941, emoji: "💥" },
+                { text: "Berlin Wall falls", year: 1989, emoji: "🧱" },
+                { text: "Y2K panic hits worldwide", year: 1999, emoji: "💻" }
+            ]
+        },
+        {
+            category: "pop-culture", label: "Video Games",
+            events: [
+                { text: "Pong released by Atari", year: 1972, emoji: "🏓" },
+                { text: "Super Mario Bros. launches", year: 1985, emoji: "🍄" },
+                { text: "PlayStation hits stores", year: 1994, emoji: "🎮" },
+                { text: "Minecraft first released", year: 2009, emoji: "⛏️" },
+                { text: "Fortnite Battle Royale launches", year: 2017, emoji: "🪂" }
+            ]
+        },
+        {
+            category: "science", label: "Medical Breakthroughs",
+            events: [
+                { text: "Penicillin discovered", year: 1928, emoji: "💊" },
+                { text: "First organ transplant (kidney)", year: 1954, emoji: "🏥" },
+                { text: "First test-tube baby born", year: 1978, emoji: "👶" },
+                { text: "Human Genome Project completed", year: 2003, emoji: "🧬" },
+                { text: "First mRNA COVID vaccine given", year: 2020, emoji: "💉" }
+            ]
+        },
+        {
+            category: "music", label: "Hip Hop History",
+            events: [
+                { text: "DJ Kool Herc's party in the Bronx", year: 1973, emoji: "🎤" },
+                { text: "Run-DMC & Aerosmith: Walk This Way", year: 1986, emoji: "👟" },
+                { text: "Tupac releases All Eyez On Me", year: 1996, emoji: "🎯" },
+                { text: "Kanye drops College Dropout", year: 2004, emoji: "🐻" },
+                { text: "Kendrick wins Pulitzer for DAMN.", year: 2018, emoji: "🏆" }
+            ]
+        },
+        {
+            category: "history", label: "Ancient World",
+            events: [
+                { text: "Great Pyramid of Giza built", year: -2560, emoji: "🔺" },
+                { text: "Rome founded (traditional date)", year: -753, emoji: "🏛️" },
+                { text: "Alexander the Great conquers Persia", year: -331, emoji: "⚔️" },
+                { text: "Julius Caesar assassinated", year: -44, emoji: "🗡️" },
+                { text: "Fall of the Roman Empire", year: 476, emoji: "🏚️" }
+            ]
+        },
+        {
+            category: "tech", label: "AI & Robots",
+            events: [
+                { text: "Alan Turing proposes the Turing Test", year: 1950, emoji: "🤖" },
+                { text: "Deep Blue beats Kasparov at chess", year: 1997, emoji: "♟️" },
+                { text: "Siri launches on iPhone 4S", year: 2011, emoji: "🗣️" },
+                { text: "AlphaGo defeats world Go champion", year: 2016, emoji: "⚫" },
+                { text: "ChatGPT launches to the public", year: 2022, emoji: "💬" }
+            ]
+        },
+        {
+            category: "sports", label: "Basketball Legends",
+            events: [
+                { text: "Wilt scores 100 points in a game", year: 1962, emoji: "💯" },
+                { text: "Magic vs Bird: NCAA championship", year: 1979, emoji: "🏀" },
+                { text: "Jordan's last shot wins 6th ring", year: 1998, emoji: "🐐" },
+                { text: "LeBron's 'The Decision' on ESPN", year: 2010, emoji: "👑" },
+                { text: "Curry breaks 3-point record", year: 2021, emoji: "🎯" }
+            ]
+        },
+        {
+            category: "pop-culture", label: "Internet Culture",
+            events: [
+                { text: "Dancing Baby goes viral", year: 1996, emoji: "👶" },
+                { text: "Numa Numa Guy blows up", year: 2004, emoji: "🎵" },
+                { text: "Rickrolling becomes a meme", year: 2007, emoji: "🕺" },
+                { text: "Gangnam Style hits 1B YouTube views", year: 2012, emoji: "🐴" },
+                { text: "Bernie Sanders mittens meme", year: 2021, emoji: "🧤" }
+            ]
+        }
+    ];
+
+    // ============== GAME STATE ==============
+    let playerName = '';
+    let currentRound = 0;
+    let totalScore = 0;
+    let totalPossible = 0;
+    let roundsPlayed = 0;
+    let currentPuzzle = null;
+    let shuffledEvents = [];
+    let usedPuzzles = new Set();
+    let streak = parseInt(localStorage.getItem('chrono-streak') || '0');
+    let lastPlayDate = localStorage.getItem('chrono-lastplay') || '';
+
+    // Check streak
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (lastPlayDate !== today && lastPlayDate !== yesterday) {
+        streak = 0;
+    }
+
+    // Load saved name
+    const savedName = localStorage.getItem('chrono-name');
+    if (savedName) {
+        document.getElementById('player-name').value = savedName;
+    }
+
+    // Enter key starts game
+    document.getElementById('player-name').addEventListener('keydown', e => {
+        if (e.key === 'Enter') startGame();
+    });
+
+    function startGame() {
+        playerName = document.getElementById('player-name').value.trim() || 'ANON';
+        localStorage.setItem('chrono-name', playerName);
+        document.getElementById('name-prompt').classList.add('hidden');
+        document.getElementById('game-area').style.display = 'block';
+        loadRound();
+    }
+
+    function loadRound() {
+        // Pick a random unused puzzle
+        let available = puzzleSets.filter((_, i) => !usedPuzzles.has(i));
+        if (available.length === 0) {
+            usedPuzzles.clear();
+            available = puzzleSets;
+        }
+        const idx = puzzleSets.indexOf(available[Math.floor(Math.random() * available.length)]);
+        usedPuzzles.add(idx);
+        currentPuzzle = puzzleSets[idx];
+
+        currentRound++;
+        document.getElementById('round-counter').textContent = `ROUND ${currentRound}`;
+
+        // Category badge
+        document.getElementById('category-display').innerHTML = 
+            `<span class="category-badge ${currentPuzzle.category}">${currentPuzzle.label}</span>`;
+
+        // Shuffle events
+        shuffledEvents = [...currentPuzzle.events];
+        for (let i = shuffledEvents.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledEvents[i], shuffledEvents[j]] = [shuffledEvents[j], shuffledEvents[i]];
+        }
+
+        renderEvents();
+
+        // Reset UI
+        document.getElementById('score-area').classList.remove('visible');
+        document.getElementById('btn-check').disabled = false;
+        document.getElementById('btn-check').style.display = '';
+        document.getElementById('leaderboard').style.display = 'none';
+    }
+
+    function renderEvents() {
+        const list = document.getElementById('events-list');
+        list.innerHTML = '';
+
+        shuffledEvents.forEach((event, index) => {
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            card.draggable = true;
+            card.dataset.index = index;
+            card.innerHTML = `
+                <span class="drag-handle">⠿</span>
+                <span class="event-number">${index + 1}</span>
+                <span class="event-text">${event.text}</span>
+                <span class="event-emoji">${event.emoji}</span>
+                <span class="year-reveal">${formatYear(event.year)}</span>
+            `;
+
+            // Desktop drag
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragenter', handleDragEnter);
+            card.addEventListener('dragleave', handleDragLeave);
+
+            // Mobile touch
+            card.addEventListener('touchstart', handleTouchStart, { passive: false });
+            card.addEventListener('touchmove', handleTouchMove, { passive: false });
+            card.addEventListener('touchend', handleTouchEnd);
+
+            list.appendChild(card);
+        });
+    }
+
+    function formatYear(y) {
+        if (y < 0) return `${Math.abs(y)} BC`;
+        return `${y}`;
+    }
+
+    // ============== DRAG & DROP ==============
+    let dragSrcIndex = null;
+
+    function handleDragStart(e) {
+        dragSrcIndex = parseInt(this.dataset.index);
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        document.querySelectorAll('.event-card').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleDragEnter(e) {
+        this.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const targetIndex = parseInt(this.dataset.index);
+        if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+            const moved = shuffledEvents.splice(dragSrcIndex, 1)[0];
+            shuffledEvents.splice(targetIndex, 0, moved);
+            renderEvents();
+        }
+        this.classList.remove('drag-over');
+    }
+
+    // ============== TOUCH REORDER ==============
+    let touchStartY = 0;
+    let touchCard = null;
+    let touchCardIndex = null;
+
+    function handleTouchStart(e) {
+        touchCard = this;
+        touchCardIndex = parseInt(this.dataset.index);
+        touchStartY = e.touches[0].clientY;
+        this.classList.add('touch-active');
+    }
+
+    function handleTouchMove(e) {
+        e.preventDefault();
+        if (!touchCard) return;
+        
+        const currentY = e.touches[0].clientY;
+        const cards = document.querySelectorAll('.event-card');
+        
+        cards.forEach((card, i) => {
+            if (i === touchCardIndex) return;
+            const rect = card.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            
+            if (currentY > rect.top && currentY < rect.bottom) {
+                card.classList.add('drag-over');
+            } else {
+                card.classList.remove('drag-over');
+            }
+        });
+    }
+
+    function handleTouchEnd(e) {
+        if (!touchCard) return;
+        
+        const endY = e.changedTouches[0].clientY;
+        const cards = document.querySelectorAll('.event-card');
+        let targetIndex = touchCardIndex;
+
+        cards.forEach((card, i) => {
+            card.classList.remove('drag-over');
+            if (i === touchCardIndex) return;
+            const rect = card.getBoundingClientRect();
+            if (endY > rect.top && endY < rect.bottom) {
+                targetIndex = i;
+            }
+        });
+
+        if (targetIndex !== touchCardIndex) {
+            const moved = shuffledEvents.splice(touchCardIndex, 1)[0];
+            shuffledEvents.splice(targetIndex, 0, moved);
+            renderEvents();
+        }
+
+        touchCard.classList.remove('touch-active');
+        touchCard = null;
+    }
+
+    // ============== SCORING ==============
+    function checkOrder() {
+        const correctOrder = [...currentPuzzle.events].sort((a, b) => a.year - b.year);
+        let roundScore = 0;
+        const cards = document.querySelectorAll('.event-card');
+
+        cards.forEach((card, i) => {
+            card.classList.add('revealed');
+            card.draggable = false;
+            card.style.cursor = 'default';
+
+            // Check if this event is in the correct position
+            if (shuffledEvents[i].year === correctOrder[i].year) {
+                card.classList.add('correct');
+                roundScore += 10;
+            } else {
+                card.classList.add('wrong');
+            }
+        });
+
+        totalScore += roundScore;
+        totalPossible += 50;
+        roundsPlayed++;
+
+        // Show score
+        document.getElementById('btn-check').disabled = true;
+
+        setTimeout(() => {
+            document.getElementById('final-score').textContent = totalScore;
+            document.getElementById('score-breakdown').textContent = 
+                `${roundScore}/50 this round · ${totalScore}/${totalPossible} total`;
+            
+            const pct = Math.round((totalScore / totalPossible) * 100);
+            let msg = '';
+            if (pct === 100) msg = '🔥 PERFECT! Absolute time lord.';
+            else if (pct >= 80) msg = '⚡ Impressive! You know your stuff.';
+            else if (pct >= 60) msg = '👍 Not bad! Getting the hang of it.';
+            else if (pct >= 40) msg = '🤔 History is tricky, keep going!';
+            else msg = '📚 Time to hit the books!';
+            document.getElementById('score-message').textContent = msg;
+
+            // Streak
+            if (lastPlayDate !== today) {
+                streak++;
+                localStorage.setItem('chrono-streak', streak);
+                localStorage.setItem('chrono-lastplay', today);
+                lastPlayDate = today;
+            }
+            document.getElementById('score-streak').textContent = 
+                streak > 1 ? `🔥 ${streak}-day streak` : '';
+
+            document.getElementById('score-area').classList.add('visible');
+
+            // Save to leaderboard
+            saveScore();
+            showLeaderboard();
+        }, 800);
+    }
+
+    // ============== LEADERBOARD ==============
+    function saveScore() {
+        let lb = JSON.parse(localStorage.getItem('chrono-leaderboard') || '[]');
+        
+        // Update existing entry or add new
+        const existing = lb.find(e => e.name === playerName);
+        if (existing) {
+            existing.score = totalScore;
+            existing.rounds = roundsPlayed;
+            existing.date = today;
+        } else {
+            lb.push({ name: playerName, score: totalScore, rounds: roundsPlayed, date: today });
+        }
+
+        // Sort by score per round (efficiency), then total score
+        lb.sort((a, b) => {
+            const aAvg = a.score / a.rounds;
+            const bAvg = b.score / b.rounds;
+            if (bAvg !== aAvg) return bAvg - aAvg;
+            return b.score - a.score;
+        });
+
+        // Keep top 20
+        lb = lb.slice(0, 20);
+        localStorage.setItem('chrono-leaderboard', JSON.stringify(lb));
+    }
+
+    function showLeaderboard() {
+        const lb = JSON.parse(localStorage.getItem('chrono-leaderboard') || '[]');
+        if (lb.length === 0) return;
+
+        document.getElementById('leaderboard').style.display = 'block';
+        const list = document.getElementById('lb-list');
+        list.innerHTML = lb.map((entry, i) => {
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            const youClass = entry.name === playerName ? 'you' : '';
+            const avg = Math.round(entry.score / entry.rounds * 10) / 10;
+            return `
+                <div class="lb-entry ${youClass}">
+                    <span class="lb-rank ${rankClass}">${i + 1}</span>
+                    <span class="lb-name">${entry.name}</span>
+                    <span class="lb-score">${entry.score}</span>
+                    <span class="lb-rounds">${entry.rounds}r · ${avg}/r</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function nextRound() {
+        loadRound();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function shareScore() {
+        const pct = Math.round((totalScore / totalPossible) * 100);
+        const blocks = [];
+        for (let i = 0; i < roundsPlayed; i++) {
+            blocks.push(pct >= (i + 1) * (100 / roundsPlayed) ? '🟩' : '🟥');
+        }
+        const text = `CHRONOLIST ${totalScore}/${totalPossible} (${pct}%)\n${blocks.join('')}\n${streak > 1 ? `🔥 ${streak}-day streak\n` : ''}onenightbuild.com/chronolist`;
+        
+        if (navigator.share) {
+            navigator.share({ text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.btn-share');
+                btn.textContent = '✅ COPIED!';
+                setTimeout(() => btn.textContent = '📋 SHARE RESULTS', 2000);
+            });
+        }
+    }
+    </script>
+</body>
+</html>
