@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1NB Admin — One Night Build</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --pink: #E6007E;
+            --orange: #F5A623;
+            --purple: #7B2FBE;
+            --teal: #4ECDC4;
+            --green: #22c55e;
+            --red: #ef4444;
+            --dark: #0a0a0a;
+            --card: #111;
+            --border: rgba(255,255,255,0.06);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--dark);
+            color: #e5e5e5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .admin-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--orange);
+            background: rgba(245, 166, 35, 0.1);
+            border: 1px solid rgba(245, 166, 35, 0.2);
+            padding: 4px 12px;
+            border-radius: 100px;
+        }
+
+        .header-right {
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        /* Summary cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .summary-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .summary-value.pink { color: var(--pink); }
+        .summary-value.orange { color: var(--orange); }
+        .summary-value.teal { color: var(--teal); }
+        .summary-value.purple { color: var(--purple); }
+        .summary-value.green { color: var(--green); }
+
+        .summary-label {
+            font-size: 0.75rem;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 6px;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover { background: rgba(255,255,255,0.08); color: #aaa; }
+        .filter-btn.active { color: var(--pink); border-color: rgba(230,0,126,0.3); background: rgba(230,0,126,0.08); }
+
+        /* Build table */
+        .builds-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .builds-table th {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 14px 16px;
+            text-align: left;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .builds-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .builds-table tr:last-child td { border-bottom: none; }
+
+        .builds-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .build-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .build-name-cell .emoji { font-size: 1.3rem; }
+
+        .build-name-cell .name {
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .build-name-cell .name a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .build-name-cell .name a:hover {
+            color: var(--pink);
+        }
+
+        .type-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .type-badge.tool { color: var(--teal); background: rgba(78,205,196,0.1); }
+        .type-badge.quiz { color: var(--purple); background: rgba(123,47,190,0.1); }
+        .type-badge.game { color: var(--pink); background: rgba(230,0,126,0.1); }
+        .type-badge.calculator { color: var(--orange); background: rgba(245,166,35,0.1); }
+        .type-badge.generator { color: var(--green); background: rgba(34,197,94,0.1); }
+
+        .revenue-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .revenue-badge.affiliate { color: var(--green); background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.15); }
+        .revenue-badge.none { color: #444; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
+        .revenue-badge.ads { color: var(--orange); background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.15); }
+
+        /* Metrics placeholders */
+        .metric {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .metric.pending {
+            color: #333;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .metric.good { color: var(--green); }
+        .metric.mid { color: var(--orange); }
+        .metric.low { color: #555; }
+
+        /* Hit potential stars */
+        .stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star { font-size: 0.9rem; }
+        .star.on { opacity: 1; }
+        .star.off { opacity: 0.15; }
+
+        /* Timeline */
+        .timeline-section {
+            margin-top: 40px;
+        }
+
+        .timeline-section h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            color: var(--orange);
+            margin-bottom: 20px;
+        }
+
+        .timeline {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .timeline-day {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #333;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.04);
+            position: relative;
+            cursor: default;
+        }
+
+        .timeline-day.shipped {
+            background: rgba(230, 0, 126, 0.15);
+            border-color: rgba(230, 0, 126, 0.3);
+            color: var(--pink);
+        }
+
+        .timeline-day.today {
+            border-color: var(--orange);
+            box-shadow: 0 0 10px rgba(245, 166, 35, 0.2);
+        }
+
+        .timeline-day .tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #ddd;
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
+            margin-bottom: 6px;
+            z-index: 10;
+            border: 1px solid var(--border);
+        }
+
+        .timeline-day:hover .tooltip { display: block; }
+
+        /* Notes section */
+        .notes-section {
+            margin-top: 40px;
+            padding: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .notes-section h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            color: var(--teal);
+            margin-bottom: 16px;
+        }
+
+        .notes-section ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .notes-section li {
+            font-size: 0.9rem;
+            color: #888;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .notes-section li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--teal);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .builds-table { font-size: 0.8rem; }
+            .builds-table th, .builds-table td { padding: 10px 8px; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            /* Hide some columns on mobile */
+            .hide-mobile { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>1NB ADMIN</h1>
+                <span class="admin-badge">Internal</span>
+            </div>
+            <div class="header-right" id="last-updated"></div>
+        </div>
+
+        <div class="summary-grid" id="summary-grid"></div>
+
+        <div class="filters" id="filters"></div>
+
+        <table class="builds-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>App</th>
+                    <th>Type</th>
+                    <th>Revenue</th>
+                    <th class="hide-mobile">Date</th>
+                    <th>Visitors</th>
+                    <th class="hide-mobile">Engagement</th>
+                    <th class="hide-mobile">Conversions</th>
+                    <th>Potential</th>
+                </tr>
+            </thead>
+            <tbody id="builds-tbody"></tbody>
+        </table>
+
+        <div class="timeline-section">
+            <h2>🔥 BUILD STREAK</h2>
+            <div class="timeline" id="timeline"></div>
+        </div>
+
+        <div class="notes-section">
+            <h2>📋 NEXT STEPS</h2>
+            <ul>
+                <li>Add analytics (Umami or GA) to all apps — flip metrics from "pending" to live</li>
+                <li>Set up X account + Reddit account for distribution</li>
+                <li>Set up Amazon Associates for real affiliate tracking</li>
+                <li>Find the breakout hit, then add shared leaderboard backend</li>
+                <li>Queued game ideas: Pixelate, Fold It, 24 Game</li>
+                <li>Experiment with daily games (Wordle-style retention hooks)</li>
+                <li>Consider email capture / newsletter for return visitors</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+    const builds = [
+        { night: 15, name: "CHRONOLIST", emoji: "⏳", url: "/chronolist/", type: "game", revenue: "none", date: "Feb 24", potential: 4, category: "game",
+          desc: "Put 5 events in order. 15 puzzle sets. Glitch aesthetic." },
+        { night: 14, name: "PackLight", emoji: "🎒", url: "/packlight/", type: "quiz", revenue: "affiliate", date: "Feb 23", potential: 4, category: "travel",
+          desc: "Smart packing list generator. High-ticket travel gear affiliate." },
+        { night: 13, name: "Energy Vampires", emoji: "⚡", url: "/energy-vampires/", type: "calculator", revenue: "affiliate", date: "Feb 22", potential: 3, category: "finance",
+          desc: "Phantom power cost calc. Smart plug affiliate links." },
+        { night: 12, name: "Home Office Score", emoji: "🏠", url: "/home-office-score/", type: "quiz", revenue: "affiliate", date: "Feb 21", potential: 5, category: "productivity",
+          desc: "Workspace rating quiz. HIGH-TICKET: desks, chairs, monitors." },
+        { night: 11, name: "Side Hustle Match", emoji: "🚀", url: "/side-hustle-match/", type: "quiz", revenue: "affiliate", date: "Feb 20", potential: 5, category: "career",
+          desc: "Side income quiz. Platform affiliate funnel (Shopify, Canva, etc)." },
+        { night: 10, name: "FitStack", emoji: "💪", url: "/fitstack/", type: "generator", revenue: "affiliate", date: "Feb 19", potential: 4, category: "fitness",
+          desc: "Home workout generator. Contextual equipment affiliate." },
+        { night: 9, name: "Sleep Score", emoji: "😴", url: "/sleep-score/", type: "quiz", revenue: "affiliate", date: "Feb 18", potential: 4, category: "health",
+          desc: "Sleep quality assessment. Sleep gear affiliate." },
+        { night: 8, name: "RateRight", emoji: "💰", url: "/rate-calc/", type: "calculator", revenue: "affiliate", date: "Feb 17", potential: 4, category: "finance",
+          desc: "Freelance rate calculator. Tool & book affiliate." },
+        { night: 7, name: "SubAudit", emoji: "💸", url: "/subaudit/", type: "calculator", revenue: "affiliate", date: "Feb 16", potential: 4, category: "finance",
+          desc: "Subscription spending shock calculator. Shareable." },
+        { night: 6, name: "VERSUS", emoji: "🏀", url: "/versus/", type: "tool", revenue: "affiliate", date: "Feb 15", potential: 3, category: "sports",
+          desc: "NBA player head-to-head stats. Jersey affiliate." },
+        { night: 5, name: "Focus Flow", emoji: "🎧", url: "/focus-flow/", type: "tool", revenue: "affiliate", date: "Feb 14", potential: 5, category: "productivity",
+          desc: "Pomodoro + ambient sound mixer. Daily return tool." },
+        { night: 4, name: "Valentine's Gift Finder", emoji: "🎁", url: "/valentines-gift-finder/", type: "quiz", revenue: "affiliate", date: "Feb 13", potential: 2, category: "seasonal",
+          desc: "Seasonal gift quiz. High intent but time-limited." },
+        { night: 3, name: "Family Game Night", emoji: "🎲", url: "/family-game-night/", type: "quiz", revenue: "affiliate", date: "Feb 12", potential: 3, category: "family",
+          desc: "Board game recommender. Game purchase affiliate." },
+        { night: 2, name: "Morning Routine", emoji: "☀️", url: "/morning-routine-builder/", type: "tool", revenue: "affiliate", date: "Feb 11", potential: 4, category: "lifestyle",
+          desc: "Drag-and-drop routine designer. Product affiliate." },
+        { night: 1, name: "Date Night Roulette", emoji: "💕", url: "/date-night-roulette/", type: "generator", revenue: "affiliate", date: "Feb 9", potential: 3, category: "romance",
+          desc: "Spin-the-wheel date ideas. First build ever." }
+    ];
+
+    // Render summary
+    const types = {};
+    const revenues = {};
+    builds.forEach(b => {
+        types[b.type] = (types[b.type] || 0) + 1;
+        revenues[b.revenue] = (revenues[b.revenue] || 0) + 1;
+    });
+
+    const avgPotential = (builds.reduce((s, b) => s + b.potential, 0) / builds.length).toFixed(1);
+
+    document.getElementById('summary-grid').innerHTML = `
+        <div class="summary-card">
+            <div class="summary-value pink">${builds.length}</div>
+            <div class="summary-label">Apps Shipped</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value orange">${Object.keys(types).length}</div>
+            <div class="summary-label">App Types</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value teal">${revenues.affiliate || 0}</div>
+            <div class="summary-label">With Affiliate</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value purple">${types.game || 0}</div>
+            <div class="summary-label">Games</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value green">${avgPotential}</div>
+            <div class="summary-label">Avg Potential</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-value pink">—</div>
+            <div class="summary-label">Total Visitors</div>
+        </div>
+    `;
+
+    // Render filters
+    const allTypes = ['all', ...new Set(builds.map(b => b.type))];
+    document.getElementById('filters').innerHTML = allTypes.map(t => 
+        `<button class="filter-btn ${t === 'all' ? 'active' : ''}" onclick="filterBy('${t}')">${t}</button>`
+    ).join('');
+
+    function filterBy(type) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderTable(type === 'all' ? builds : builds.filter(b => b.type === type));
+    }
+
+    // Render table
+    function renderTable(data) {
+        document.getElementById('builds-tbody').innerHTML = data.map(b => {
+            const stars = Array(5).fill(0).map((_, i) => 
+                `<span class="star ${i < b.potential ? 'on' : 'off'}">★</span>`
+            ).join('');
+            
+            return `<tr>
+                <td style="color:#444; font-family:'Space Grotesk'; font-weight:700;">${b.night}</td>
+                <td>
+                    <div class="build-name-cell">
+                        <span class="emoji">${b.emoji}</span>
+                        <div>
+                            <div class="name"><a href="${b.url}" target="_blank">${b.name}</a></div>
+                            <div style="font-size:0.75rem; color:#555; margin-top:2px;">${b.desc}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="type-badge ${b.type}">${b.type}</span></td>
+                <td><span class="revenue-badge ${b.revenue}">${b.revenue}</span></td>
+                <td class="hide-mobile" style="color:#666; white-space:nowrap;">${b.date}</td>
+                <td><span class="metric pending">—</span></td>
+                <td class="hide-mobile"><span class="metric pending">—</span></td>
+                <td class="hide-mobile"><span class="metric pending">—</span></td>
+                <td><div class="stars">${stars}</div></td>
+            </tr>`;
+        }).join('');
+    }
+
+    renderTable(builds);
+
+    // Render timeline
+    const timeline = document.getElementById('timeline');
+    const startDate = new Date('2026-02-09');
+    const today = new Date();
+    const buildDates = {
+        '2026-02-09': 'Date Night Roulette',
+        '2026-02-11': 'Morning Routine',
+        '2026-02-12': 'Family Game Night',
+        '2026-02-13': "Valentine's Gifts",
+        '2026-02-14': 'Focus Flow',
+        '2026-02-15': 'VERSUS',
+        '2026-02-16': 'SubAudit',
+        '2026-02-17': 'RateRight',
+        '2026-02-18': 'Sleep Score',
+        '2026-02-19': 'FitStack',
+        '2026-02-20': 'Side Hustle Match',
+        '2026-02-21': 'Home Office Score',
+        '2026-02-22': 'Energy Vampires',
+        '2026-02-23': 'PackLight',
+        '2026-02-24': 'CHRONOLIST'
+    };
+
+    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+        const key = d.toISOString().split('T')[0];
+        const day = d.getDate();
+        const isToday = key === today.toISOString().split('T')[0];
+        const shipped = buildDates[key];
+        
+        const el = document.createElement('div');
+        el.className = `timeline-day ${shipped ? 'shipped' : ''} ${isToday ? 'today' : ''}`;
+        el.textContent = day;
+        if (shipped) {
+            el.innerHTML += `<div class="tooltip">${shipped}</div>`;
+        }
+        timeline.appendChild(el);
+    }
+
+    // Last updated
+    document.getElementById('last-updated').textContent = 
+        `Updated: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
+    </script>
+</body>
+</html>
