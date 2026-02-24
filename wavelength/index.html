@@ -261,14 +261,49 @@ body {
 }
 
 /* ===== REACTIONS (Honk-style sass) ===== */
+#reactionArea {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 .reaction {
   text-align: center;
   font-size: 0.9rem;
-  padding: 8px;
   animation: popIn 0.4s var(--bounce);
   color: var(--text-dim);
   font-style: italic;
 }
+
+/* ===== KEYSTROKE SPARKLE ===== */
+.key-sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100;
+  font-size: 1.2rem;
+  animation: sparkleUp 0.6s ease-out forwards;
+}
+@keyframes sparkleUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.3); }
+}
+
+/* ===== INPUT BOUNCE ON TYPE ===== */
+@keyframes inputPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.input-pop { animation: inputPop 0.15s ease-out; }
+
+/* ===== GUESS ROW ENTRANCE ===== */
+@keyframes rowBounceIn {
+  0% { opacity: 0; transform: translateX(-30px) scale(0.8) rotate(-2deg); }
+  60% { transform: translateX(5px) scale(1.03) rotate(0.5deg); }
+  100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
+}
+.row-bounce { animation: rowBounceIn 0.5s var(--bounce); }
 @keyframes popIn {
   0% { opacity: 0; transform: scale(0.5); }
   100% { opacity: 1; transform: scale(1); }
@@ -618,6 +653,63 @@ const REACTIONS = {
   ]
 };
 
+// ===== SIMPLE STEMMER (Porter-ish) =====
+function stem(word) {
+  word = word.toLowerCase().trim();
+  // Remove common suffixes to group word forms
+  return word
+    .replace(/ies$/, 'y')
+    .replace(/ves$/, 'f')
+    .replace(/(ss)$/, '$1')
+    .replace(/s$/, '')
+    .replace(/ ing$/, '')
+    .replace(/ed$/, '')
+    .replace(/er$/, '')
+    .replace(/est$/, '')
+    .replace(/ly$/, '')
+    .replace(/ment$/, '')
+    .replace(/ness$/, '')
+    .replace(/tion$/, '')
+    .replace(/sion$/, '')
+    .replace(/ful$/, '')
+    .replace(/less$/, '')
+    .replace(/able$/, '')
+    .replace(/ible$/, '');
+}
+
+function isStemDuplicate(newWord, existingWords) {
+  const newStem = stem(newWord);
+  return existingWords.some(w => stem(w) === newStem);
+}
+
+// ===== KEYSTROKE SPARKLES =====
+const SPARKLE_EMOJIS = ['✨', '⚡', '💫', '🌟', '⭐', '🔮', '💜', '🩷', '🧡', '💛'];
+let lastSparkleTime = 0;
+
+function keystrokeSparkle(e) {
+  const now = Date.now();
+  if (now - lastSparkleTime < 80) return; // throttle
+  lastSparkleTime = now;
+  
+  const input = document.getElementById('guessInput');
+  const rect = input.getBoundingClientRect();
+  
+  // Sparkle emoji floats up from input area
+  const el = document.createElement('div');
+  el.className = 'key-sparkle';
+  el.textContent = SPARKLE_EMOJIS[Math.floor(Math.random() * SPARKLE_EMOJIS.length)];
+  el.style.left = (rect.left + 20 + Math.random() * (rect.width - 80)) + 'px';
+  el.style.top = (rect.top - 5) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 700);
+  
+  // Subtle input bounce
+  const wrap = document.getElementById('inputWrap');
+  wrap.classList.remove('input-pop');
+  void wrap.offsetWidth; // reflow
+  wrap.classList.add('input-pop');
+}
+
 // ===== PUZZLE DATA =====
 let puzzleData = null;
 let guesses = [];
@@ -689,7 +781,12 @@ function randomFrom(arr) {
 function showReaction(category) {
   const el = document.getElementById('reactionArea');
   el.innerHTML = `<div class="reaction">${randomFrom(REACTIONS[category])}</div>`;
-  setTimeout(() => { el.innerHTML = ''; }, 2500);
+  // Fade out after delay but keep the height
+  setTimeout(() => {
+    const r = el.querySelector('.reaction');
+    if (r) { r.style.transition = 'opacity 0.5s'; r.style.opacity = '0'; }
+    setTimeout(() => { el.innerHTML = ''; }, 600);
+  }, 2500);
 }
 
 function showToast(msg) {
@@ -745,7 +842,7 @@ function renderGuessRow(guess, animate = true) {
   const isWin = guess.rank === 1;
   
   const row = document.createElement('div');
-  row.className = `guess-row ${cat}${isWin ? ' winner' : ''}`;
+  row.className = `guess-row ${cat}${isWin ? ' winner' : ''}${animate ? ' row-bounce' : ''}`;
   if (!animate) row.style.animation = 'none';
   
   row.innerHTML = `
@@ -814,11 +911,14 @@ function submitGuess() {
   if (!word) return;
   input.value = '';
   
-  // Check duplicate
-  if (guesses.some(g => g.word === word)) {
+  // Check duplicate (exact or stem match like Contexto)
+  if (guesses.some(g => g.word === word) || isStemDuplicate(word, guesses.map(g => g.word))) {
+    const match = guesses.find(g => stem(g.word) === stem(word));
     showReaction('duplicate');
+    showToast(match ? `Already tried "${match.word}" 🙄` : 'Already tried that 🙄');
     document.getElementById('inputWrap').classList.add('shake');
     setTimeout(() => document.getElementById('inputWrap').classList.remove('shake'), 400);
+    emojiBurst('🔁', 3);
     return;
   }
   
@@ -834,23 +934,40 @@ function submitGuess() {
   const cat = getCategory(rank);
   showReaction(rank === 1 ? 'win' : cat);
   
-  // Effects based on closeness
+  // Effects based on closeness — go wild!
   if (rank === 1) {
-    // WIN!
+    // WIN! Full celebration
     won = true;
     saveState();
-    confetti(80);
-    emojiBurst('🎉', 12);
+    confetti(100);
+    emojiBurst('🎉', 15);
+    emojiBurst('🏆', 8);
     screenShake();
-    setTimeout(() => {
-      confetti(40);
-      showWinState();
-    }, 800);
-  } else if (rank <= 50) {
+    setTimeout(() => { confetti(60); emojiBurst('🔥', 10); }, 500);
+    setTimeout(() => { confetti(40); showWinState(); }, 1000);
+  } else if (rank <= 20) {
+    // SO CLOSE — big reaction
+    screenShake();
+    confetti(30);
+    emojiBurst('🔥', 8);
+    emojiBurst('😱', 4);
+  } else if (rank <= 100) {
+    // Hot — exciting
     screenShake();
     emojiBurst('🔥', 6);
-  } else if (rank <= 200) {
-    emojiBurst('✨', 4);
+    confetti(15);
+  } else if (rank <= 300) {
+    // Warm — encouraging
+    emojiBurst('✨', 5);
+    emojiBurst('💡', 3);
+  } else if (rank <= 500) {
+    emojiBurst('✨', 3);
+  } else if (rank <= 1500) {
+    emojiBurst('🌊', 2);
+  } else if (rank > 4000) {
+    // Really cold — funny reaction
+    emojiBurst('🧊', 4);
+    emojiBurst('💀', 2);
   }
   
   input.focus();
@@ -884,6 +1001,7 @@ function shareScore() {
 document.getElementById('guessBtn').addEventListener('click', submitGuess);
 document.getElementById('guessInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') submitGuess();
+  else if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) keystrokeSparkle(e);
 });
 document.getElementById('shareBtn').addEventListener('click', shareScore);
 document.getElementById('howBtn').addEventListener('click', () => {
