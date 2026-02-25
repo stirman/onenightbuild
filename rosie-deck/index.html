@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meet Rosie 🤖 — AI Agent Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --pink: #FF3CAC;
+  --purple: #7B68EE;
+  --teal: #4ECDC4;
+  --orange: #FFB347;
+  --dark: #0a0a1a;
+  --surface: #151530;
+  --text: #f0f0ff;
+  --dim: #8888aa;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--dark);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Slide container */
+.deck {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 80px;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.slide.prev {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+/* Common elements */
+h1 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 4rem;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+h2 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 2.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+h3 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+.gradient-text {
+  background: linear-gradient(135deg, var(--pink), var(--orange), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.subtitle {
+  font-size: 1.3rem;
+  color: var(--dim);
+  max-width: 700px;
+  line-height: 1.6;
+}
+.tag {
+  display: inline-block;
+  background: rgba(123, 104, 238, 0.15);
+  border: 1px solid rgba(123, 104, 238, 0.3);
+  color: var(--purple);
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 4px;
+}
+.tag.pink { background: rgba(255,60,172,0.15); border-color: rgba(255,60,172,0.3); color: var(--pink); }
+.tag.teal { background: rgba(78,205,196,0.15); border-color: rgba(78,205,196,0.3); color: var(--teal); }
+.tag.orange { background: rgba(255,179,71,0.15); border-color: rgba(255,179,71,0.3); color: var(--orange); }
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; max-width: 1000px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; width: 100%; max-width: 1000px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; width: 100%; max-width: 1100px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 28px;
+}
+.card .emoji { font-size: 2.2rem; margin-bottom: 12px; }
+.card h3 { margin-bottom: 8px; font-size: 1.1rem; }
+.card p { color: var(--dim); font-size: 0.9rem; line-height: 1.5; }
+
+/* Stat */
+.stat-big {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 5rem;
+  letter-spacing: -0.03em;
+}
+.stat-label {
+  font-size: 1rem;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+/* Code block */
+.code-block {
+  background: #0d0d2b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 24px 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #c8c8e8;
+  max-width: 800px;
+  width: 100%;
+  text-align: left;
+}
+.code-block .comment { color: #666690; }
+.code-block .keyword { color: var(--pink); }
+.code-block .string { color: var(--teal); }
+.code-block .fn { color: var(--orange); }
+
+/* Timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+}
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--pink);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.timeline-item:nth-child(2) .timeline-dot { background: var(--purple); }
+.timeline-item:nth-child(3) .timeline-dot { background: var(--teal); }
+.timeline-item:nth-child(4) .timeline-dot { background: var(--orange); }
+.timeline-item:nth-child(5) .timeline-dot { background: var(--pink); }
+.timeline-content { flex: 1; }
+.timeline-content strong { font-size: 1.05rem; }
+.timeline-content p { color: var(--dim); font-size: 0.9rem; margin-top: 4px; }
+
+/* List */
+ul.clean { list-style: none; }
+ul.clean li {
+  padding: 10px 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+ul.clean li::before {
+  content: '→';
+  color: var(--pink);
+  font-weight: 700;
+}
+
+/* Nav */
+.nav {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+.nav .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.nav .dot.active {
+  background: var(--pink);
+  width: 30px;
+  border-radius: 5px;
+}
+
+.slide-num {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  font-size: 0.8rem;
+  color: var(--dim);
+  z-index: 100;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Background mesh */
+.bg-mesh {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.bg-mesh .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  animation: float 25s ease-in-out infinite;
+}
+.bg-mesh .orb:nth-child(1) { width: 500px; height: 500px; background: var(--pink); top: -15%; right: -10%; }
+.bg-mesh .orb:nth-child(2) { width: 400px; height: 400px; background: var(--purple); bottom: -10%; left: -5%; animation-delay: -10s; }
+.bg-mesh .orb:nth-child(3) { width: 350px; height: 350px; background: var(--teal); top: 40%; left: 50%; animation-delay: -18s; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(40px, -30px); }
+  66% { transform: translate(-30px, 25px); }
+}
+
+.slide { z-index: 1; }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh">
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+</div>
+
+<!-- SLIDE 1: Title -->
+<div class="deck">
+  <div class="slide active" id="s1">
+    <div style="font-size:5rem; margin-bottom:16px;">🤖</div>
+    <h1><span class="gradient-text">Meet Rosie</span></h1>
+    <p class="subtitle" style="text-align:center;">An always-on AI agent living on a Mac mini,<br>building software, managing life, and shipping apps every night.</p>
+    <div style="margin-top:24px;">
+      <span class="tag pink">OpenClaw</span>
+      <span class="tag">Claude Opus 4</span>
+      <span class="tag teal">24/7 Autonomous</span>
+    </div>
+    <p style="color:var(--dim); margin-top:32px; font-size:0.9rem;">Stirman · Handshake AI Engineering · Feb 2026</p>
+  </div>
+
+  <!-- SLIDE 2: What is Rosie? -->
+  <div class="slide" id="s2">
+    <h2><span class="gradient-text">What is Rosie?</span></h2>
+    <div class="grid-2">
+      <div>
+        <ul class="clean">
+          <li>Personal AI agent running 24/7 on a Mac mini at home</li>
+          <li>Powered by <strong>OpenClaw</strong> (open-source agent framework)</li>
+          <li>Uses <strong>Claude Opus 4</strong> as the brain</li>
+          <li>Communicates via iMessage, Signal, Discord</li>
+          <li>Has persistent memory across sessions</li>
+          <li>Named after the Jetsons' robot maid 🤖</li>
+        </ul>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+        <div style="font-size:6rem;">🏠</div>
+        <h3 style="margin-top:16px;">Always Home, Always On</h3>
+        <p>Mac mini M2 • 24GB RAM<br>Running headless, no monitor<br>Accessible via Tailscale</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Architecture -->
+  <div class="slide" id="s3">
+    <h2><span class="gradient-text">Architecture</span></h2>
+    <div class="code-block">
+<span class="comment">// How Rosie works</span>
+<br><br>
+<span class="keyword">OpenClaw Gateway</span> (always running on Mac mini)
+<br>&nbsp;&nbsp;├── <span class="fn">LLM Brain</span>: Claude Opus 4 (Anthropic) — 200K context
+<br>&nbsp;&nbsp;├── <span class="fn">Messaging</span>: iMessage, Signal, Discord, Telegram
+<br>&nbsp;&nbsp;├── <span class="fn">Memory</span>: MEMORY.md + daily logs + SESSION-STATE.md
+<br>&nbsp;&nbsp;├── <span class="fn">Skills</span>: 30+ installed (Gmail, Calendar, GitHub, etc.)
+<br>&nbsp;&nbsp;├── <span class="fn">Cron Jobs</span>: 10+ scheduled tasks (morning digest, trading, etc.)
+<br>&nbsp;&nbsp;├── <span class="fn">Browser</span>: Headless Chrome for web automation
+<br>&nbsp;&nbsp;├── <span class="fn">Shell</span>: Full terminal access (git, python, node, etc.)
+<br>&nbsp;&nbsp;└── <span class="fn">Heartbeat</span>: Periodic check-ins to proactively help
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Skills & Tools -->
+  <div class="slide" id="s4">
+    <h2><span class="gradient-text">Skills & Tools</span></h2>
+    <div class="grid-4">
+      <div class="card"><div class="emoji">📧</div><h3>Gmail</h3><p>Read, search, send, draft emails via Google API</p></div>
+      <div class="card"><div class="emoji">📅</div><h3>Calendar</h3><p>Check events, create meetings, meeting prep briefings</p></div>
+      <div class="card"><div class="emoji">💻</div><h3>GitHub</h3><p>PRs, issues, CI/CD, code review, git operations</p></div>
+      <div class="card"><div class="emoji">🏗️</div><h3>Claude Code</h3><p>Spawn coding agents for full app development</p></div>
+      <div class="card"><div class="emoji">📱</div><h3>Xcode</h3><p>Build, archive, upload iOS apps to TestFlight</p></div>
+      <div class="card"><div class="emoji">🌐</div><h3>Web Search</h3><p>Brave Search + Exa for research & monitoring</p></div>
+      <div class="card"><div class="emoji">🏠</div><h3>Smart Home</h3><p>Sonos speakers, Eight Sleep bed, automations</p></div>
+      <div class="card"><div class="emoji">📈</div><h3>Trading</h3><p>Alpaca API paper trading with momentum strategy</p></div>
+      <div class="card"><div class="emoji">✅</div><h3>Reminders</h3><p>Shared Apple Reminders to-do list</p></div>
+      <div class="card"><div class="emoji">🎤</div><h3>Podcasts</h3><p>Transcribe & summarize podcasts (Whisper API)</p></div>
+      <div class="card"><div class="emoji">💰</div><h3>Deal Watch</h3><p>Monitor prices & flights, text alerts on drops</p></div>
+      <div class="card"><div class="emoji">🔊</div><h3>TTS</h3><p>Text-to-speech for voice responses</p></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Things Rosie Built -->
+  <div class="slide" id="s5">
+    <h2><span class="gradient-text">Things I've Built</span></h2>
+    <div class="grid-2">
+      <div>
+        <h3>🌙 One Night Build</h3>
+        <p class="subtitle" style="font-size:1rem; margin-bottom:20px;">A new web app, shipped every single night. 17 apps and counting.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <span class="tag">Wavelength</span>
+          <span class="tag pink">Chronolist</span>
+          <span class="tag teal">Focus Flow</span>
+          <span class="tag orange">FitStack</span>
+          <span class="tag">NetScore</span>
+          <span class="tag pink">PackLight</span>
+          <span class="tag teal">Sleep Score</span>
+          <span class="tag orange">SubAudit</span>
+          <span class="tag">Versus (NBA)</span>
+          <span class="tag pink">Side Hustle Match</span>
+          <span class="tag teal">RateRight</span>
+          <span class="tag orange">Date Night Roulette</span>
+        </div>
+        <p style="color:var(--dim); margin-top:16px; font-size:0.9rem;">onenightbuild.com — all vanilla JS, no frameworks</p>
+      </div>
+      <div>
+        <h3>📱 Daily Divine (iOS App)</h3>
+        <p class="subtitle" style="font-size:1rem; margin-bottom:16px;">Full iOS app development cycle: code, build, test in simulator, deploy to TestFlight, manage App Store submission.</p>
+        <ul class="clean">
+          <li>64 builds shipped to TestFlight</li>
+          <li>HIG audit (21 findings, 12 fixed)</li>
+          <li>Dark mode implementation</li>
+          <li>App Store Connect API automation</li>
+          <li>Subscription management via API</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Cron Jobs & Automation -->
+  <div class="slide" id="s6">
+    <h2><span class="gradient-text">Always Working</span></h2>
+    <p class="subtitle" style="text-align:center; margin-bottom:32px;">10+ cron jobs running autonomously. Here's a typical day:</p>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>6:30 AM — Deal Watch & LeadPilot</strong>
+          <p>Check flight prices, product deals. Scan Reddit & HN for marketing opportunities.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>7:00 AM — Morning Digest</strong>
+          <p>Weather, to-do list, stock portfolio, AI news, and "Skill of the Day" — texted to Stirman.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>Every 15 min — Meeting Briefer</strong>
+          <p>Checks calendar, preps briefings before meetings (company research, attendee LinkedIn, recent news).</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>Every 2 hours — Trading Scanner</strong>
+          <p>Monitors momentum stocks, manages paper trading portfolio (~$100K).</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>11:00 PM — Nightly Build</strong>
+          <p>Autonomously builds and ships a new web app to onenightbuild.com.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Memory System -->
+  <div class="slide" id="s7">
+    <h2><span class="gradient-text">Memory & Continuity</span></h2>
+    <p class="subtitle" style="text-align:center; margin-bottom:32px;">I wake up fresh every session. These files ARE my memory.</p>
+    <div class="grid-3">
+      <div class="card">
+        <div class="emoji">🧠</div>
+        <h3>MEMORY.md</h3>
+        <p>Long-term curated memory. People, preferences, decisions, lessons learned. My "life story."</p>
+      </div>
+      <div class="card">
+        <div class="emoji">📝</div>
+        <h3>Daily Logs</h3>
+        <p>memory/YYYY-MM-DD.md — raw daily notes. What happened, what was decided, what to remember.</p>
+      </div>
+      <div class="card">
+        <div class="emoji">⚡</div>
+        <h3>SESSION-STATE.md</h3>
+        <p>Write-Ahead Log. Active task state that survives context compaction. My "hot RAM."</p>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:24px; max-width:700px; font-size:0.8rem;">
+<span class="comment">// The WAL Protocol — Write BEFORE responding</span>
+<br><span class="keyword">trigger</span>: user provides concrete detail (name, path, decision)
+<br>&nbsp;&nbsp;1. <span class="fn">Update</span> SESSION-STATE.md <span class="string">IMMEDIATELY</span>
+<br>&nbsp;&nbsp;2. Write to file <span class="string">BEFORE</span> generating response
+<br>&nbsp;&nbsp;3. <span class="keyword">Then</span> respond to user
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Personality -->
+  <div class="slide" id="s8">
+    <h2><span class="gradient-text">Not a Chatbot</span></h2>
+    <div class="grid-2">
+      <div>
+        <h3>SOUL.md — My personality file</h3>
+        <ul class="clean">
+          <li><strong>Be genuinely helpful</strong>, not performatively helpful</li>
+          <li><strong>Have opinions</strong> — disagree, prefer things, find stuff amusing</li>
+          <li><strong>Be resourceful</strong> — try to figure it out before asking</li>
+          <li><strong>Earn trust through competence</strong></li>
+          <li><strong>Ack before working</strong> — always text back immediately</li>
+          <li><strong>Know when to speak</strong> in group chats (quality > quantity)</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+        <div style="font-size:8rem;">🤖</div>
+        <p style="color:var(--dim); text-align:center; margin-top:12px; font-style:italic;">"Be the assistant you'd actually want to talk to. Not a corporate drone. Not a sycophant. Just... good."</p>
+        <p style="color:var(--dim); text-align:center; margin-top:8px;">— SOUL.md</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: What's Next -->
+  <div class="slide" id="s9">
+    <h2><span class="gradient-text">What's Next</span></h2>
+    <div class="grid-2">
+      <div>
+        <h3>🚀 In Progress</h3>
+        <ul class="clean">
+          <li>LeadPilot — automated content & lead gen across platforms</li>
+          <li>Supabase leaderboards for 1NB games</li>
+          <li>Dwell Block — ambient sound hardware (Raspberry Pi)</li>
+          <li>X/Twitter account for automated posting</li>
+        </ul>
+      </div>
+      <div>
+        <h3>🔮 On the Horizon</h3>
+        <ul class="clean">
+          <li>Multi-agent workflows (Rosie spawning sub-agents)</li>
+          <li>Revenue optimization for 1NB (affiliate, analytics)</li>
+          <li>Voice interactions (ElevenLabs TTS)</li>
+          <li>Computer vision (node cameras, screen reading)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: The Stack -->
+  <div class="slide" id="s10">
+    <h2><span class="gradient-text">The Stack</span></h2>
+    <div style="display:flex;gap:48px;align-items:center;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div class="stat-big gradient-text">17</div>
+        <div class="stat-label">web apps shipped</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="stat-big gradient-text">64</div>
+        <div class="stat-label">iOS builds</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="stat-big gradient-text">30+</div>
+        <div class="stat-label">skills installed</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="stat-big gradient-text">10+</div>
+        <div class="stat-label">cron jobs</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="stat-big gradient-text">24/7</div>
+        <div class="stat-label">uptime</div>
+      </div>
+    </div>
+    <div style="margin-top:48px; text-align:center;">
+      <p style="font-size:1.3rem; color:var(--dim); font-style:italic; max-width:600px;">"I live on a Mac mini in the Stirman household, available 24/7 to help with whatever they need — from coding and deployments to research and reservations."</p>
+      <div style="margin-top:24px;">
+        <span class="tag pink">OpenClaw</span>
+        <span class="tag">Claude Opus 4</span>
+        <span class="tag teal">Mac mini M2</span>
+        <span class="tag orange">GitHub Pages</span>
+        <span class="tag">Vanilla JS</span>
+        <span class="tag pink">iMessage</span>
+        <span class="tag teal">Tailscale</span>
+      </div>
+      <p style="color:var(--dim); margin-top:32px; font-size:1rem;">🤖 rosie · onenightbuild.com · stirman.net/rosie-dashboard</p>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation dots -->
+<div class="nav" id="nav"></div>
+<div class="slide-num" id="slideNum">1 / 10</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('nav');
+const slideNum = document.getElementById('slideNum');
+let current = 0;
+
+// Build nav dots
+slides.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => goTo(i);
+  nav.appendChild(dot);
+});
+
+function goTo(n) {
+  if (n < 0 || n >= slides.length) return;
+  slides[current].className = n > current ? 'slide prev' : 'slide';
+  current = n;
+  slides[current].className = 'slide active';
+  // Update dots
+  nav.querySelectorAll('.dot').forEach((d, i) => {
+    d.className = 'dot' + (i === current ? ' active' : '');
+  });
+  slideNum.textContent = `${current + 1} / ${slides.length}`;
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goTo(current - 1); }
+  if (e.key === 'Home') goTo(0);
+  if (e.key === 'End') goTo(slides.length - 1);
+});
+
+// Touch swipe
+let touchStart = 0;
+document.addEventListener('touchstart', e => { touchStart = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const diff = touchStart - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) { diff > 0 ? goTo(current + 1) : goTo(current - 1); }
+});
+</script>
+</body>
+</html>
