@@ -236,7 +236,7 @@ ul.clean li::before {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Background mesh */
+/* Background mesh — punchy animated orbs */
 .bg-mesh {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -247,18 +247,125 @@ ul.clean li::before {
 .bg-mesh .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.15;
-  animation: float 25s ease-in-out infinite;
+  filter: blur(100px);
 }
-.bg-mesh .orb:nth-child(1) { width: 500px; height: 500px; background: var(--pink); top: -15%; right: -10%; }
-.bg-mesh .orb:nth-child(2) { width: 400px; height: 400px; background: var(--purple); bottom: -10%; left: -5%; animation-delay: -10s; }
-.bg-mesh .orb:nth-child(3) { width: 350px; height: 350px; background: var(--teal); top: 40%; left: 50%; animation-delay: -18s; }
+.bg-mesh .orb:nth-child(1) {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--pink), transparent 70%);
+  top: -10%; right: -5%;
+  opacity: 0.4;
+  animation: orbFloat1 18s ease-in-out infinite;
+}
+.bg-mesh .orb:nth-child(2) {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--purple), transparent 70%);
+  bottom: -15%; left: -5%;
+  opacity: 0.35;
+  animation: orbFloat2 22s ease-in-out infinite;
+}
+.bg-mesh .orb:nth-child(3) {
+  width: 450px; height: 450px;
+  background: radial-gradient(circle, var(--teal), transparent 70%);
+  top: 30%; left: 40%;
+  opacity: 0.3;
+  animation: orbFloat3 20s ease-in-out infinite;
+}
+.bg-mesh .orb:nth-child(4) {
+  width: 350px; height: 350px;
+  background: radial-gradient(circle, var(--orange), transparent 70%);
+  top: 60%; right: 15%;
+  opacity: 0.25;
+  animation: orbFloat4 24s ease-in-out infinite;
+}
+.bg-mesh .orb:nth-child(5) {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #FF6B9D, transparent 70%);
+  top: 10%; left: 15%;
+  opacity: 0.2;
+  animation: orbFloat5 16s ease-in-out infinite;
+}
 
-@keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(40px, -30px); }
-  66% { transform: translate(-30px, 25px); }
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-80px, 60px) scale(1.15); }
+  50% { transform: translate(40px, 100px) scale(0.9); }
+  75% { transform: translate(60px, -40px) scale(1.1); }
+}
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(100px, -50px) scale(1.1); }
+  50% { transform: translate(60px, -100px) scale(1.2); }
+  75% { transform: translate(-40px, -30px) scale(0.95); }
+}
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-70px, 80px) scale(1.1); }
+  66% { transform: translate(90px, -60px) scale(0.85); }
+}
+@keyframes orbFloat4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(-50px, -70px) scale(1.2); }
+  50% { transform: translate(80px, 30px) scale(0.9); }
+  80% { transform: translate(-30px, 60px) scale(1.05); }
+}
+@keyframes orbFloat5 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(60px, 50px) scale(1.15); }
+  70% { transform: translate(-50px, -40px) scale(0.9); }
+}
+
+/* Slide transitions — add entrance animations */
+.slide.active h1, .slide.active h2 {
+  animation: fadeUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.slide.active .card, .slide.active .timeline-item, .slide.active ul.clean li {
+  animation: fadeUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.slide.active .card:nth-child(1) { animation-delay: 0.05s; }
+.slide.active .card:nth-child(2) { animation-delay: 0.1s; }
+.slide.active .card:nth-child(3) { animation-delay: 0.15s; }
+.slide.active .card:nth-child(4) { animation-delay: 0.2s; }
+.slide.active .card:nth-child(5) { animation-delay: 0.25s; }
+.slide.active .card:nth-child(6) { animation-delay: 0.3s; }
+.slide.active .card:nth-child(7) { animation-delay: 0.35s; }
+.slide.active .card:nth-child(8) { animation-delay: 0.4s; }
+.slide.active .card:nth-child(9) { animation-delay: 0.45s; }
+.slide.active .card:nth-child(10) { animation-delay: 0.5s; }
+.slide.active .card:nth-child(11) { animation-delay: 0.55s; }
+.slide.active .card:nth-child(12) { animation-delay: 0.6s; }
+.slide.active .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.slide.active .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+.slide.active .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+.slide.active ul.clean li:nth-child(1) { animation-delay: 0.05s; }
+.slide.active ul.clean li:nth-child(2) { animation-delay: 0.1s; }
+.slide.active ul.clean li:nth-child(3) { animation-delay: 0.15s; }
+.slide.active ul.clean li:nth-child(4) { animation-delay: 0.2s; }
+.slide.active ul.clean li:nth-child(5) { animation-delay: 0.25s; }
+.slide.active ul.clean li:nth-child(6) { animation-delay: 0.3s; }
+.slide.active .code-block { animation: fadeUp 0.6s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.slide.active .stat-big { animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.slide.active .tag { animation: popTag 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.slide.active .tag:nth-child(1) { animation-delay: 0.3s; }
+.slide.active .tag:nth-child(2) { animation-delay: 0.35s; }
+.slide.active .tag:nth-child(3) { animation-delay: 0.4s; }
+.slide.active .tag:nth-child(4) { animation-delay: 0.45s; }
+.slide.active .tag:nth-child(5) { animation-delay: 0.5s; }
+.slide.active .tag:nth-child(6) { animation-delay: 0.55s; }
+.slide.active .tag:nth-child(7) { animation-delay: 0.6s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes popTag {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .slide { z-index: 1; }
@@ -267,6 +374,8 @@ ul.clean li::before {
 <body>
 
 <div class="bg-mesh">
+  <div class="orb"></div>
+  <div class="orb"></div>
   <div class="orb"></div>
   <div class="orb"></div>
   <div class="orb"></div>
