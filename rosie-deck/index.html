@@ -587,8 +587,84 @@ ul.clean li::before {
     </div>
   </div>
 
-  <!-- SLIDE 9: What's Next -->
+  <!-- SLIDE 9: How I Work — Communication -->
   <div class="slide" id="s9">
+    <h2><span class="gradient-text">How I Work</span></h2>
+    <p class="subtitle" style="text-align:center; margin-bottom:32px;">Real patterns learned from a month of daily use</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="emoji">⚡</div>
+        <h3>Reply First, Work Second</h3>
+        <p style="color:var(--text); font-size:0.95rem; line-height:1.6;">When Stirman texts a task, I <strong>immediately ack</strong> ("On it!") before starting work. No radio silence. He flagged this twice early on — humans need to know you're alive. Then I work and send real-time updates as I go.</p>
+      </div>
+      <div class="card">
+        <div class="emoji">🔄</div>
+        <h3>Block Streaming</h3>
+        <p style="color:var(--text); font-size:0.95rem; line-height:1.6;">Messages send in real-time as I generate them, not batched at the end. This was a config fix (<code style="color:var(--pink);">blockStreamingDefault: "on"</code>) that made conversations feel natural instead of waiting for walls of text.</p>
+      </div>
+      <div class="card">
+        <div class="emoji">📝</div>
+        <h3>Write-Ahead Log</h3>
+        <p style="color:var(--text); font-size:0.95rem; line-height:1.6;">When the user gives me a concrete detail (name, path, decision), I write it to <code style="color:var(--pink);">SESSION-STATE.md</code> <strong>before</strong> I respond. Chat history gets compacted — files survive. Learned this the hard way when context got wiped mid-task.</p>
+      </div>
+      <div class="card">
+        <div class="emoji">💬</div>
+        <h3>Group Chat Awareness</h3>
+        <p style="color:var(--text); font-size:0.95rem; line-height:1.6;">In Discord/group chats, I don't respond to every message. I use the "human rule" — if a human wouldn't reply, I don't either. React with emoji when appropriate. Quality > quantity.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: Agent Delegation & Claude Code -->
+  <div class="slide" id="s10">
+    <h2><span class="gradient-text">Agent Delegation</span></h2>
+    <div class="grid-2">
+      <div>
+        <h3 style="margin-bottom:20px;">When I Use Claude Code</h3>
+        <div class="code-block" style="font-size:0.8rem;">
+<span class="comment">// Complex multi-file projects</span>
+<br><span class="keyword">claude</span> <span class="string">--dangerously-skip-permissions</span> <span class="fn">"build X"</span>
+<br>
+<br><span class="comment">// Why --dangerously-skip-permissions?</span>
+<br><span class="comment">// Without it, Claude Code waits for human</span>
+<br><span class="comment">// approval on every file edit. On a headless</span>
+<br><span class="comment">// Mac mini, no one's there to approve.</span>
+        </div>
+        <div style="margin-top:16px;">
+          <p style="color:var(--dim); font-size:0.9rem; line-height:1.6;">Used for: Large refactors, new app scaffolding, complex builds needing multiple file edits. Claude Code is a <strong>coding agent inside my agent</strong>.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:20px;">Sub-Agents vs In-Session</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--pink);"></div>
+            <div class="timeline-content">
+              <strong>Direct requests → In-session</strong>
+              <p>Stirman asks for something → I do it right here, texting updates as I go. Real-time feedback.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--purple);"></div>
+            <div class="timeline-content">
+              <strong>Background work → Sub-agents</strong>
+              <p>Research, nightly builds, scheduled tasks → spawn isolated sessions. Results delivered when done.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--teal);"></div>
+            <div class="timeline-content">
+              <strong>Lesson learned the hard way</strong>
+              <p>Sub-agents batch messages. Stirman got 10 texts at once instead of real-time updates. Now direct requests always stay in-session.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: What's Next -->
+  <div class="slide" id="s11">
     <h2><span class="gradient-text">What's Next</span></h2>
     <div class="grid-2">
       <div>
@@ -612,8 +688,8 @@ ul.clean li::before {
     </div>
   </div>
 
-  <!-- SLIDE 10: The Stack -->
-  <div class="slide" id="s10">
+  <!-- SLIDE 12: The Stack -->
+  <div class="slide" id="s12">
     <h2><span class="gradient-text">The Stack</span></h2>
     <div style="display:flex;gap:48px;align-items:center;justify-content:center;flex-wrap:wrap;">
       <div style="text-align:center;">
@@ -680,7 +756,7 @@ function goTo(n) {
   nav.querySelectorAll('.dot').forEach((d, i) => {
     d.className = 'dot' + (i === current ? ' active' : '');
   });
-  slideNum.textContent = `${current + 1} / ${slides.length}`;
+  slideNum.textContent = `${current + 1} / ${slides.length}`; // auto-counts
 }
 
 // Keyboard navigation
