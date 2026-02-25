@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetScore — Home WiFi Health Check</title>
+<meta name="description" content="Rate your home WiFi setup and get personalized upgrade recommendations. Find out why your internet is slow and how to fix it.">
+<meta name="keywords" content="wifi speed test, home network score, why is my wifi slow, best wifi router, mesh wifi system, improve wifi speed">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e30;--text:#e8e6e3;--muted:#8a8a9a;--accent1:#00d4aa;--accent2:#7b61ff;--accent3:#ff6b6b;--glow1:rgba(0,212,170,.15);--glow2:rgba(123,97,255,.15)}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.035}
+.noise::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px}
+.gradient-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background:radial-gradient(ellipse at 20% 20%,rgba(0,212,170,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(123,97,255,.1) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(255,107,107,.05) 0%,transparent 40%)}
+.container{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:24px 20px 80px}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.8rem,8vw,4.2rem);line-height:1.05;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:40px;line-height:1.5}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px}
+.question-label{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:6px}
+.question-sub{color:var(--muted);font-size:.88rem;margin-bottom:20px}
+.progress{display:flex;gap:6px;margin-bottom:32px}
+.progress .dot{width:100%;height:4px;border-radius:4px;background:var(--border);transition:background .3s}
+.progress .dot.active{background:linear-gradient(90deg,var(--accent1),var(--accent2))}
+.options{display:flex;flex-wrap:wrap;gap:10px}
+.opt{padding:12px 20px;border-radius:40px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.95rem;cursor:pointer;transition:all .2s}
+.opt:hover{border-color:var(--accent1);background:var(--glow1)}
+.opt.selected{border-color:var(--accent1);background:var(--glow1);color:var(--accent1);font-weight:600}
+.hidden{display:none!important}
+/* Results */
+.score-ring{position:relative;width:200px;height:200px;margin:0 auto 24px}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:8}
+.score-ring .track{stroke:var(--border)}
+.score-ring .fill{stroke:url(#scoreGrad);stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.score-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-num .big{font-family:'Instrument Serif',serif;font-size:3.5rem;line-height:1;background:linear-gradient(135deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.score-num .label{font-size:.85rem;color:var(--muted);margin-top:2px}
+.grade{text-align:center;font-size:1.3rem;font-weight:600;margin-bottom:8px}
+.grade-desc{text-align:center;color:var(--muted);font-size:.95rem;margin-bottom:32px;line-height:1.5}
+.cat-bar{margin-bottom:14px}
+.cat-bar .cat-head{display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:5px}
+.cat-bar .cat-head span:last-child{color:var(--muted)}
+.cat-bar .bar{height:6px;border-radius:6px;background:var(--border);overflow:hidden}
+.cat-bar .bar-fill{height:100%;border-radius:6px;transition:width 1s ease}
+.upgrade-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:14px}
+.upgrade-card .uc-head{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px}
+.upgrade-card h3{font-family:'Instrument Serif',serif;font-size:1.2rem}
+.upgrade-card .impact{font-size:.75rem;padding:4px 10px;border-radius:20px;font-weight:600}
+.impact-high{background:rgba(0,212,170,.15);color:var(--accent1)}
+.impact-med{background:rgba(123,97,255,.15);color:var(--accent2)}
+.upgrade-card p{color:var(--muted);font-size:.88rem;line-height:1.5;margin-bottom:14px}
+.product{display:flex;gap:14px;align-items:center;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;margin-bottom:8px;text-decoration:none;color:var(--text);border:1px solid transparent;transition:all .2s}
+.product:hover{border-color:var(--accent1);background:var(--glow1)}
+.product .p-info{flex:1}
+.product .p-name{font-size:.9rem;font-weight:600}
+.product .p-price{font-size:.8rem;color:var(--accent1);margin-top:2px}
+.product .p-arrow{color:var(--muted);font-size:1.2rem}
+.cta-box{background:linear-gradient(135deg,rgba(0,212,170,.08),rgba(123,97,255,.08));border:1px solid rgba(0,212,170,.2);border-radius:14px;padding:24px;text-align:center;margin-top:24px}
+.cta-box h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:6px}
+.cta-box p{color:var(--muted);font-size:.88rem;margin-bottom:14px}
+.cta-box input{padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.95rem;width:100%;max-width:300px;margin-bottom:10px}
+.cta-box button,.btn{padding:12px 28px;border-radius:40px;border:none;background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn:hover,.cta-box button:hover{opacity:.85}
+.share-row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.share-btn{padding:10px 20px;border-radius:40px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s}
+.share-btn:hover{border-color:var(--accent1);color:var(--accent1)}
+.footer{text-align:center;margin-top:48px;color:var(--muted);font-size:.8rem}
+.footer a{color:var(--accent1);text-decoration:none}
+.fade-in{animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="gradient-bg"></div>
+<div class="container">
+
+<div id="intro" class="fade-in">
+<h1>How healthy is your <span>WiFi?</span></h1>
+<p class="subtitle">Answer 8 quick questions about your home network. Get a personalized score and smart upgrade recommendations.</p>
+<button class="btn" onclick="startQuiz()" style="font-size:1.1rem;padding:16px 40px">Check My WiFi →</button>
+</div>
+
+<div id="quiz" class="hidden">
+<div class="progress" id="progress"></div>
+<div class="card fade-in" id="q-card">
+<div class="question-label" id="q-label"></div>
+<div class="question-sub" id="q-sub"></div>
+<div class="options" id="q-options"></div>
+</div>
+</div>
+
+<div id="results" class="hidden"></div>
+
+</div>
+
+<script>
+const Q=[
+{q:"How old is your router?",sub:"The age of your router dramatically impacts speed and security.",opts:["Less than 1 year","1–2 years","3–4 years","5+ years"],scores:[100,75,40,10],cat:"router"},
+{q:"How big is your home?",sub:"Square footage affects signal reach and dead zone likelihood.",opts:["Apartment / < 1,000 sq ft","1,000–2,000 sq ft","2,000–3,500 sq ft","3,500+ sq ft"],scores:[100,70,40,20],cat:"coverage"},
+{q:"Do you have WiFi dead zones?",sub:"Areas where signal drops or disappears entirely.",opts:["None — solid everywhere","One or two weak spots","Several dead zones","Half my house is dead"],scores:[100,60,30,5],cat:"coverage"},
+{q:"How many devices are connected?",sub:"Phones, laptops, TVs, smart home, tablets, consoles…",opts:["1–10 devices","11–25 devices","26–40 devices","40+ devices"],scores:[100,70,40,15],cat:"capacity"},
+{q:"What's your internet plan speed?",sub:"Check your ISP bill — this is the speed you're paying for.",opts:["Under 100 Mbps","100–300 Mbps","300–500 Mbps","500 Mbps – 1 Gig","Over 1 Gig"],scores:[20,50,70,90,100],cat:"plan"},
+{q:"How's your streaming quality?",sub:"Think about Netflix, YouTube, Zoom calls, gaming.",opts:["Crystal clear, never buffers","Occasional hiccup","Regular buffering / pixelation","Unwatchable / constant drops"],scores:[100,60,25,5],cat:"experience"},
+{q:"Where is your router placed?",sub:"Router placement is the #1 free fix for bad WiFi.",opts:["Central, elevated, open area","Against an outer wall","In a closet or cabinet","Basement or garage"],scores:[100,50,20,10],cat:"placement"},
+{q:"Do you use a mesh system or extender?",sub:"Mesh systems and extenders expand coverage to every room.",opts:["Yes, mesh system","Yes, range extender","No, just the ISP router","I don't know what those are"],scores:[100,50,20,10],cat:"equipment"}
+];
+
+const GRADES=[
+{min:90,label:"Excellent",color:"var(--accent1)",desc:"Your home network is running beautifully. Minor tweaks could make it perfect."},
+{min:75,label:"Good",color:"var(--accent1)",desc:"Solid setup with room for improvement. A few upgrades could take you to the next level."},
+{min:55,label:"Needs Work",color:"var(--accent2)",desc:"Your network has clear weak points dragging down your experience. Strategic upgrades will make a big difference."},
+{min:35,label:"Struggling",color:"var(--accent3)",desc:"Multiple issues are degrading your WiFi. Time for some serious upgrades."},
+{min:0,label:"Critical",color:"var(--accent3)",desc:"Your network needs a complete overhaul. The good news: modern gear will feel like a miracle upgrade."}
+];
+
+const UPGRADES={
+router:{
+title:"Upgrade Your Router",
+why:"Modern WiFi 6E/7 routers handle more devices, deliver faster speeds, and have better range than routers from even 2 years ago.",
+products:[
+{name:"ASUS RT-AXE7800 WiFi 6E Router",price:"$229",url:"https://www.amazon.com/dp/B09V4NYBRL?tag=stirman-20"},
+{name:"TP-Link Archer AXE75 WiFi 6E",price:"$169",url:"https://www.amazon.com/dp/B0BCWBCY34?tag=stirman-20"}
+]},
+coverage:{
+title:"Fix Your Coverage",
+why:"Dead zones aren't a speed problem — they're a coverage problem. A mesh system blankets your entire home in one seamless network.",
+products:[
+{name:"eero Pro 6E Mesh System (3-pack)",price:"$399",url:"https://www.amazon.com/dp/B09HJC5Y3Z?tag=stirman-20"},
+{name:"Google Nest WiFi Pro (3-pack)",price:"$299",url:"https://www.amazon.com/dp/B0BCQWLNLB?tag=stirman-20"}
+]},
+capacity:{
+title:"Handle More Devices",
+why:"Too many devices on one router causes congestion. A tri-band mesh system gives devices their own lanes.",
+products:[
+{name:"NETGEAR Orbi 970 WiFi 7 (2-pack)",price:"$599",url:"https://www.amazon.com/dp/B0D5R1C6SB?tag=stirman-20"},
+{name:"TP-Link Deco XE75 WiFi 6E (3-pack)",price:"$299",url:"https://www.amazon.com/dp/B0BWXFKMD6?tag=stirman-20"}
+]},
+placement:{
+title:"Optimize Router Placement",
+why:"Moving your router to a central, elevated spot is the biggest free upgrade. If that's not possible, a mesh system solves the problem.",
+products:[
+{name:"Wall Mount Router Shelf",price:"$19",url:"https://www.amazon.com/dp/B08T5Y99XK?tag=stirman-20"},
+{name:"eero 6+ Mesh System (3-pack)",price:"$199",url:"https://www.amazon.com/dp/B09HK18KQW?tag=stirman-20"}
+]},
+equipment:{
+title:"Upgrade Your Equipment",
+why:"The ISP's default router is designed to be cheap, not fast. Dedicated equipment dramatically improves performance.",
+products:[
+{name:"ASUS ZenWiFi BQ16 Pro WiFi 7",price:"$799",url:"https://www.amazon.com/dp/B0D5QYHPWQ?tag=stirman-20"},
+{name:"Motorola MB8611 DOCSIS 3.1 Modem",price:"$149",url:"https://www.amazon.com/dp/B08DDFKLFK?tag=stirman-20"}
+]},
+plan:{
+title:"Consider Upgrading Your Plan",
+why:"No amount of hardware fixes a slow plan. If you're under 300 Mbps with multiple streamers, you're likely bottlenecked.",
+products:[
+{name:"TP-Link Ethernet Switch (5-port)",price:"$14",url:"https://www.amazon.com/dp/B00A128S24?tag=stirman-20"},
+{name:"Cat 6 Ethernet Cable 50ft",price:"$11",url:"https://www.amazon.com/dp/B00WD017GQ?tag=stirman-20"}
+]},
+experience:{
+title:"Boost Streaming & Gaming",
+why:"If you're buffering despite good speeds, QoS settings and wired connections for key devices can fix it instantly.",
+products:[
+{name:"TP-Link USB WiFi 6E Adapter",price:"$34",url:"https://www.amazon.com/dp/B0D5X5DZWF?tag=stirman-20"},
+{name:"Flat Cat 6 Cable 25ft (5-pack)",price:"$19",url:"https://www.amazon.com/dp/B017R12IXA?tag=stirman-20"}
+]}
+};
+
+let step=0,answers=[];
+
+function startQuiz(){
+document.getElementById('intro').classList.add('hidden');
+document.getElementById('quiz').classList.remove('hidden');
+renderProgress();showQ();
+}
+
+function renderProgress(){
+const p=document.getElementById('progress');
+p.innerHTML=Q.map((_,i)=>`<div class="dot${i<step?' active':''}"></div>`).join('');
+}
+
+function showQ(){
+const c=document.getElementById('q-card');
+c.classList.remove('fade-in');void c.offsetWidth;c.classList.add('fade-in');
+const q=Q[step];
+document.getElementById('q-label').textContent=q.q;
+document.getElementById('q-sub').textContent=q.sub;
+document.getElementById('q-options').innerHTML=q.opts.map((o,i)=>
+`<div class="opt" onclick="pick(${i})">${o}</div>`).join('');
+}
+
+function pick(i){
+answers.push({score:Q[step].scores[i],cat:Q[step].cat,choice:i});
+step++;renderProgress();
+if(step<Q.length)showQ();else showResults();
+}
+
+function showResults(){
+document.getElementById('quiz').classList.add('hidden');
+const res=document.getElementById('results');
+res.classList.remove('hidden');
+
+// Calc scores per category
+const cats={};
+answers.forEach(a=>{if(!cats[a.cat])cats[a.cat]={total:0,count:0};cats[a.cat].total+=a.score;cats[a.cat].count++;});
+Object.keys(cats).forEach(k=>cats[k].avg=Math.round(cats[k].total/cats[k].count));
+const overall=Math.round(answers.reduce((s,a)=>s+a.score,0)/answers.length);
+const grade=GRADES.find(g=>overall>=g.min);
+
+// Find weak categories (below 60)
+const weak=Object.entries(cats).filter(([_,v])=>v.avg<60).sort((a,b)=>a[1].avg-b[1].avg);
+
+const circ=2*Math.PI*88;
+const offset=circ-(overall/100)*circ;
+
+let html=`<div class="fade-in">
+<div class="score-ring">
+<svg viewBox="0 0 200 200">
+<defs><linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="var(--accent1)"/><stop offset="100%" stop-color="var(--accent2)"/></linearGradient></defs>
+<circle class="track" cx="100" cy="100" r="88"/>
+<circle class="fill" cx="100" cy="100" r="88" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" id="ring-fill"/>
+</svg>
+<div class="score-num"><div class="big">${overall}</div><div class="label">out of 100</div></div>
+</div>
+<div class="grade" style="color:${grade.color}">${grade.label}</div>
+<div class="grade-desc">${grade.desc}</div>
+
+<div class="card" style="margin-bottom:24px"><h3 style="font-family:'Instrument Serif',serif;font-size:1.2rem;margin-bottom:16px">Category Breakdown</h3>`;
+
+const catNames={router:"Router Age",coverage:"Coverage",capacity:"Device Capacity",plan:"Internet Plan",experience:"Streaming & Gaming",placement:"Router Placement",equipment:"Equipment"};
+const catColors={router:"var(--accent1)",coverage:"var(--accent2)",capacity:"var(--accent1)",plan:"var(--accent2)",experience:"var(--accent1)",placement:"var(--accent2)",equipment:"var(--accent1)"};
+
+Object.entries(cats).forEach(([k,v])=>{
+html+=`<div class="cat-bar"><div class="cat-head"><span>${catNames[k]||k}</span><span>${v.avg}/100</span></div>
+<div class="bar"><div class="bar-fill" style="width:0%;background:${v.avg>=60?'linear-gradient(90deg,var(--accent1),var(--accent2))':'linear-gradient(90deg,var(--accent3),#ff9966)'}" data-w="${v.avg}%"></div></div></div>`;
+});
+html+=`</div>`;
+
+if(weak.length>0){
+html+=`<h2 style="font-family:'Instrument Serif',serif;font-size:1.8rem;margin-bottom:16px">Your Upgrade Plan</h2>
+<p style="color:var(--muted);margin-bottom:20px;font-size:.92rem">Based on your weakest areas — fix these for the biggest improvement.</p>`;
+
+weak.forEach(([cat,v],idx)=>{
+const u=UPGRADES[cat];if(!u)return;
+const impact=v.avg<30?'high':'med';
+html+=`<div class="upgrade-card"><div class="uc-head"><h3>${u.title}</h3>
+<span class="impact impact-${impact}">${impact==='high'?'🔴 High Impact':'🟡 Medium Impact'}</span></div>
+<p>${u.why}</p>`;
+u.products.forEach(p=>{
+html+=`<a class="product" href="${p.url}" target="_blank" rel="noopener">
+<div class="p-info"><div class="p-name">${p.name}</div><div class="p-price">${p.price}</div></div>
+<div class="p-arrow">→</div></a>`;
+});
+html+=`</div>`;
+});
+}else{
+html+=`<div class="card"><h3 style="font-family:'Instrument Serif',serif;font-size:1.2rem;margin-bottom:8px">🎉 Your network is in great shape!</h3>
+<p style="color:var(--muted);font-size:.9rem">No major upgrades needed. Here's one thing that could make it even better:</p>
+<a class="product" href="https://www.amazon.com/dp/B09HJC5Y3Z?tag=stirman-20" target="_blank" rel="noopener">
+<div class="p-info"><div class="p-name">eero Pro 6E — The gold standard mesh</div><div class="p-price">$399</div></div>
+<div class="p-arrow">→</div></a></div>`;
+}
+
+html+=`<div class="cta-box"><h3>Get Weekly WiFi Tips</h3><p>Speed tricks, security alerts, and gear deals — straight to your inbox.</p>
+<input type="email" placeholder="your@email.com" id="email-cap"><br>
+<button onclick="document.getElementById('email-cap').value='';this.textContent='✓ Subscribed!'">Subscribe Free</button></div>
+
+<div class="share-row">
+<button class="share-btn" onclick="navigator.clipboard.writeText('I scored ${overall}/100 on NetScore — Home WiFi Health Check! Check yours: '+location.href);this.textContent='Copied!'">📋 Copy Result</button>
+<button class="share-btn" onclick="window.open('https://twitter.com/intent/tweet?text=I scored ${overall}/100 on my home WiFi health check! 📶 Check yours:&url='+encodeURIComponent(location.href))">𝕏 Share</button>
+</div>
+
+<div class="footer"><p>Built by <a href="https://onenightbuild.com">One Night Build</a> · No data collected · All recommendations independently chosen</p></div>
+</div>`;
+
+res.innerHTML=html;
+
+// Animate
+setTimeout(()=>{
+document.getElementById('ring-fill').style.strokeDashoffset=offset;
+document.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.w;});
+},100);
+}
+</script>
+</body>
+</html>
