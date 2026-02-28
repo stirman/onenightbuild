@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HoopsLab — Custom Basketball Training Plans</title>
+<meta name="description" content="Get a personalized basketball training plan based on your age, skill level, and goals. Free drills, workout structure, and gear recommendations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#14141f;--surface2:#1e1e2e;--orange:#ff6b2b;--purple:#a855f7;--cyan:#06b6d4;--green:#22c55e;--text:#f0f0f5;--muted:#8888a0;--radius:16px}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 0%,rgba(255,107,43,.12),transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(168,85,247,.1),transparent 60%),radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.06),transparent 70%);pointer-events:none;z-index:0}
+.noise{position:fixed;top:0;left:0;right:0;bottom:0;opacity:.035;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.container{max-width:680px;margin:0 auto;padding:24px 20px;position:relative;z-index:2}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,5rem);line-height:.9;letter-spacing:2px;text-align:center;margin-bottom:8px}
+h1 .orange{color:var(--orange)}
+h1 .purple{color:var(--purple)}
+.subtitle{text-align:center;color:var(--muted);font-size:1.05rem;margin-bottom:40px;max-width:420px;margin-left:auto;margin-right:auto}
+.step{display:none;animation:fadeUp .4s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.question{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px;margin-bottom:6px}
+.question-sub{color:var(--muted);font-size:.9rem;margin-bottom:20px}
+.options{display:grid;gap:10px}
+.options.two-col{grid-template-columns:1fr 1fr}
+.opt{background:var(--surface);border:2px solid transparent;border-radius:var(--radius);padding:16px 20px;cursor:pointer;transition:all .2s;font-size:1rem;color:var(--text);text-align:left}
+.opt:hover{border-color:var(--orange);background:var(--surface2)}
+.opt.selected{border-color:var(--orange);background:rgba(255,107,43,.1)}
+.opt .label{font-weight:600;font-size:1.05rem}
+.opt .desc{color:var(--muted);font-size:.82rem;margin-top:4px}
+.progress{display:flex;gap:8px;justify-content:center;margin-bottom:32px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--surface2);transition:all .3s}
+.dot.done{background:var(--orange)}
+.dot.current{background:var(--purple);box-shadow:0 0 8px var(--purple)}
+/* Results */
+.results-header{text-align:center;margin-bottom:32px}
+.results-header h2{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:1px}
+.results-header .badge{display:inline-block;background:linear-gradient(135deg,var(--orange),var(--purple));padding:6px 18px;border-radius:99px;font-size:.85rem;font-weight:600;margin-top:8px}
+.plan-section{background:var(--surface);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.plan-section h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.plan-section .duration{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.drill{background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:10px;border-left:3px solid var(--orange)}
+.drill:nth-child(even of .drill){border-left-color:var(--purple)}
+.drill .drill-name{font-weight:700;font-size:1rem;margin-bottom:4px}
+.drill .drill-detail{color:var(--muted);font-size:.88rem;line-height:1.5}
+.drill .drill-sets{color:var(--cyan);font-size:.82rem;font-weight:600;margin-top:6px}
+.gear-section{background:var(--surface);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.gear-section h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;margin-bottom:16px}
+.gear-item{display:flex;gap:16px;align-items:center;background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:10px}
+.gear-item .gear-icon{font-size:2rem;min-width:48px;text-align:center}
+.gear-item .gear-info{flex:1}
+.gear-item .gear-name{font-weight:700;font-size:.95rem}
+.gear-item .gear-why{color:var(--muted);font-size:.82rem;margin-top:2px}
+.gear-item .gear-link{color:var(--orange);text-decoration:none;font-weight:600;font-size:.85rem;white-space:nowrap}
+.gear-item .gear-link:hover{text-decoration:underline}
+.tip-box{background:linear-gradient(135deg,rgba(255,107,43,.08),rgba(168,85,247,.08));border:1px solid rgba(255,107,43,.2);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.tip-box h4{font-weight:700;margin-bottom:8px;color:var(--orange)}
+.tip-box p{color:var(--muted);font-size:.9rem;line-height:1.6}
+.cta-box{background:var(--surface);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:16px}
+.cta-box h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;margin-bottom:8px}
+.cta-box p{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+.cta-box input{background:var(--surface2);border:2px solid var(--surface2);border-radius:10px;padding:12px 16px;color:var(--text);font-size:1rem;width:100%;max-width:320px;margin-bottom:10px;font-family:inherit}
+.cta-box input:focus{outline:none;border-color:var(--orange)}
+.cta-box button{background:linear-gradient(135deg,var(--orange),var(--purple));border:none;color:#fff;padding:12px 32px;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
+.share-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.share-btn{background:var(--surface2);border:none;color:var(--text);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;font-weight:500;transition:all .2s}
+.share-btn:hover{background:var(--orange);color:#fff}
+.footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:40px;padding-bottom:40px}
+.restart-btn{background:none;border:2px solid var(--surface2);color:var(--muted);padding:10px 24px;border-radius:10px;cursor:pointer;font-size:.9rem;font-family:inherit;margin-top:16px;transition:all .2s}
+.restart-btn:hover{border-color:var(--orange);color:var(--text)}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+<h1><span class="orange">HOOPS</span><span class="purple">LAB</span></h1>
+<p class="subtitle">Custom basketball training plans in 60 seconds. Built for ballers of every level.</p>
+
+<div class="progress" id="progress"></div>
+
+<!-- Step 1: Age -->
+<div class="step active" data-step="0">
+<div class="question">WHO'S TRAINING?</div>
+<div class="question-sub">Pick the player's age group</div>
+<div class="options">
+<div class="opt" data-q="age" data-v="youth"><div class="label">🧒 Youth (8–12)</div><div class="desc">Building fundamentals, making it fun</div></div>
+<div class="opt" data-q="age" data-v="teen"><div class="label">🏀 Teen (13–17)</div><div class="desc">Competitive development, varsity prep</div></div>
+<div class="opt" data-q="age" data-v="adult"><div class="label">💪 Adult (18+)</div><div class="desc">Pickup dominance, staying sharp</div></div>
+<div class="opt" data-q="age" data-v="parent"><div class="label">👨‍👧 Parent + Kid</div><div class="desc">Training together, bonding on the court</div></div>
+</div>
+</div>
+
+<!-- Step 2: Skill -->
+<div class="step" data-step="1">
+<div class="question">SKILL LEVEL?</div>
+<div class="question-sub">Be honest — better plan that way</div>
+<div class="options">
+<div class="opt" data-q="skill" data-v="beginner"><div class="label">🌱 Beginner</div><div class="desc">Learning the basics, building confidence</div></div>
+<div class="opt" data-q="skill" data-v="intermediate"><div class="label">⚡ Intermediate</div><div class="desc">Know the fundamentals, ready to level up</div></div>
+<div class="opt" data-q="skill" data-v="advanced"><div class="label">🔥 Advanced</div><div class="desc">Competitive player, refining craft</div></div>
+</div>
+</div>
+
+<!-- Step 3: Goal -->
+<div class="step" data-step="2">
+<div class="question">MAIN GOAL?</div>
+<div class="question-sub">What do you want to improve most?</div>
+<div class="options two-col">
+<div class="opt" data-q="goal" data-v="shooting"><div class="label">🎯 Shooting</div></div>
+<div class="opt" data-q="goal" data-v="handles"><div class="label">🫳 Ball Handling</div></div>
+<div class="opt" data-q="goal" data-v="defense"><div class="label">🛡️ Defense</div></div>
+<div class="opt" data-q="goal" data-v="athleticism"><div class="label">🏃 Athleticism</div></div>
+<div class="opt" data-q="goal" data-v="court-iq"><div class="label">🧠 Court IQ</div></div>
+<div class="opt" data-q="goal" data-v="all-around"><div class="label">⭐ All-Around</div></div>
+</div>
+</div>
+
+<!-- Step 4: Time -->
+<div class="step" data-step="3">
+<div class="question">TIME PER SESSION?</div>
+<div class="question-sub">How long can you train?</div>
+<div class="options">
+<div class="opt" data-q="time" data-v="20"><div class="label">⚡ 20 Minutes</div><div class="desc">Quick focused session</div></div>
+<div class="opt" data-q="time" data-v="45"><div class="label">🏀 45 Minutes</div><div class="desc">Solid workout</div></div>
+<div class="opt" data-q="time" data-v="60"><div class="label">💪 60+ Minutes</div><div class="desc">Full training session</div></div>
+</div>
+</div>
+
+<!-- Step 5: Equipment -->
+<div class="step" data-step="4">
+<div class="question">WHAT DO YOU HAVE?</div>
+<div class="question-sub">Select all equipment available (click multiple)</div>
+<div class="options two-col" id="equip-options">
+<div class="opt multi" data-q="equip" data-v="ball"><div class="label">🏀 Basketball</div></div>
+<div class="opt multi" data-q="equip" data-v="hoop"><div class="label">🏠 Hoop/Rim</div></div>
+<div class="opt multi" data-q="equip" data-v="cones"><div class="label">🔶 Cones</div></div>
+<div class="opt multi" data-q="equip" data-v="ladder"><div class="label">🪜 Agility Ladder</div></div>
+<div class="opt multi" data-q="equip" data-v="bands"><div class="label">🟡 Resistance Bands</div></div>
+<div class="opt multi" data-q="equip" data-v="partner"><div class="label">🤝 Training Partner</div></div>
+</div>
+<button class="share-btn" style="margin-top:16px;background:linear-gradient(135deg,var(--orange),var(--purple));color:#fff;font-weight:600;padding:14px 40px" id="equip-go">GENERATE MY PLAN →</button>
+</div>
+
+<!-- Results -->
+<div class="step" data-step="5" id="results"></div>
+</div>
+
+<script>
+const TOTAL=5;let answers={equip:[]},currentStep=0;
+const drillDB={
+shooting:{
+youth:[
+{name:"Form Shooting",detail:"Stand 3 feet from the hoop. Focus on BEEF: Balance, Eyes, Elbow, Follow-through. Shoot with one hand first, then add the guide hand.",sets:"3 sets × 10 shots"},
+{name:"Spot Shooting",detail:"Pick 5 spots around the paint. Make 3 from each spot before moving to the next. Keep your elbow under the ball.",sets:"5 spots × 3 makes"},
+{name:"Free Throw Routine",detail:"Develop YOUR routine: bounce the ball the same number of times, take a breath, shoot. Consistency builds confidence.",sets:"3 sets × 5 free throws"},
+{name:"Lay-Up Lines",detail:"Alternate right and left side lay-ups. Right side = right hand, left side = left hand. Focus on the backboard square.",sets:"10 each side"}
+],
+teen:[
+{name:"Catch & Shoot",detail:"Sprint to a spot, receive a pass (or toss to yourself off the backboard), square up, shoot. Game speed, game reps.",sets:"5 spots × 5 shots"},
+{name:"Pull-Up Jumper",detail:"Dribble toward the elbow, plant hard, rise into your shot. Work both directions. Keep the ball high on the gather.",sets:"4 sets × 8 shots"},
+{name:"3-Point Circuit",detail:"5 spots around the arc. Shoot 5 from each, track your percentage. Goal: 40%+ before moving on.",sets:"25 total, track %"},
+{name:"Step-Back Jumper",detail:"Attack the defender, plant on your front foot, push back into space, rise and shoot. Sell the drive first.",sets:"3 sets × 6 each side"},
+{name:"Free Throw Pressure",detail:"Must make 8 of 10. If you miss 3, start over. Simulates late-game pressure.",sets:"8/10 to pass"}
+],
+adult:[
+{name:"Spot-Up 3s (NBA Range)",detail:"Shoot from 5 spots beyond the arc at game speed. Focus on a quick release with consistent footwork. Track your percentage.",sets:"50 total, track %"},
+{name:"Off-Screen Shooting",detail:"Simulate coming off a screen: jog around a cone, catch, shoot. Work curl, fade, and straight cuts.",sets:"5 reps × 3 types"},
+{name:"Mid-Range Package",detail:"Work the elbow, baseline, and free-throw line extended. Mix catch-and-shoot with off-the-dribble pull-ups.",sets:"30 total shots"},
+{name:"Contested Finishing",detail:"Drive hard, euro-step, floater, reverse lay-up. Vary your finishing around the rim — don't always go strong.",sets:"4 finishes × 5 reps"},
+{name:"Deep 3s & Logo Shots",detail:"Extend your range. Start at the arc, move back 2 feet every 5 makes. Build comfort from deep — Curry-style.",sets:"3 sets × 5 makes"}
+]
+},
+handles:{
+youth:[
+{name:"Stationary Pound Dribbles",detail:"Right hand, left hand, crossover, between the legs. Stay low, eyes UP (look at a target on the wall, not the ball).",sets:"30 seconds each move"},
+{name:"Cone Weave",detail:"Set up 5 cones in a line. Dribble through with crossovers. Walk it first, then jog, then sprint. Both hands.",sets:"4 trips through"},
+{name:"Protect the Ball",detail:"Dribble in a small square. Partner tries to knock it away. Keep your body between defender and ball.",sets:"3 × 30 seconds"},
+{name:"Tennis Ball Dribbling",detail:"Dribble with one hand, catch/toss a tennis ball with the other. Builds hand-eye coordination and forces you off the ball.",sets:"2 × 45 seconds each hand"}
+],
+teen:[
+{name:"2-Ball Dribbling",detail:"Dribble two balls simultaneously: together, alternating, crossover. Builds hand independence and weak hand strength.",sets:"4 patterns × 30 sec"},
+{name:"Attack & Retreat",detail:"Speed dribble forward 3 steps, hesitation move, retreat dribble, attack again. Vary: crossover, behind-back, spin.",sets:"5 reps × 4 moves"},
+{name:"Full-Court Handles",detail:"Dribble baseline to baseline using a different move every 5 dribbles. No looking down. Game speed.",sets:"4 trips"},
+{name:"Chair Dribbling",detail:"Place a chair at the elbow. Attack it like a defender: crossover, hesitate, go. React to the 'screen.'",sets:"8 reps each side"},
+{name:"Combo Moves",detail:"String 3 moves together (e.g., between legs → crossover → spin). Create your signature combo. Practice until it's automatic.",sets:"5 combos × 4 reps"}
+],
+adult:[
+{name:"Kill Handles Workout",detail:"5 minutes of continuous dribbling: crossover, between legs, behind back, spin, hesitation. No stops, no looking down.",sets:"5 min continuous"},
+{name:"Live 1-on-1 Iso",detail:"With a partner, play 1-on-1 from the top of the key. 3 dribble max. Forces you to be decisive with your moves.",sets:"10 possessions each"},
+{name:"Change of Pace",detail:"Full court: walk, explode, stop, go. The best handles aren't fast — they change speeds. Master the hesitation.",sets:"4 full court trips"},
+{name:"Gauntlet Drill",detail:"Set up 4 chairs/cones. Attack each one with a different move at full speed. Finish with a lay-up or pull-up.",sets:"3 sets × both sides"}
+]
+},
+defense:{
+youth:[
+{name:"Defensive Slides",detail:"Get in stance: butt down, hands active, feet wide. Slide sideline to sideline. Never cross your feet!",sets:"4 × sideline to sideline"},
+{name:"Mirror Drill",detail:"Face a partner. They move, you mirror. Stay low, react to their hips (not their head or ball).",sets:"5 × 15 seconds"},
+{name:"Close-Out Drill",detail:"Start under the basket. Sprint to the 3-point line, chop your feet, get low. Contest the shot without fouling.",sets:"3 sets × 4 close-outs"},
+{name:"Rebounding Box-Out",detail:"Practice the hit-and-spin: make contact, pivot, seal your opponent, grab the rebound with two hands.",sets:"10 reps"}
+],
+teen:[
+{name:"1-on-1 Deny",detail:"Guard the wing. Deny the pass with an active hand in the passing lane. If they cut, stay on their hip.",sets:"8 possessions"},
+{name:"Help & Recover",detail:"Start on the weak side. When the ball drives, slide to help. When it kicks out, sprint to close out. Rotate!",sets:"3 sets × 5 rotations"},
+{name:"Full-Court Press",detail:"Pick up at full court. Force to one side. Stay low, mirror hips, make them work to cross half court.",sets:"6 possessions"},
+{name:"Shot Blocker Timing",detail:"Stand under the rim. Partner shoots, you time your jump to contest at the peak — don't jump early!",sets:"3 × 8 contests"},
+{name:"Transition Defense",detail:"Sprint back, find the ball, find your man. Stop the fast break by getting below the ball. No lazy jogs.",sets:"6 sprint-back reps"}
+],
+adult:[
+{name:"Closeout to Contest",detail:"Sprint to the shooter, break down with short choppy steps, hand up, don't bite on pump fakes. Discipline.",sets:"4 × 6 closeouts"},
+{name:"Pick & Roll Defense",detail:"Practice hedging, switching, and dropping on screens. With a partner, walk through each coverage then go live.",sets:"5 reps × 3 coverages"},
+{name:"Post Defense",detail:"Guard the block. 3/4 front, deny the entry pass. If they catch it, dig down and force baseline or middle.",sets:"8 possessions"},
+{name:"Strip Drill",detail:"Controlled 1-on-1, focus only on poking the ball loose. Timing > reaching. Go for the ball when they expose it.",sets:"6 possessions"}
+]
+},
+athleticism:{
+youth:[
+{name:"Jump Rope",detail:"Basic two-foot jumps, then alternate feet, then high knees. Jump rope builds ankle strength, coordination, and cardio.",sets:"3 × 1 minute"},
+{name:"Ladder Quick Feet",detail:"In-and-out, lateral shuffle, icky shuffle through the agility ladder. Speed and foot coordination.",sets:"4 patterns × 3 trips"},
+{name:"Broad Jumps",detail:"Two-foot takeoff, swing arms, land soft. Measure your distance and try to beat it. Builds explosive power.",sets:"3 sets × 5 jumps"},
+{name:"Defensive Slide Races",detail:"Race a partner doing defensive slides. Low stance, quick feet, competitive and fun.",sets:"5 races"}
+],
+teen:[
+{name:"Box Jumps",detail:"Jump onto a sturdy box/bench. Land softly with knees bent. Step down (don't jump down). Build explosive vertical.",sets:"4 sets × 8 reps"},
+{name:"Sprint Intervals",detail:"Full court sprint, jog back. 10 times. No walking. Simulates game pace — you can't walk in a game.",sets:"10 sprints"},
+{name:"Lane Agility",detail:"Start baseline. Sprint to free throw line, defensive slide to the lane, backpedal to baseline, slide back. One continuous rep.",sets:"4 sets × 3 reps"},
+{name:"Single-Leg Hops",detail:"Hop on one foot for distance, then for height. 3 sets each leg. Builds balance and injury prevention.",sets:"3 × 10 each leg"},
+{name:"Resistance Band Lateral Walks",detail:"Band around ankles. Stay in defensive stance, walk sideways. Burns like crazy, builds hip stability for defense.",sets:"3 × 20 steps each way"}
+],
+adult:[
+{name:"Depth Jumps",detail:"Step off a box, land, immediately explode upward. Trains reactive power — the fast-twitch muscle fibers that create your vertical leap.",sets:"4 sets × 6 reps"},
+{name:"Court Sprints (17s)",detail:"Sideline to sideline, 17 times. Must finish under 1 minute. The gold standard conditioning test for basketball.",sets:"3 sets, 2 min rest"},
+{name:"Lateral Bounds",detail:"Explosive side-to-side jumps, landing on one foot. Mimics defensive shuffles but with maximum power output.",sets:"3 × 10 each side"},
+{name:"Plyo Push-Ups",detail:"Explosive push-ups where your hands leave the ground. Build upper body power for finishing through contact.",sets:"3 sets × 8 reps"}
+]
+},
+"court-iq":{
+youth:[
+{name:"Pass & Cut",detail:"Pass to a teammate (or wall), immediately cut to the basket. Read the defense — backdoor if overplayed, V-cut if not.",sets:"10 reps each cut type"},
+{name:"2-on-1 Decision Making",detail:"Play 2-on-1. Ball handler reads the defender: if they help, pass. If they stay, attack. Make the RIGHT play.",sets:"8 possessions"},
+{name:"Spot the Open Player",detail:"3 players stand around the arc. Coach/partner points, you pass to the right spot instantly. Builds court vision.",sets:"3 × 10 passes"},
+{name:"Film Study (5 min)",detail:"Watch one NBA highlight clip. Pause after each play. Where was the open player? Why did the play work?",sets:"5 minutes"}
+],
+teen:[
+{name:"Read & React 3-on-3",detail:"Play 3-on-3 half court. No set plays. Read the defense: drive & kick, swing the ball, attack closeouts.",sets:"10 possessions × 2 sets"},
+{name:"Pick & Roll Reads",detail:"Ball handler + screener. Read the defense: roll, pop, slip, reject. Make 4 correct reads in a row to pass.",sets:"Until 4 consecutive"},
+{name:"Transition Numbers",detail:"Practice reading 2-on-1, 3-on-2, 3-on-3 fast breaks. Always attack the advantage. Pass ahead!",sets:"6 reps each scenario"},
+{name:"Film Study — Your Games",detail:"Watch your own game film. What did you do well? Where did you make bad decisions? Write down 2 things to fix.",sets:"15 minutes"},
+{name:"Communication Drill",detail:"On defense, call out screens, switches, help. If you're quiet, you run a sprint. Talk = good defense.",sets:"Full scrimmage"}
+],
+adult:[
+{name:"Pickup Game Film Review",detail:"Record your next pickup game on a phone. Watch the first 5 minutes. You'll be shocked by what you see — positioning, missed cuts, ball-watching on D.",sets:"15 min review"},
+{name:"Chess on the Court",detail:"Play 5-on-5 but the ball must touch 3 players before a shot. Slows you down, forces ball movement and reads.",sets:"Full game"},
+{name:"Set Play Walkthrough",detail:"Learn 3 simple set plays (horns, floppy, Spain PnR). Walk through, then run at speed. Having even 1 play elevates pickup games.",sets:"3 plays × 5 reps"},
+{name:"Anticipation Drill",detail:"On defense, focus on reading the passer's eyes and hips. Try to jump 3 passing lanes per scrimmage. Active hands.",sets:"Track deflections"}
+]
+},
+"all-around":{
+youth:[
+{name:"Triple Threat Series",detail:"Catch the ball, square up in triple threat. Jab step, shot fake, drive right, drive left. Make the defender guess.",sets:"3 sets × 4 options"},
+{name:"Lay-Up Medley",detail:"Right-hand, left-hand, reverse, power lay-ups. Make 3 of each before moving on. Both sides of the basket.",sets:"4 types × 3 makes"},
+{name:"Partner Passing",detail:"Chest pass, bounce pass, overhead pass. Start close, move farther apart. Focus on hitting the target every time.",sets:"20 each type"},
+{name:"Knockout",detail:"Classic basketball game. Builds shooting under pressure and competitiveness. Play with friends/family!",sets:"Best of 5 games"},
+{name:"Dribble Tag",detail:"Everyone dribbles in a small area. Try to knock others' balls away while protecting yours. Last one standing wins.",sets:"5 rounds"}
+],
+teen:[
+{name:"Mikan Drill",detail:"Alternate left and right hand lay-ups without letting the ball touch the ground. Builds touch, timing, and ambidexterity.",sets:"3 × 30 seconds"},
+{name:"Wing Workout",detail:"Catch at the wing. Triple threat → jab → drive right → finish. Reset. Jab → drive left → pull-up. Reset. Jab → shoot.",sets:"3 options × 5 reps"},
+{name:"Full-Court 1-on-1",detail:"Check ball at baseline. Attack full court, 1-on-1. Builds conditioning, handles under pressure, and finishing at the rim.",sets:"5 possessions each"},
+{name:"Passing Under Pressure",detail:"In a 3-on-2 drill, the ball handler must make the right pass within 2 seconds. Builds quick decision-making.",sets:"8 possessions"},
+{name:"Scrimmage Situational",detail:"Play 5-on-5 starting from specific situations: down 2 with 30 seconds, up 1 with ball, need a 3. Practice clutch moments.",sets:"5 situations"}
+],
+adult:[
+{name:"The 500 Workout",detail:"100 form shots, 100 mid-range, 100 3-pointers, 100 free throws, 100 finishes at the rim. The full package.",sets:"500 total makes"},
+{name:"King of the Court",detail:"1-on-1 continuous. Winner stays, loser goes to the back. 3 dribble limit. First to 5 wins reigns supreme.",sets:"Play to 5"},
+{name:"Pick-Up Prep Circuit",detail:"5 min handles, 5 min shooting, 5 min conditioning, 5 min free throws. Quick all-around tune-up before a game.",sets:"20 min total"},
+{name:"Post Moves Package",detail:"Drop step baseline, drop step middle, up-and-under, face-up jumper, hook shot. Even guards need post moves in pickup.",sets:"5 moves × 4 reps"}
+]
+}
+};
+const gearDB=[
+{id:"ball-indoor",icon:"🏀",name:"Spalding TF-1000 Classic Indoor Basketball",why:"The same ball used in high school & college gyms. Proper leather composite grip makes a huge difference vs rubber balls.",link:"https://www.amazon.com/dp/B09TVGYLTF?tag=stirman-20",for:["all"]},
+{id:"ball-outdoor",icon:"🏀",name:"Wilson NCAA Replica Outdoor Basketball",why:"Durable rubber cover built for asphalt. Holds up to outdoor courts without losing grip.",link:"https://www.amazon.com/dp/B0BV32VQMC?tag=stirman-20",for:["all"]},
+{id:"cones",icon:"🔶",name:"Pro Disc Cones (50-Pack)",why:"Essential for dribbling drills, defensive slides, and agility work. Flat design won't trip you up.",link:"https://www.amazon.com/dp/B07QDRHY24?tag=stirman-20",for:["no-cones"]},
+{id:"ladder",icon:"🪜",name:"SKLZ Quick Ladder Pro",why:"Builds foot speed and coordination that translates directly to quicker first steps and defensive slides.",link:"https://www.amazon.com/dp/B002LTEQFC?tag=stirman-20",for:["no-ladder","athleticism"]},
+{id:"bands",icon:"🟡",name:"Resistance Bands Set (5 levels)",why:"Add resistance to lateral slides, jump training, and strength exercises. Portable and versatile.",link:"https://www.amazon.com/dp/B01AVDVHTI?tag=stirman-20",for:["no-bands","athleticism","defense"]},
+{id:"shoes",icon:"👟",name:"Nike LeBron XXI Basketball Shoes",why:"Proper basketball shoes = better ankle support, traction, and injury prevention. Don't ball in running shoes.",link:"https://www.amazon.com/dp/B0CV1JF3V4?tag=stirman-20",for:["all"]},
+{id:"sleeve",icon:"💪",name:"Nike Pro Combat Arm Sleeve",why:"Compression improves blood flow and keeps your shooting arm warm. Plus you look like a pro.",link:"https://www.amazon.com/dp/B00AZFJHAE?tag=stirman-20",for:["shooting"]},
+{id:"dribble-goggles",icon:"🥽",name:"SKLZ Court Vision Dribble Goggles",why:"Blocks your view of the ball, forcing you to dribble by feel. The #1 hack for improving handles fast.",link:"https://www.amazon.com/dp/B004JHWI22?tag=stirman-20",for:["handles"]},
+{id:"shooting-strap",icon:"🎯",name:"Bulls Eye Basketball Shooting Aid",why:"Keeps your off-hand from interfering with your shot. Builds proper one-hand shooting form quickly.",link:"https://www.amazon.com/dp/B008EGBTSM?tag=stirman-20",for:["shooting"]},
+{id:"jump-rope",icon:"⏱️",name:"CrossRope Get Lean Jump Rope",why:"Weighted ropes build ankle strength, coordination, and cardio. 10 minutes = a full conditioning session.",link:"https://www.amazon.com/dp/B01M04DFZF?tag=stirman-20",for:["athleticism"]},
+{id:"foam-roller",icon:"🧘",name:"TriggerPoint GRID Foam Roller",why:"Recovery is training. Roll out quads, IT bands, and calves after every session to prevent injury.",link:"https://www.amazon.com/dp/B0040EGNIU?tag=stirman-20",for:["all"]},
+{id:"book",icon:"📖",name:"Basketball Anatomy (2nd Edition)",why:"Understand the muscles behind every move. Targeted training based on basketball-specific biomechanics.",link:"https://www.amazon.com/dp/1492594105?tag=stirman-20",for:["athleticism","all-around"]},
+{id:"rebounder",icon:"🔄",name:"SKLZ Solo Assist Rebounder",why:"Returns the ball to you after every shot — essential for solo shooting workouts without a rebounder.",link:"https://www.amazon.com/dp/B001EYUPH6?tag=stirman-20",for:["shooting","no-partner"]}
+];
+
+function renderProgress(){
+const p=document.getElementById('progress');
+p.innerHTML='';
+for(let i=0;i<TOTAL;i++){
+const d=document.createElement('div');
+d.className='dot'+(i<currentStep?' done':'')+(i===currentStep?' current':'');
+p.appendChild(d);
+}
+}
+renderProgress();
+
+document.querySelectorAll('.opt:not(.multi)').forEach(o=>o.addEventListener('click',function(){
+const q=this.dataset.q,v=this.dataset.v;
+answers[q]=v;
+this.parentElement.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));
+this.classList.add('selected');
+setTimeout(()=>{currentStep++;renderProgress();showStep(currentStep)},300);
+}));
+
+document.querySelectorAll('.opt.multi').forEach(o=>o.addEventListener('click',function(){
+this.classList.toggle('selected');
+const v=this.dataset.v;
+if(answers.equip.includes(v))answers.equip=answers.equip.filter(x=>x!==v);
+else answers.equip.push(v);
+}));
+
+document.getElementById('equip-go').addEventListener('click',()=>{
+if(answers.equip.length===0)answers.equip=['ball'];
+currentStep=5;renderProgress();generatePlan();
+});
+
+function showStep(n){
+document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+const s=document.querySelector(`[data-step="${n}"]`);
+if(s){s.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+}
+
+function generatePlan(){
+const{age,skill,goal,time,equip}=answers;
+const ageKey=age==='parent'?'youth':age;
+const skillKey=skill||'beginner';
+const goalKey=goal||'all-around';
+const mins=parseInt(time)||45;
+
+// Get drills for main goal
+let mainDrills=(drillDB[goalKey]&&drillDB[goalKey][ageKey==='youth'?'youth':ageKey==='teen'?'teen':'adult'])||drillDB['all-around']['adult'];
+
+// If all-around or enough time, add a secondary section
+let warmupDrills=[
+{name:"Dynamic Warm-Up",detail:"High knees, butt kicks, arm circles, lunges, karaoke. Get the blood flowing and joints loose. NEVER skip this.",sets:"3 minutes"}
+];
+
+let cooldownDrills=[
+{name:"Free Throws to Cool Down",detail:"End every session at the line. 10 free throws, track your percentage. This is where games are won.",sets:"10 shots, track %"},
+{name:"Stretch & Reflect",detail:"Hamstrings, quads, hip flexors, shoulders. While stretching, think: what went well? What needs more work tomorrow?",sets:"5 minutes"}
+];
+
+// Filter gear recommendations
+let gear=gearDB.filter(g=>{
+if(g.for.includes('all'))return true;
+if(g.for.includes(goalKey))return true;
+if(g.for.includes('no-cones')&&!equip.includes('cones'))return true;
+if(g.for.includes('no-ladder')&&!equip.includes('ladder'))return true;
+if(g.for.includes('no-bands')&&!equip.includes('bands'))return true;
+if(g.for.includes('no-partner')&&!equip.includes('partner'))return true;
+return false;
+}).slice(0,5);
+
+// Build schedule text
+const daysPerWeek=mins>=60?'4-5':mins>=45?'3-4':'3';
+const goalLabels={shooting:'Shooting',handles:'Ball Handling',defense:'Defense',athleticism:'Athleticism','court-iq':'Court IQ','all-around':'All-Around'};
+const ageLabels={youth:'Youth',teen:'Teen',adult:'Adult',parent:'Parent + Kid'};
+const skillLabels={beginner:'Beginner',intermediate:'Intermediate',advanced:'Advanced'};
+
+// Pro tip based on goal
+const tips={
+shooting:"Shoot when you're tired. In games, you're never fresh when taking big shots. End every session with 10 free throws after conditioning.",
+handles:"Dribble with your eyes closed for 30 seconds. Scary at first, but it forces your hands to FEEL the ball instead of relying on vision.",
+defense:"Watch your opponent's waist, not their eyes or the ball. The waist doesn't lie — it tells you exactly where they're going.",
+athleticism:"Sleep is your secret weapon. Muscle growth and recovery happen during deep sleep. 8+ hours is non-negotiable for athletes.",
+"court-iq":"Watch NBA games with the sound off. Focus on off-ball movement — where players go when they DON'T have the ball. That's where basketball IQ lives.",
+"all-around":"The best players practice what they're BAD at, not what they're good at. Spend 60% of your time on weaknesses."
+};
+
+const resultsDiv=document.getElementById('results');
+resultsDiv.innerHTML=`
+<div class="results-header">
+<h2>YOUR ${mins}-MINUTE TRAINING PLAN</h2>
+<div class="badge">${ageLabels[age]} · ${skillLabels[skill]} · ${goalLabels[goalKey]} Focus</div>
+<p style="color:var(--muted);margin-top:12px;font-size:.9rem">Train ${daysPerWeek} days per week for best results</p>
+</div>
+
+<div class="tip-box">
+<h4>🏀 Pro Tip</h4>
+<p>${tips[goalKey]}</p>
+</div>
+
+<div class="plan-section">
+<h3>🔥 WARM-UP</h3>
+<div class="duration">3 minutes — never skip this</div>
+${warmupDrills.map(d=>`<div class="drill"><div class="drill-name">${d.name}</div><div class="drill-detail">${d.detail}</div><div class="drill-sets">${d.sets}</div></div>`).join('')}
+</div>
+
+<div class="plan-section">
+<h3>🎯 ${goalLabels[goalKey].toUpperCase()} DRILLS</h3>
+<div class="duration">${mins>=60?mins-15:mins>=45?mins-10:mins-6} minutes — the main work</div>
+${mainDrills.map(d=>`<div class="drill"><div class="drill-name">${d.name}</div><div class="drill-detail">${d.detail}</div><div class="drill-sets">${d.sets}</div></div>`).join('')}
+</div>
+
+<div class="plan-section">
+<h3>🧊 COOL DOWN</h3>
+<div class="duration">7 minutes — recovery is training</div>
+${cooldownDrills.map(d=>`<div class="drill"><div class="drill-name">${d.name}</div><div class="drill-detail">${d.detail}</div><div class="drill-sets">${d.sets}</div></div>`).join('')}
+</div>
+
+<div class="gear-section">
+<h3>🛒 GEAR TO LEVEL UP</h3>
+${gear.map(g=>`<div class="gear-item">
+<div class="gear-icon">${g.icon}</div>
+<div class="gear-info"><div class="gear-name">${g.name}</div><div class="gear-why">${g.why}</div></div>
+<a href="${g.link}" target="_blank" rel="noopener" class="gear-link">View →</a>
+</div>`).join('')}
+</div>
+
+<div class="cta-box">
+<h3>📧 GET WEEKLY DRILLS</h3>
+<p>New training plans, pro tips, and gear deals every week.</p>
+<input type="email" placeholder="your@email.com" id="email-input">
+<br>
+<button onclick="document.getElementById('email-input').value='';this.textContent='Signed Up! ✓'">SUBSCRIBE FREE</button>
+</div>
+
+<div class="share-row">
+<button class="share-btn" onclick="copyPlan()">📋 Copy Plan</button>
+<button class="share-btn" onclick="sharePlan()">🔗 Share</button>
+</div>
+
+<div style="text-align:center">
+<button class="restart-btn" onclick="location.reload()">← Build Another Plan</button>
+</div>
+
+<div class="footer">
+<p>Built with 🏀 by <a href="https://onenightbuild.com" style="color:var(--orange);text-decoration:none">One Night Build</a></p>
+<p style="margin-top:4px">As an Amazon Associate, we earn from qualifying purchases.</p>
+</div>
+`;
+showStep(5);
+}
+
+function copyPlan(){
+const drills=document.querySelectorAll('#results .drill');
+let text='🏀 HoopsLab Training Plan\n\n';
+drills.forEach(d=>{
+text+=`• ${d.querySelector('.drill-name').textContent}\n  ${d.querySelector('.drill-sets').textContent}\n\n`;
+});
+text+='Get your plan: hoopslab — stirman.net/hoops-lab/';
+navigator.clipboard.writeText(text).then(()=>{
+document.querySelector('.share-row .share-btn').textContent='✓ Copied!';
+});
+}
+
+function sharePlan(){
+if(navigator.share){
+navigator.share({title:'My HoopsLab Training Plan',text:'Check out my custom basketball training plan!',url:location.href});
+}else{copyPlan()}
+}
+</script>
+</body>
+</html>
