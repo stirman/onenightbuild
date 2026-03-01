@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BarCart — What Can You Make?</title>
+<meta name="description" content="Enter the spirits and mixers you have at home and discover cocktail recipes you can make right now. Free cocktail finder tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e2e;--text:#e8e4df;--muted:#8a8690;--accent:#e8a44a;--accent2:#c45d4e;--accent3:#6b8f71;--glass:rgba(20,20,31,0.7)}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 0%,rgba(232,164,74,0.08),transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(196,93,78,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(107,143,113,0.05),transparent 60%);pointer-events:none;z-index:0}
+canvas#grain{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.03;z-index:1}
+.wrap{max-width:720px;margin:0 auto;padding:24px 20px 60px;position:relative;z-index:2}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:36px;line-height:1.5}
+.section-title{font-family:'Playfair Display',serif;font-size:1.4rem;margin:32px 0 16px;color:var(--text)}
+.section-desc{color:var(--muted);font-size:0.9rem;margin-bottom:16px}
+/* Chip Grid */
+.chip-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.chip{padding:10px 18px;border-radius:50px;border:1.5px solid var(--border);background:var(--glass);color:var(--muted);font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;user-select:none;backdrop-filter:blur(6px)}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip.active{border-color:var(--accent);background:rgba(232,164,74,0.12);color:var(--accent);box-shadow:0 0 16px rgba(232,164,74,0.1)}
+.chip.mixer.active{border-color:var(--accent3);background:rgba(107,143,113,0.12);color:var(--accent3);box-shadow:0 0 16px rgba(107,143,113,0.1)}
+/* Results */
+.results-header{display:flex;align-items:baseline;justify-content:space-between;margin:40px 0 20px}
+.results-count{font-family:'Playfair Display',serif;font-size:1.4rem}
+.results-count span{color:var(--accent)}
+.sort-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:20px;font-size:0.8rem;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.sort-btn:hover{border-color:var(--accent);color:var(--text)}
+.cocktail-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;animation:slideUp 0.4s ease both;position:relative;overflow:hidden}
+.cocktail-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3))}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.cocktail-card:nth-child(2){animation-delay:0.06s}
+.cocktail-card:nth-child(3){animation-delay:0.12s}
+.cocktail-card:nth-child(4){animation-delay:0.18s}
+.cocktail-card:nth-child(5){animation-delay:0.24s}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.cocktail-name{font-family:'Playfair Display',serif;font-size:1.3rem}
+.cocktail-emoji{font-size:1.6rem}
+.match-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.match-full{background:rgba(107,143,113,0.15);color:var(--accent3)}
+.match-partial{background:rgba(232,164,74,0.15);color:var(--accent)}
+.cocktail-desc{color:var(--muted);font-size:0.88rem;line-height:1.5;margin-bottom:14px}
+.ingredients-list{list-style:none;margin-bottom:14px}
+.ingredients-list li{padding:4px 0;font-size:0.88rem;display:flex;align-items:center;gap:8px}
+.ingredients-list li::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ing-have::before{background:var(--accent3)}
+.ing-missing::before{background:var(--accent2)}
+.ing-missing{color:var(--muted)}
+.missing-label{font-size:0.72rem;color:var(--accent2);font-weight:600;letter-spacing:0.3px;margin-left:4px}
+.instructions{color:var(--muted);font-size:0.85rem;line-height:1.6;padding:14px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid var(--border);margin-bottom:14px}
+.instructions strong{color:var(--text);font-weight:600}
+/* CTA / Affiliate */
+.gear-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-top:40px}
+.gear-section .section-title{margin-top:0}
+.gear-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.gear-item:last-child{border-bottom:none}
+.gear-info h4{font-size:0.95rem;margin-bottom:4px}
+.gear-info p{color:var(--muted);font-size:0.82rem;line-height:1.4}
+.gear-link{display:inline-block;margin-top:6px;color:var(--accent);font-size:0.82rem;font-weight:600;text-decoration:none;transition:opacity 0.2s}
+.gear-link:hover{opacity:0.8}
+/* Email */
+.email-section{background:linear-gradient(135deg,rgba(232,164,74,0.08),rgba(196,93,78,0.08));border:1px solid var(--border);border-radius:16px;padding:28px;margin-top:32px;text-align:center}
+.email-section h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:8px}
+.email-section p{color:var(--muted);font-size:0.88rem;margin-bottom:16px}
+.email-row{display:flex;gap:8px;max-width:380px;margin:0 auto}
+.email-row input{flex:1;padding:12px 16px;border-radius:50px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-family:inherit;font-size:0.88rem}
+.email-row input::placeholder{color:var(--muted)}
+.email-row button{padding:12px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:0.88rem;white-space:nowrap;transition:opacity 0.2s}
+.email-row button:hover{opacity:0.9}
+/* Empty */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .big-emoji{font-size:3rem;margin-bottom:12px}
+.empty-state p{font-size:1rem;line-height:1.6}
+/* Footer */
+.footer{text-align:center;padding:40px 0 20px;color:var(--muted);font-size:0.78rem}
+.footer a{color:var(--accent);text-decoration:none}
+/* Share */
+.share-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:20px;font-size:0.82rem;cursor:pointer;font-family:inherit;transition:all 0.2s;margin-top:8px}
+.share-btn:hover{border-color:var(--accent);color:var(--text)}
+@media(max-width:480px){.wrap{padding:20px 16px 40px}.chip{padding:8px 14px;font-size:0.82rem}.email-row{flex-direction:column}.email-row button{width:100%}}
+</style>
+</head>
+<body>
+<canvas id="grain"></canvas>
+<div class="wrap">
+  <h1>BarCart</h1>
+  <p class="subtitle">Select what's in your bar — we'll show you what you can make tonight. 🥃</p>
+
+  <div class="section-title">Spirits</div>
+  <p class="section-desc">Tap everything you've got</p>
+  <div class="chip-grid" id="spirits"></div>
+
+  <div class="section-title">Mixers & Extras</div>
+  <p class="section-desc">Fridge, pantry, the basics</p>
+  <div class="chip-grid" id="mixers"></div>
+
+  <div id="results-area"></div>
+
+  <div class="gear-section">
+    <div class="section-title" style="font-size:1.2rem">🍸 Level Up Your Home Bar</div>
+    <div class="gear-item">
+      <div class="gear-info">
+        <h4>Cocktail Shaker Set</h4>
+        <p>24oz Boston shaker with strainer, jigger, muddler, and bar spoon. Everything you need in one kit.</p>
+        <a class="gear-link" href="https://www.amazon.com/s?k=cocktail+shaker+set&tag=stirman-20" target="_blank" rel="noopener">View on Amazon →</a>
+      </div>
+    </div>
+    <div class="gear-item">
+      <div class="gear-info">
+        <h4>Coupe Glasses (Set of 4)</h4>
+        <p>Elegant 7oz coupe glasses — the classy alternative to martini glasses. Works for everything from daiquiris to champagne.</p>
+        <a class="gear-link" href="https://www.amazon.com/s?k=coupe+cocktail+glasses&tag=stirman-20" target="_blank" rel="noopener">View on Amazon →</a>
+      </div>
+    </div>
+    <div class="gear-item">
+      <div class="gear-info">
+        <h4>Large Ice Cube Molds</h4>
+        <p>2" silicone ice molds — slow-melting cubes that don't water down your Old Fashioned. Game changer.</p>
+        <a class="gear-link" href="https://www.amazon.com/s?k=large+ice+cube+mold+cocktail&tag=stirman-20" target="_blank" rel="noopener">View on Amazon →</a>
+      </div>
+    </div>
+    <div class="gear-item">
+      <div class="gear-info">
+        <h4><em>Death & Co</em> — Cocktail Book</h4>
+        <p>500+ recipes from the legendary NYC bar. The gold standard for home bartenders.</p>
+        <a class="gear-link" href="https://www.amazon.com/s?k=death+and+co+cocktail+book&tag=stirman-20" target="_blank" rel="noopener">View on Amazon →</a>
+      </div>
+    </div>
+    <div class="gear-item">
+      <div class="gear-info">
+        <h4>Bitters Collection</h4>
+        <p>Angostura + orange + Peychaud's. Three bottles that unlock dozens of classic cocktails.</p>
+        <a class="gear-link" href="https://www.amazon.com/s?k=cocktail+bitters+set&tag=stirman-20" target="_blank" rel="noopener">View on Amazon →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="email-section">
+    <h3>Friday Night Cocktail Club 🍹</h3>
+    <p>One new recipe every Friday. Seasonal, creative, actually good.</p>
+    <div class="email-row">
+      <input type="email" placeholder="your@email.com" id="emailInput">
+      <button onclick="document.getElementById('emailInput').value='';this.textContent='Cheers! 🥂'">Join Free</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built in one night by <a href="https://onenightbuild.com">One Night Build</a> · <a href="https://stirman.net">stirman.net</a>
+  </div>
+</div>
+
+<script>
+// Grain
+const gc=document.getElementById('grain'),gx=gc.getContext('2d');
+function grain(){gc.width=window.innerWidth;gc.height=window.innerHeight;const d=gx.createImageData(gc.width,gc.height);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}gx.putImageData(d,0,0)}
+grain();window.addEventListener('resize',grain);
+
+const SPIRITS=['Vodka','Gin','Rum','Tequila','Bourbon','Whiskey','Scotch','Mezcal','Brandy','Cognac','Absinthe','Sake'];
+const MIXERS=['Lime Juice','Lemon Juice','Orange Juice','Cranberry Juice','Pineapple Juice','Grapefruit Juice','Simple Syrup','Honey','Club Soda','Tonic Water','Ginger Beer','Ginger Ale','Cola','Cream','Egg White','Coffee','Angostura Bitters','Orange Bitters','Triple Sec','Vermouth (Dry)','Vermouth (Sweet)','Campari','Kahlúa','Amaretto','Grenadine','Mint','Sugar','Salt','Tabasco','Worcestershire'];
+
+const COCKTAILS=[
+  {name:'Margarita',emoji:'🍋',spirits:['Tequila'],mixers:['Lime Juice','Triple Sec','Salt'],desc:'The perfect balance of tart, sweet, and strong. Shake with ice, strain, salt the rim.',instructions:'Rim glass with salt. Shake 2oz tequila, 1oz triple sec, 1oz lime juice with ice. Strain into glass over fresh ice.'},
+  {name:'Old Fashioned',emoji:'🥃',spirits:['Bourbon'],mixers:['Angostura Bitters','Sugar','Orange Bitters'],desc:'The cocktail that started it all. Muddled sugar, bitters, and good bourbon.',instructions:'Muddle 1 sugar cube with 3 dashes angostura bitters and a splash of water. Add 2oz bourbon, stir with ice. Garnish with orange peel.'},
+  {name:'Mojito',emoji:'🌿',spirits:['Rum'],mixers:['Lime Juice','Simple Syrup','Mint','Club Soda'],desc:'Fresh, minty, and dangerously easy to drink all night.',instructions:'Muddle 6 mint leaves with 1oz simple syrup and 1oz lime juice. Add 2oz rum and ice. Top with club soda. Stir gently.'},
+  {name:'Gin & Tonic',emoji:'🫧',spirits:['Gin'],mixers:['Tonic Water','Lime Juice'],desc:'Simple, crisp, timeless. The ratio matters more than you think.',instructions:'Fill glass with ice. Pour 2oz gin, top with 4oz tonic. Squeeze lime wedge and drop in. One stir.'},
+  {name:'Whiskey Sour',emoji:'🍋',spirits:['Bourbon'],mixers:['Lemon Juice','Simple Syrup','Egg White'],desc:'Silky, tart, frothy. The egg white makes it luxurious.',instructions:'Dry shake 2oz bourbon, 1oz lemon juice, 0.75oz simple syrup, 1 egg white (no ice). Then shake again with ice. Strain into coupe.'},
+  {name:'Moscow Mule',emoji:'🫚',spirits:['Vodka'],mixers:['Lime Juice','Ginger Beer'],desc:'Spicy ginger kick meets cold vodka. Copper mug optional but encouraged.',instructions:'Pour 2oz vodka and 0.5oz lime juice into a mug with ice. Top with ginger beer. Stir once.'},
+  {name:'Negroni',emoji:'🔴',spirits:['Gin'],mixers:['Campari','Vermouth (Sweet)'],desc:'Equal parts bitter, sweet, and botanical. An acquired taste that becomes an obsession.',instructions:'Stir 1oz gin, 1oz Campari, 1oz sweet vermouth with ice for 30 seconds. Strain over a large ice cube. Orange peel garnish.'},
+  {name:'Daiquiri',emoji:'🍹',spirits:['Rum'],mixers:['Lime Juice','Simple Syrup'],desc:'Not the frozen slushie — the real deal. Three ingredients, perfectly balanced.',instructions:'Shake 2oz rum, 1oz lime juice, 0.75oz simple syrup vigorously with ice. Strain into a chilled coupe.'},
+  {name:'Manhattan',emoji:'🏙️',spirits:['Bourbon'],mixers:['Vermouth (Sweet)','Angostura Bitters'],desc:'Sophisticated, strong, and stirred — never shaken. A New York classic.',instructions:'Stir 2oz bourbon, 1oz sweet vermouth, 2 dashes angostura bitters with ice. Strain into a chilled coupe. Cherry garnish.'},
+  {name:'Paloma',emoji:'🌸',spirits:['Tequila'],mixers:['Grapefruit Juice','Lime Juice','Club Soda','Salt'],desc:'Mexico\'s actual favorite tequila drink (sorry, margarita). Grapefruity and refreshing.',instructions:'Rim glass with salt. Add 2oz tequila, 2oz grapefruit juice, 0.5oz lime juice over ice. Top with club soda.'},
+  {name:'Dark & Stormy',emoji:'⛈️',spirits:['Rum'],mixers:['Ginger Beer','Lime Juice'],desc:'Dark rum meets spicy ginger beer. Looks dramatic, tastes incredible.',instructions:'Fill glass with ice. Pour 4oz ginger beer, then float 2oz dark rum on top. Squeeze lime.'},
+  {name:'Martini',emoji:'🍸',spirits:['Gin'],mixers:['Vermouth (Dry)'],desc:'The most debated cocktail in history. Stirred, cold, and barely any vermouth.',instructions:'Stir 2.5oz gin and 0.5oz dry vermouth with ice for 30 seconds. Strain into frozen martini glass. Lemon twist or olive.'},
+  {name:'Vodka Martini',emoji:'🍸',spirits:['Vodka'],mixers:['Vermouth (Dry)'],desc:'The Bond version. Clean, cold, and unapologetically smooth.',instructions:'Stir 2.5oz vodka and 0.5oz dry vermouth with ice. Strain into a frozen glass. Olive or lemon twist.'},
+  {name:'Espresso Martini',emoji:'☕',spirits:['Vodka'],mixers:['Kahlúa','Coffee','Simple Syrup'],desc:'Caffeinated, boozy, and impossibly cool. The drink that refuses to go out of style.',instructions:'Shake 2oz vodka, 1oz Kahlúa, 1oz fresh espresso, 0.5oz simple syrup hard with ice. Strain into coupe. Three coffee beans on top.'},
+  {name:'Amaretto Sour',emoji:'🍒',spirits:['Bourbon'],mixers:['Amaretto','Lemon Juice','Simple Syrup'],desc:'Almond sweetness + bourbon backbone. Way better than its reputation.',instructions:'Shake 1.5oz amaretto, 0.75oz bourbon, 1oz lemon juice, 0.5oz simple syrup with ice. Strain over fresh ice.'},
+  {name:'Tequila Sunrise',emoji:'🌅',spirits:['Tequila'],mixers:['Orange Juice','Grenadine'],desc:'Beautiful gradient in a glass. Sweet, citrusy, and photogenic.',instructions:'Pour 2oz tequila and 4oz OJ over ice. Slowly pour 0.5oz grenadine — let it sink. Don\'t stir.'},
+  {name:'Cuba Libre',emoji:'🇨🇺',spirits:['Rum'],mixers:['Cola','Lime Juice'],desc:'A rum & coke with lime — sounds simple, IS simple, tastes amazing.',instructions:'2oz rum over ice. Top with cola. Squeeze half a lime and drop it in.'},
+  {name:'Gimlet',emoji:'💚',spirits:['Gin'],mixers:['Lime Juice','Simple Syrup'],desc:'Raymond Chandler\'s favorite. Sharp, clean, and perfectly tart.',instructions:'Shake 2oz gin, 0.75oz lime juice, 0.75oz simple syrup with ice. Strain into a chilled coupe.'},
+  {name:'Boulevardier',emoji:'🍷',spirits:['Bourbon'],mixers:['Campari','Vermouth (Sweet)'],desc:'A Negroni\'s whiskey-loving cousin. Richer, warmer, just as addictive.',instructions:'Stir 1.5oz bourbon, 1oz Campari, 1oz sweet vermouth with ice. Strain over a large cube. Orange peel.'},
+  {name:'Mezcal Negroni',emoji:'🔥',spirits:['Mezcal'],mixers:['Campari','Vermouth (Sweet)'],desc:'Smoky twist on the Negroni. The mezcal adds a whole new dimension.',instructions:'Stir 1oz mezcal, 1oz Campari, 1oz sweet vermouth with ice. Strain over a large cube.'},
+  {name:'Sidecar',emoji:'🏍️',spirits:['Cognac'],mixers:['Triple Sec','Lemon Juice','Sugar'],desc:'A Prohibition-era classic. Elegant, balanced, and dangerously smooth.',instructions:'Sugar the rim. Shake 2oz cognac, 1oz triple sec, 0.75oz lemon juice with ice. Strain into a coupe.'},
+  {name:'Tom Collins',emoji:'🍋',spirits:['Gin'],mixers:['Lemon Juice','Simple Syrup','Club Soda'],desc:'Long, fizzy, refreshing. Basically fancy lemonade with gin.',instructions:'Shake 2oz gin, 1oz lemon juice, 0.5oz simple syrup with ice. Strain into tall glass with ice. Top with club soda.'},
+  {name:'Vodka Cranberry',emoji:'🫐',spirits:['Vodka'],mixers:['Cranberry Juice','Lime Juice'],desc:'The reliable party drink. Sweet, tart, and always a crowd-pleaser.',instructions:'Pour 2oz vodka and 4oz cranberry juice over ice. Squeeze a lime wedge. Stir.'},
+  {name:'Screwdriver',emoji:'🍊',spirits:['Vodka'],mixers:['Orange Juice'],desc:'Brunch energy in a glass. Two ingredients, zero effort, all good vibes.',instructions:'Pour 2oz vodka over ice. Top with 4oz orange juice. Stir.'},
+  {name:'Mezcal Paloma',emoji:'💨',spirits:['Mezcal'],mixers:['Grapefruit Juice','Lime Juice','Club Soda','Salt'],desc:'The smoky upgrade to the Paloma. Mezcal\'s earthy depth + bright citrus.',instructions:'Salt rim. 2oz mezcal, 2oz grapefruit juice, 0.5oz lime over ice. Top with club soda.'},
+  {name:'Bee\'s Knees',emoji:'🐝',spirits:['Gin'],mixers:['Honey','Lemon Juice'],desc:'Prohibition-era cocktail using honey to mask bathtub gin. Now we use good gin and it\'s glorious.',instructions:'Shake 2oz gin, 0.75oz honey syrup (1:1 honey+water), 0.75oz lemon juice with ice. Strain into coupe.'},
+  {name:'Rum & Ginger',emoji:'🫚',spirits:['Rum'],mixers:['Ginger Ale','Lime Juice'],desc:'Easygoing and warming. The ginger ale mellows everything out.',instructions:'2oz rum over ice. Top with ginger ale. Squeeze lime.'},
+  {name:'Mezcal Mule',emoji:'🫚',spirits:['Mezcal'],mixers:['Ginger Beer','Lime Juice'],desc:'Smoky mezcal meets spicy ginger. More complex than a Moscow Mule.',instructions:'2oz mezcal, 0.5oz lime juice in a mug with ice. Top with ginger beer.'},
+  {name:'Bloody Mary',emoji:'🍅',spirits:['Vodka'],mixers:['Lemon Juice','Tabasco','Worcestershire','Salt'],desc:'The hangover\'s nemesis. Savory, spicy, and basically a meal.',instructions:'Stir 2oz vodka, 4oz tomato juice, 0.5oz lemon juice, 3 dashes each Tabasco + Worcestershire, pinch salt/pepper. Pour over ice. Go wild with garnishes.'},
+  {name:'Bourbon Smash',emoji:'🌿',spirits:['Bourbon'],mixers:['Lemon Juice','Simple Syrup','Mint'],desc:'Like a whiskey mojito. Fresh, herbal, and crushable.',instructions:'Muddle 4 mint leaves with 0.75oz simple syrup. Add 2oz bourbon, 0.75oz lemon juice. Shake with ice. Strain over crushed ice.'},
+  {name:'French 75',emoji:'🥂',spirits:['Gin'],mixers:['Lemon Juice','Simple Syrup'],desc:'Gin, lemon, sugar, topped with champagne. Named after a WWI field gun because it hits that hard.',instructions:'Shake 1oz gin, 0.5oz lemon juice, 0.5oz simple syrup with ice. Strain into flute. Top with champagne.'},
+  {name:'Sake Spritz',emoji:'🌸',spirits:['Sake'],mixers:['Club Soda','Lime Juice','Simple Syrup'],desc:'Light, effervescent, and only mildly boozy. Perfect pre-dinner drink.',instructions:'3oz sake, 0.5oz lime juice, 0.25oz simple syrup over ice. Top with club soda. Garnish with cucumber.'},
+  {name:'Brandy Alexander',emoji:'🍫',spirits:['Brandy'],mixers:['Kahlúa','Cream'],desc:'Dessert in a glass. Rich, chocolatey, and velvet smooth.',instructions:'Shake 1.5oz brandy, 1oz Kahlúa, 1oz cream with ice. Strain into a coupe. Grate nutmeg on top.'},
+  {name:'White Russian',emoji:'🥛',spirits:['Vodka'],mixers:['Kahlúa','Cream'],desc:'The Dude abides. Coffee liqueur, vodka, cream — bowling optional.',instructions:'Pour 2oz vodka and 1oz Kahlúa over ice. Float 1oz cream on top.'},
+];
+
+let selected=new Set();
+let sortBy='match'; // 'match' or 'alpha'
+
+function render(){
+  document.getElementById('spirits').innerHTML=SPIRITS.map(s=>`<div class="chip${selected.has(s)?' active':''}" onclick="toggle('${s}')">${s}</div>`).join('');
+  document.getElementById('mixers').innerHTML=MIXERS.map(m=>`<div class="chip mixer${selected.has(m)?' active':''}" onclick="toggle('${esc(m)}')">${m}</div>`).join('');
+  renderResults();
+}
+
+function esc(s){return s.replace(/'/g,"\\'")}
+
+function toggle(item){
+  selected.has(item)?selected.delete(item):selected.add(item);
+  render();
+  // Save to localStorage
+  localStorage.setItem('barcart-selected',JSON.stringify([...selected]));
+}
+
+function scoreRecipe(c){
+  const allIng=[...c.spirits,...c.mixers];
+  const have=allIng.filter(i=>selected.has(i));
+  return {total:allIng.length,have:have.length,missing:allIng.length-have.length,pct:have.length/allIng.length};
+}
+
+function renderResults(){
+  const area=document.getElementById('results-area');
+  if(selected.size===0){
+    area.innerHTML=`<div class="empty-state"><div class="big-emoji">🍸</div><p>Select your spirits and mixers above<br>to discover what you can make.</p></div>`;
+    return;
+  }
+  let scored=COCKTAILS.map(c=>({...c,score:scoreRecipe(c)})).filter(c=>c.score.have>0);
+  if(sortBy==='match') scored.sort((a,b)=>b.score.pct-a.score.pct||a.score.missing-b.score.missing);
+  else scored.sort((a,b)=>a.name.localeCompare(b.name));
+
+  if(scored.length===0){
+    area.innerHTML=`<div class="empty-state"><div class="big-emoji">🤔</div><p>No cocktails match your current selection.<br>Try adding more spirits or mixers!</p></div>`;
+    return;
+  }
+
+  const full=scored.filter(c=>c.score.missing===0);
+  const partial=scored.filter(c=>c.score.missing>0&&c.score.pct>=0.5);
+
+  let html=`<div class="results-header"><div class="results-count"><span>${full.length}</span> you can make now${partial.length?` · <span style="color:var(--accent)">${partial.length}</span> almost`:''}</div><button class="sort-btn" onclick="sortBy=sortBy==='match'?'alpha':'match';renderResults()">${sortBy==='match'?'A→Z':'Best Match'}</button></div>`;
+
+  const renderCard=(c,type)=>{
+    const allIng=[...c.spirits,...c.mixers];
+    const ings=allIng.map(i=>{
+      const have=selected.has(i);
+      return `<li class="${have?'ing-have':'ing-missing'}">${i}${have?'':'<span class="missing-label">NEED</span>'}</li>`;
+    }).join('');
+    return `<div class="cocktail-card"><div class="card-top"><div><div class="cocktail-name">${c.emoji} ${c.name}</div><span class="match-badge ${type==='full'?'match-full':'match-partial'}">${type==='full'?'✓ You have everything':'Missing '+c.score.missing}</span></div></div><div class="cocktail-desc">${c.desc}</div><ul class="ingredients-list">${ings}</ul><div class="instructions"><strong>How to make it:</strong> ${c.instructions}</div><button class="share-btn" onclick="shareRecipe('${esc(c.name)}','${c.emoji}')">📋 Copy Recipe</button></div>`;
+  };
+
+  full.forEach(c=>html+=renderCard(c,'full'));
+  if(partial.length){
+    html+=`<div class="section-title" style="margin-top:28px;color:var(--accent)">Almost There — Missing 1-2 Ingredients</div>`;
+    partial.forEach(c=>html+=renderCard(c,'partial'));
+  }
+  area.innerHTML=html;
+}
+
+function shareRecipe(name,emoji){
+  const c=COCKTAILS.find(x=>x.name===name);
+  if(!c)return;
+  const text=`${emoji} ${c.name}\n\n${c.desc}\n\nIngredients: ${[...c.spirits,...c.mixers].join(', ')}\n\n${c.instructions}\n\nMade with BarCart → stirman.net/barcart/`;
+  navigator.clipboard.writeText(text).then(()=>{
+    event.target.textContent='Copied! 🎉';
+    setTimeout(()=>event.target.textContent='📋 Copy Recipe',2000);
+  });
+}
+
+// Load saved selections
+const saved=localStorage.getItem('barcart-selected');
+if(saved){try{JSON.parse(saved).forEach(i=>selected.add(i))}catch(e){}}
+render();
+</script>
+</body>
+</html>
