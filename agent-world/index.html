@@ -528,23 +528,22 @@ function drawRoomStatic() {
   r(268,120,8,8,'#ccc'); r(270,122,4,4,'#28a828');
   r(282,120,8,8,'#ccc');
 
-  // COFFEE STATION
-  r(960,185,145,52,'#6a5a4a'); r(962,187,141,3,'#8a7a6a');
-  r(962,187,141,48,'#7a6a5a');
-  r(970,145,54,42,'#333'); r(974,149,46,34,'#444');
-  r(978,155,22,22,'#555');
-  rctx.fillStyle='#666';rctx.beginPath();rctx.arc(989,166,8,0,Math.PI*2);rctx.fill();
-  r(1006,153,4,4,'#e84848');
-  r(1006,161,4,4,'#48e848');
+  // COFFEE STATION (moved left to avoid server overlap)
+  r(920,185,120,52,'#6a5a4a'); r(922,187,116,3,'#8a7a6a');
+  r(922,187,116,48,'#7a6a5a');
+  r(930,145,54,42,'#333'); r(934,149,46,34,'#444');
+  r(938,155,22,22,'#555');
+  rctx.fillStyle='#666';rctx.beginPath();rctx.arc(949,166,8,0,Math.PI*2);rctx.fill();
+  r(966,153,4,4,'#e84848');
+  r(966,161,4,4,'#48e848');
   // Mugs
-  r(1040,195,16,16,'#fff'); r(1056,199,6,8,'#fff');
-  r(1060,195,16,16,'#ffeeaa'); r(1076,199,6,8,'#ffeeaa');
-  r(1082,195,16,16,'#a8d8f8'); r(1098,199,6,8,'#a8d8f8');
+  r(1000,195,16,16,'#fff'); r(1016,199,6,8,'#fff');
+  r(1020,195,16,16,'#ffeeaa'); r(1036,199,6,8,'#ffeeaa');
   // Cookie plate
-  rctx.fillStyle='#ddd';rctx.beginPath();rctx.ellipse(980,205,18,8,0,0,Math.PI*2);rctx.fill();
-  r(970,200,8,6,'#d4a058'); r(978,198,8,6,'#c89848'); r(974,204,6,5,'#d4a058');
+  rctx.fillStyle='#ddd';rctx.beginPath();rctx.ellipse(950,205,18,8,0,0,Math.PI*2);rctx.fill();
+  r(940,200,8,6,'#d4a058'); r(948,198,8,6,'#c89848'); r(944,204,6,5,'#d4a058');
   // Sugar bowl
-  r(1010,196,12,12,'#eee'); r(1012,194,8,4,'#ddd');
+  r(975,196,12,12,'#eee'); r(977,194,8,4,'#ddd');
 
   // PLANTS
   function drawPlant(x,y,s) {
@@ -603,19 +602,19 @@ drawRoomStatic();
 const AGENTS = [
   { id:'rosie',name:'Rosie',role:'Boss',emoji:'🤖',model:'claude-opus-4-6',
     color:'#FF6B9D',colorDark:'#d04a78',skin:'#f8c8a8',hair:'#8a3828',hairStyle:'ponytail',eyeColor:'#4a7a4a',
-    homeX:570,homeY:470,loungeX:100,loungeY:480,x:100,y:480,tx:100,ty:480,status:'idle',task:'',speaking:false },
+    homeX:570,homeY:470,loungeX:100,loungeY:480,x:100,y:480,tx:100,ty:480,status:'idle',task:'',speaking:false,blinkOff:0 },
   { id:'chip',name:'Chip',role:'Coder',emoji:'💻',model:'gpt-5.1-codex',
     color:'#4ECDC4',colorDark:'#38a89e',skin:'#e8b898',hair:'#2a2a3a',hairStyle:'short',eyeColor:'#4a6a8a',
-    homeX:500,homeY:270,loungeX:180,loungeY:480,x:180,y:480,tx:180,ty:480,status:'idle',task:'',speaking:false },
+    homeX:500,homeY:270,loungeX:180,loungeY:480,x:180,y:480,tx:180,ty:480,status:'idle',task:'',speaking:false,blinkOff:47 },
   { id:'scout',name:'Scout',role:'Researcher',emoji:'🔍',model:'claude-sonnet-4-5',
     color:'#FFE66D',colorDark:'#d4b840',skin:'#d8a878',hair:'#1a1a2a',hairStyle:'long',eyeColor:'#5a3a2a',
-    homeX:650,homeY:270,loungeX:100,loungeY:618,x:100,y:618,tx:100,ty:618,status:'idle',task:'',speaking:false },
+    homeX:650,homeY:270,loungeX:100,loungeY:618,x:100,y:618,tx:100,ty:618,status:'idle',task:'',speaking:false,blinkOff:113 },
   { id:'pixel',name:'Pixel',role:'Designer',emoji:'🎨',model:'gpt-5.1-codex',
     color:'#A78BFA',colorDark:'#8468d8',skin:'#f8d8b8',hair:'#c84888',hairStyle:'ponytail',eyeColor:'#6a4a8a',
-    homeX:920,homeY:310,loungeX:260,loungeY:618,x:260,y:618,tx:260,ty:618,status:'idle',task:'',speaking:false },
+    homeX:920,homeY:310,loungeX:260,loungeY:618,x:260,y:618,tx:260,ty:618,status:'idle',task:'',speaking:false,blinkOff:82 },
   { id:'bolt',name:'Bolt',role:'Deployer',emoji:'⚡',model:'claude-sonnet-4-5',
     color:'#F97316',colorDark:'#d05a10',skin:'#c89878',hair:'#3a2a1a',hairStyle:'spiky',eyeColor:'#5a7a3a',
-    homeX:1120,homeY:340,loungeX:180,loungeY:618,x:180,y:618,tx:180,ty:618,status:'idle',task:'',speaking:false }
+    homeX:1120,homeY:340,loungeX:180,loungeY:618,x:180,y:618,tx:180,ty:618,status:'idle',task:'',speaking:false,blinkOff:155 }
 ];
 
 function drawAgentSprite(a, frame) {
@@ -739,8 +738,8 @@ function drawAgentSprite(a, frame) {
     ctx.beginPath(); ctx.moveTo(cx+1,ay-5); ctx.lineTo(cx+2,ay-13); ctx.lineTo(cx+3,ay-5); ctx.fill();
   }
 
-  // === EYES ===
-  const blink = frame % 180 < 4;
+  // === EYES === (staggered blinks per agent)
+  const blink = (frame + (a.blinkOff||0)) % 180 < 4;
   if (!blink) {
     // Eye whites (rounded)
     ctx.fillStyle = '#fff';
@@ -957,15 +956,21 @@ setInterval(()=>{
   drawRoomStatic();
 },3000);
 
+let animId=null;
 function render(){
   frame++;
-  // Draw cached room
   ctx.drawImage(roomCanvas, 0, 0);
   updateAgents();
   [...AGENTS].sort((a,b)=>a.y-b.y).forEach(a=>drawAgentSprite(a,frame));
   if(frame%200===0&&Math.random()<0.35)tryConversation();
-  requestAnimationFrame(render);
+  if(viewerPresent) animId=requestAnimationFrame(render);
+  else animId=null;
 }
+// Resume rendering when viewer returns
+function resumeIfNeeded(){ if(!animId){ animId=requestAnimationFrame(render); } }
+document.addEventListener('mousemove',()=>resumeIfNeeded());
+document.addEventListener('click',()=>resumeIfNeeded());
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) { viewerPresent=true; resumeIfNeeded(); } });
 
 function updateClock(){
   const now=new Date();
