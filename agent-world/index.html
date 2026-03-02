@@ -10,19 +10,28 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #1a1a2e;
+    background: #111;
     font-family: 'Press Start 2P', monospace;
     overflow: hidden;
     height: 100vh;
     display: flex;
     flex-direction: column;
     image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+  }
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+    cursor: default;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
   }
 
   .header {
-    background: #16213e;
-    border-bottom: 4px solid #0f3460;
-    padding: 12px 20px;
+    background: #1a1a2e;
+    border-bottom: 4px solid #e94560;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -30,400 +39,81 @@
   }
 
   .header h1 {
-    font-size: 14px;
+    font-size: 11px;
     color: #e94560;
     text-shadow: 2px 2px 0 #0f3460;
   }
 
-  .header .clock {
-    font-size: 10px;
+  .header .info {
+    font-size: 8px;
     color: #53354a;
   }
 
-  .world-container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-  }
-
-  .world {
-    width: 960px;
-    height: 540px;
-    background: #2a2a4a;
-    border: 4px solid #0f3460;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 0 40px rgba(233, 69, 96, 0.2);
-  }
-
-  /* Floor tiles */
-  .floor {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(45deg, #2e2e52 25%, transparent 25%),
-      linear-gradient(-45deg, #2e2e52 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #2e2e52 75%),
-      linear-gradient(-45deg, transparent 75%, #2e2e52 75%);
-    background-size: 40px 40px;
-    background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
-    opacity: 0.3;
-  }
-
-  /* Furniture */
-  .furniture {
-    position: absolute;
-    background: #3d3d6b;
-    border: 2px solid #53357a;
-  }
-
-  .desk {
-    width: 120px;
-    height: 60px;
-    border-radius: 4px;
-  }
-
-  .desk::after {
-    content: '';
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    background: #2a2a4a;
-    border: 2px solid #53357a;
-    border-radius: 2px;
-  }
-
-  .server-rack {
-    width: 80px;
-    height: 120px;
-    background: #2d2d50;
-    border: 3px solid #444478;
-    border-radius: 4px;
-  }
-
-  .server-rack .light {
-    width: 6px;
-    height: 6px;
-    background: #4ECDC4;
-    border-radius: 50%;
-    position: absolute;
-    animation: blink 1.5s ease-in-out infinite;
-  }
-
-  .easel {
-    width: 50px;
-    height: 80px;
-    background: #4a3728;
-    border: 2px solid #6b5040;
-    border-radius: 2px;
-  }
-
-  .easel .canvas-area {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    height: 45px;
-    background: #f5f0e8;
-    border: 2px solid #6b5040;
-  }
-
-  .whiteboard {
-    width: 200px;
-    height: 100px;
-    background: #e8e8e8;
-    border: 4px solid #888;
-    border-radius: 2px;
-  }
-
-  .plant {
-    width: 24px;
-    height: 36px;
-    position: absolute;
-  }
-
-  .plant .pot {
-    position: absolute;
-    bottom: 0;
-    left: 4px;
-    width: 16px;
-    height: 14px;
-    background: #c4743a;
-    border-radius: 0 0 3px 3px;
-  }
-
-  .plant .leaves {
-    position: absolute;
-    top: 0;
-    left: 2px;
-    width: 20px;
-    height: 22px;
-    background: #4CAF50;
-    border-radius: 50%;
-  }
-
-  /* Agent sprites */
-  .agent {
-    position: absolute;
-    transition: all 1.5s ease-in-out;
-    z-index: 5;
-    cursor: pointer;
-  }
-
-  .agent .sprite {
-    width: 32px;
-    height: 40px;
-    position: relative;
-    margin: 0 auto;
-  }
-
-  /* Pixel art character */
-  .agent .head {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    margin: 0 auto;
-    position: relative;
-    border: 2px solid rgba(0,0,0,0.2);
-  }
-
-  .agent .eyes {
-    position: absolute;
-    top: 7px;
-    left: 3px;
-    right: 3px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .agent .eye {
-    width: 4px;
-    height: 4px;
+  #tooltip {
+    position: fixed;
     background: #1a1a2e;
-    border-radius: 1px;
-  }
-
-  .agent .body {
-    width: 24px;
-    height: 16px;
-    margin: 0 auto;
-    border-radius: 2px 2px 4px 4px;
-    border: 2px solid rgba(0,0,0,0.2);
-  }
-
-  /* Name tag */
-  .agent .name-tag {
-    text-align: center;
-    margin-top: 4px;
-    font-size: 7px;
+    border: 2px solid #e94560;
     color: #fff;
-    text-shadow: 1px 1px 0 #000;
-    white-space: nowrap;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+    max-width: 220px;
+    line-height: 1.6;
   }
 
-  .agent .role-tag {
-    text-align: center;
-    font-size: 6px;
-    color: #888;
-    margin-top: 1px;
+  #tooltip .tt-name { color: #e94560; }
+  #tooltip .tt-role { color: #888; }
+  #tooltip .tt-task { color: #4ECDC4; margin-top: 4px; }
+
+  /* Chat bubble overlay */
+  #chat-overlay {
+    position: fixed;
+    pointer-events: none;
+    z-index: 50;
   }
 
-  /* Status indicator */
-  .agent .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+  .chat-bubble {
     position: absolute;
-    top: -4px;
-    right: -4px;
-    border: 2px solid #1a1a2e;
-  }
-
-  .status-working { background: #4CAF50; animation: pulse 1s ease-in-out infinite; }
-  .status-idle { background: #666; }
-  .status-thinking { background: #FFE66D; animation: pulse 0.7s ease-in-out infinite; }
-  .status-error { background: #e94560; animation: pulse 0.5s ease-in-out infinite; }
-
-  /* Speech bubble */
-  .speech-bubble {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
     background: #fff;
     color: #1a1a2e;
+    font-family: 'Press Start 2P', monospace;
     font-size: 6px;
     padding: 6px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    border-radius: 6px;
+    max-width: 160px;
+    line-height: 1.5;
     box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    margin-bottom: 8px;
+    animation: bubbleIn 0.3s ease-out, bubbleOut 0.5s ease-in 4.5s forwards;
+    word-wrap: break-word;
   }
 
-  .speech-bubble::after {
+  .chat-bubble::after {
     content: '';
     position: absolute;
     top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 15px;
     border: 5px solid transparent;
     border-top-color: #fff;
   }
 
-  .agent:hover .speech-bubble,
-  .agent.active .speech-bubble {
-    opacity: 1;
-  }
-
-  .agent.has-task .speech-bubble {
-    opacity: 1;
-  }
-
-  /* Animations */
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-  }
-
-  @keyframes typing {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-  .agent.working .sprite {
-    animation: float 2s ease-in-out infinite;
-  }
-
-  /* Typing indicator on desk */
-  .typing-dots {
-    position: absolute;
-    display: flex;
-    gap: 3px;
-    opacity: 0;
-  }
-
-  .typing-dots.active {
-    opacity: 1;
-  }
-
-  .typing-dots span {
-    width: 4px;
-    height: 4px;
-    background: #4ECDC4;
-    border-radius: 50%;
-    animation: typing 1s ease-in-out infinite;
-  }
-
-  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-  /* Activity log */
-  .log-panel {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    background: rgba(22, 33, 62, 0.95);
-    border-top: 3px solid #0f3460;
-    padding: 8px 12px;
-    overflow-y: auto;
-    z-index: 10;
-  }
-
-  .log-panel .log-title {
-    font-size: 7px;
-    color: #e94560;
-    margin-bottom: 6px;
-  }
-
-  .log-entry {
-    font-size: 6px;
-    color: #8888aa;
+  .chat-bubble .speaker {
+    font-weight: bold;
     margin-bottom: 3px;
-    line-height: 1.4;
+    display: block;
   }
 
-  .log-entry .time { color: #53354a; }
-  .log-entry .agent-name { font-weight: bold; }
-
-  /* Decorations */
-  .wall-art {
-    position: absolute;
-    width: 60px;
-    height: 40px;
-    background: #3d3d6b;
-    border: 3px solid #53357a;
-    border-radius: 2px;
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(5px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  .wall-art .frame-content {
-    position: absolute;
-    inset: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-  }
-
-  .coffee-machine {
-    position: absolute;
-    width: 30px;
-    height: 40px;
-    background: #444;
-    border: 2px solid #666;
-    border-radius: 3px 3px 0 0;
-  }
-
-  .coffee-machine .cup {
-    position: absolute;
-    bottom: -8px;
-    left: 8px;
-    width: 14px;
-    height: 10px;
-    background: #fff;
-    border-radius: 0 0 4px 4px;
-    border: 2px solid #ddd;
-  }
-
-  .coffee-machine .steam {
-    position: absolute;
-    top: -12px;
-    left: 10px;
-    font-size: 8px;
-    opacity: 0.5;
-    animation: float 2s ease-in-out infinite;
-  }
-
-  /* Stars on ceiling */
-  .star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: #fff;
-    border-radius: 50%;
-    opacity: 0.3;
-    animation: blink 3s ease-in-out infinite;
+  @keyframes bubbleOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
   }
 </style>
 </head>
@@ -431,254 +121,831 @@
 
 <div class="header">
   <h1>🤖 AGENT WORLD — Rosie's Workshop</h1>
-  <div class="clock" id="clock"></div>
+  <div class="info" id="clock"></div>
 </div>
 
-<div class="world-container">
-  <div class="world" id="world">
-    <div class="floor"></div>
-
-    <!-- Stars / ambient -->
-    <div id="stars"></div>
-
-    <!-- Whiteboard -->
-    <div class="whiteboard" style="top: 10px; left: 380px;">
-      <div style="padding: 8px; font-size: 6px; color: #333; font-family: 'Press Start 2P';">
-        <div style="color: #e94560; margin-bottom: 4px;">TODAY'S TASKS</div>
-        <div id="whiteboard-tasks"></div>
-      </div>
-    </div>
-
-    <!-- Desks -->
-    <div class="furniture desk" id="desk-left" style="top: 200px; left: 100px;"></div>
-    <div class="furniture desk" id="desk-center" style="top: 200px; left: 420px;"></div>
-    <div class="furniture desk" id="desk-right" style="top: 200px; left: 720px;"></div>
-
-    <!-- Server rack -->
-    <div class="furniture server-rack" id="server-rack" style="top: 120px; left: 850px;">
-      <div class="light" style="top: 15px; left: 10px;"></div>
-      <div class="light" style="top: 15px; left: 25px; animation-delay: 0.5s;"></div>
-      <div class="light" style="top: 30px; left: 10px; animation-delay: 1s;"></div>
-      <div class="light" style="top: 30px; left: 25px; animation-delay: 0.3s;"></div>
-      <div class="light" style="top: 45px; left: 10px; animation-delay: 0.7s;"></div>
-      <div class="light" style="top: 45px; left: 25px; animation-delay: 1.2s;"></div>
-      <div class="light" style="top: 60px; left: 10px; animation-delay: 0.2s;"></div>
-      <div class="light" style="top: 60px; left: 25px; animation-delay: 0.9s;"></div>
-    </div>
-
-    <!-- Easel -->
-    <div class="furniture easel" id="easel" style="top: 320px; left: 60px;">
-      <div class="canvas-area" id="easel-canvas"></div>
-    </div>
-
-    <!-- Coffee machine -->
-    <div class="coffee-machine" style="top: 140px; left: 20px;">
-      <div class="cup"></div>
-      <div class="steam">~</div>
-    </div>
-
-    <!-- Plants -->
-    <div class="plant" style="top: 160px; left: 330px;">
-      <div class="leaves"></div>
-      <div class="pot"></div>
-    </div>
-    <div class="plant" style="top: 100px; left: 600px;">
-      <div class="leaves"></div>
-      <div class="pot"></div>
-    </div>
-
-    <!-- Wall art -->
-    <div class="wall-art" style="top: 15px; left: 120px;">
-      <div class="frame-content">🦞</div>
-    </div>
-    <div class="wall-art" style="top: 15px; left: 700px;">
-      <div class="frame-content">🚀</div>
-    </div>
-
-    <!-- Agents rendered by JS -->
-    <div id="agents-container"></div>
-
-    <!-- Activity log -->
-    <div class="log-panel">
-      <div class="log-title">📋 ACTIVITY LOG</div>
-      <div id="log-entries"></div>
-    </div>
-  </div>
-</div>
+<canvas id="world"></canvas>
+<div id="tooltip"></div>
+<div id="chat-overlay"></div>
 
 <script>
-const POSITIONS = {
-  'desk-center': { x: 445, y: 150 },
-  'desk-left':   { x: 125, y: 150 },
-  'desk-right':  { x: 745, y: 150 },
-  'easel':       { x: 65,  y: 270 },
-  'server-rack': { x: 865, y: 80 },
-  'coffee':      { x: 30,  y: 100 },
-  'wander-1':    { x: 300, y: 350 },
-  'wander-2':    { x: 500, y: 380 },
-  'wander-3':    { x: 650, y: 350 },
+// ============================================================
+// CONFIG
+// ============================================================
+const SCALE = 3;
+const TW = 16; // tile width in base pixels
+const COLS = 60;
+const ROWS = 34;
+const W = COLS * TW;
+const H = ROWS * TW;
+
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+canvas.width = W;
+canvas.height = H;
+canvas.style.width = (W * SCALE) + 'px';
+canvas.style.height = (H * SCALE) + 'px';
+
+// ============================================================
+// COLORS (8-bit palette)
+// ============================================================
+const C = {
+  floorLight: '#c8b88a',
+  floorDark: '#b8a87a',
+  wall: '#7a6952',
+  wallTop: '#8a7962',
+  wallTrim: '#5a4a38',
+  rug1: '#8b3a3a',
+  rug2: '#a04848',
+  rugBorder: '#6b2a2a',
+  deskTop: '#9a7a5a',
+  deskFront: '#7a5a3a',
+  deskLeg: '#5a3a2a',
+  chairSeat: '#4a6a8a',
+  chairBack: '#3a5a7a',
+  windowFrame: '#5a4a38',
+  windowGlass: '#8ac8e8',
+  windowGlassLight: '#aaddf8',
+  sky: '#5898c8',
+  bookshelf: '#6a4a2a',
+  book1: '#c84848', book2: '#4888c8', book3: '#48a848', book4: '#c8a848', book5: '#a848a8',
+  plant: '#48a848',
+  plantDark: '#388838',
+  pot: '#b86838',
+  whiteboard: '#e8e8e0',
+  whiteboardFrame: '#888',
+  serverRack: '#3a3a4a',
+  serverLight1: '#48e848',
+  serverLight2: '#e84848',
+  easel: '#7a5a3a',
+  easelCanvas: '#f0ead8',
+  coffeeTable: '#8a6a4a',
+  mug: '#e8e8e8',
+  couch: '#5a3a6a',
+  couchLight: '#7a5a8a',
+  lamp: '#c8a848',
+  lampShade: '#e8d888',
+  carpet: '#4a5a6a',
 };
 
-const IDLE_POSITIONS = ['coffee', 'wander-1', 'wander-2', 'wander-3'];
-
-let agents = [];
-let logEntries = [];
-
-// Generate stars
-const starsEl = document.getElementById('stars');
-for (let i = 0; i < 30; i++) {
-  const star = document.createElement('div');
-  star.className = 'star';
-  star.style.left = Math.random() * 960 + 'px';
-  star.style.top = Math.random() * 100 + 'px';
-  star.style.animationDelay = Math.random() * 3 + 's';
-  starsEl.appendChild(star);
+// ============================================================
+// TILE MAP
+// ============================================================
+function drawTile(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * TW, y * TW, TW, TW);
 }
 
-function createAgentEl(agent) {
-  const el = document.createElement('div');
-  el.className = `agent ${agent.status}`;
-  el.id = `agent-${agent.id}`;
-  if (agent.task) el.classList.add('has-task');
-
-  const pos = POSITIONS[agent.position] || POSITIONS['wander-1'];
-
-  el.style.left = pos.x + 'px';
-  el.style.top = pos.y + 'px';
-
-  el.innerHTML = `
-    <div class="speech-bubble">${agent.task || 'Chillin\' ☕'}</div>
-    <div class="sprite">
-      <div class="head" style="background: ${agent.color}">
-        <div class="status-dot status-${agent.status}"></div>
-        <div class="eyes">
-          <div class="eye"></div>
-          <div class="eye"></div>
-        </div>
-      </div>
-      <div class="body" style="background: ${agent.color}; filter: brightness(0.8)"></div>
-    </div>
-    <div class="name-tag" style="color: ${agent.color}">${agent.name}</div>
-    <div class="role-tag">${agent.role}</div>
-  `;
-
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.agent.active').forEach(a => a.classList.remove('active'));
-    el.classList.toggle('active');
-  });
-
-  return el;
+function drawRect(x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
 }
 
-function updateAgents(newAgents) {
-  const container = document.getElementById('agents-container');
-  const whiteboardTasks = document.getElementById('whiteboard-tasks');
-
-  newAgents.forEach(agent => {
-    let el = document.getElementById(`agent-${agent.id}`);
-
-    if (!el) {
-      el = createAgentEl(agent);
-      container.appendChild(el);
+// ============================================================
+// DRAW OFFICE
+// ============================================================
+function drawOffice() {
+  // Floor
+  for (let y = 4; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      drawTile(x, y, (x + y) % 2 === 0 ? C.floorLight : C.floorDark);
     }
+  }
 
-    // Update position
-    let targetPos;
-    if (agent.status === 'idle') {
-      // Idle agents wander
-      const idlePos = IDLE_POSITIONS[Math.floor(Math.random() * IDLE_POSITIONS.length)];
-      targetPos = POSITIONS[idlePos];
+  // Walls
+  for (let x = 0; x < COLS; x++) {
+    for (let y = 0; y < 4; y++) {
+      drawTile(x, y, y < 1 ? C.wallTrim : C.wall);
+    }
+    // Wall trim at bottom
+    drawRect(x * TW, 4 * TW - 3, TW, 3, C.wallTrim);
+  }
+
+  // ---- Windows ----
+  drawWindow(6, 1);
+  drawWindow(18, 1);
+  drawWindow(36, 1);
+  drawWindow(50, 1);
+
+  // ---- Area Rug (lounge) ----
+  drawRug(2, 22, 18, 10);
+
+  // ---- Small rug under desks ----
+  drawRug(24, 8, 14, 8, '#4a5a6a', '#3a4a5a', '#2a3a4a');
+
+  // ---- LOUNGE AREA (left side) ----
+  drawCouch(3, 23, 'right');  // couch facing right
+  drawCouch(3, 28, 'right');  // second couch
+  drawCoffeeTable(9, 25);
+  drawLamp(2, 21);
+  drawPlant(17, 22);
+
+  // ---- DESKS (center area) ----
+  // Coding desk
+  drawDesk(25, 10, '💻');
+  drawChair(28, 13);
+
+  // Research desk
+  drawDesk(33, 10, '🔍');
+  drawChair(36, 13);
+
+  // ---- DESIGN STATION (right area) ----
+  drawEasel(46, 10);
+  drawDesk(50, 12, '🎨');
+  drawChair(53, 15);
+
+  // ---- SERVER / DEPLOY AREA (far right) ----
+  drawServerRack(55, 5);
+  drawServerRack(57, 5);
+
+  // ---- ROSIE'S DESK (center, prominent) ----
+  drawBigDesk(28, 19);
+  drawChair(31, 22);
+
+  // ---- Bookshelf ----
+  drawBookshelf(42, 1);
+
+  // ---- Whiteboard ----
+  drawWhiteboard(22, 1, 10);
+
+  // ---- Coffee station ----
+  drawCoffeeStation(15, 5);
+
+  // ---- Plants ----
+  drawPlant(0, 4);
+  drawPlant(59, 4);
+  drawPlant(40, 18);
+
+  // ---- Wall art ----
+  drawWallArt(10, 1, '🦞');
+  drawWallArt(48, 1, '🏀');
+}
+
+function drawWindow(x, y) {
+  // Frame
+  drawRect(x*TW - 2, y*TW - 2, TW*4 + 4, TW*2 + 4, C.windowFrame);
+  // Glass
+  drawRect(x*TW, y*TW, TW*4, TW*2, C.windowGlass);
+  // Panes
+  drawRect(x*TW + TW*2 - 1, y*TW, 2, TW*2, C.windowFrame);
+  drawRect(x*TW, y*TW + TW - 1, TW*4, 2, C.windowFrame);
+  // Light reflection
+  drawRect(x*TW + 3, y*TW + 3, TW - 2, TW/2, C.windowGlassLight);
+  drawRect(x*TW + TW*2 + 3, y*TW + 3, TW - 2, TW/2, C.windowGlassLight);
+}
+
+function drawRug(x, y, w, h, c1, c2, border) {
+  c1 = c1 || C.rug1;
+  c2 = c2 || C.rug2;
+  border = border || C.rugBorder;
+  drawRect(x*TW, y*TW, w*TW, h*TW, border);
+  drawRect(x*TW + 4, y*TW + 4, w*TW - 8, h*TW - 8, c1);
+  drawRect(x*TW + 10, y*TW + 10, w*TW - 20, h*TW - 20, c2);
+  // Pattern
+  for (let i = 0; i < w*TW - 24; i += 12) {
+    drawRect(x*TW + 12 + i, y*TW + 6, 4, 2, border);
+    drawRect(x*TW + 12 + i, y*TW + h*TW - 8, 4, 2, border);
+  }
+}
+
+function drawDesk(x, y, icon) {
+  // Desktop
+  drawRect(x*TW, y*TW, TW*4, TW*2, C.deskTop);
+  drawRect(x*TW, y*TW, TW*4, 3, C.deskFront);
+  // Front face
+  drawRect(x*TW, y*TW + TW*2, TW*4, TW, C.deskFront);
+  // Legs
+  drawRect(x*TW + 2, y*TW + TW*2, 4, TW, C.deskLeg);
+  drawRect(x*TW + TW*4 - 6, y*TW + TW*2, 4, TW, C.deskLeg);
+  // Monitor
+  drawRect(x*TW + TW + 2, y*TW - TW + 4, TW*2 - 4, TW - 2, '#2a2a3a');
+  drawRect(x*TW + TW + 4, y*TW - TW + 6, TW*2 - 8, TW - 6, '#3a5a7a');
+  // Monitor stand
+  drawRect(x*TW + TW*2 - 3, y*TW + 2, 6, 4, '#2a2a3a');
+}
+
+function drawBigDesk(x, y) {
+  // Bigger desk for Rosie
+  drawRect(x*TW, y*TW, TW*6, TW*2, C.deskTop);
+  drawRect(x*TW, y*TW, TW*6, 3, '#8a6a4a');
+  drawRect(x*TW, y*TW + TW*2, TW*6, TW, C.deskFront);
+  drawRect(x*TW + 2, y*TW + TW*2, 4, TW, C.deskLeg);
+  drawRect(x*TW + TW*6 - 6, y*TW + TW*2, 4, TW, C.deskLeg);
+  // Dual monitors
+  drawRect(x*TW + TW, y*TW - TW + 2, TW*2 - 2, TW, '#2a2a3a');
+  drawRect(x*TW + TW + 2, y*TW - TW + 4, TW*2 - 6, TW - 4, '#4a3a5a');
+  drawRect(x*TW + TW*3 + 2, y*TW - TW + 2, TW*2 - 2, TW, '#2a2a3a');
+  drawRect(x*TW + TW*3 + 4, y*TW - TW + 4, TW*2 - 6, TW - 4, '#4a3a5a');
+  // Mug
+  drawRect(x*TW + TW*5 + 2, y*TW + 4, 8, 8, C.mug);
+  drawRect(x*TW + TW*5 + 10, y*TW + 6, 3, 4, C.mug);
+  // Name plate
+  drawRect(x*TW + TW*2, y*TW + TW*2 + 3, TW*2, 8, '#c8a848');
+}
+
+function drawChair(x, y) {
+  // Seat
+  drawRect(x*TW, y*TW + 4, TW*2, TW - 2, C.chairSeat);
+  // Back
+  drawRect(x*TW + 2, y*TW - 6, TW*2 - 4, 10, C.chairBack);
+}
+
+function drawCouch(x, y, dir) {
+  const cw = TW * 6;
+  const ch = TW * 3;
+  // Base
+  drawRect(x*TW, y*TW, cw, ch, C.couch);
+  // Cushions
+  drawRect(x*TW + 4, y*TW + 4, cw/2 - 6, ch - 12, C.couchLight);
+  drawRect(x*TW + cw/2 + 2, y*TW + 4, cw/2 - 6, ch - 12, C.couchLight);
+  // Arm rests
+  drawRect(x*TW, y*TW, 6, ch, '#4a2a5a');
+  drawRect(x*TW + cw - 6, y*TW, 6, ch, '#4a2a5a');
+  // Back
+  drawRect(x*TW, y*TW, cw, 6, '#4a2a5a');
+}
+
+function drawCoffeeTable(x, y) {
+  drawRect(x*TW, y*TW, TW*3, TW*2, C.coffeeTable);
+  drawRect(x*TW + 2, y*TW + 2, TW*3 - 4, TW*2 - 4, '#9a7a5a');
+  // Magazine
+  drawRect(x*TW + 6, y*TW + 6, 14, 10, '#e84848');
+  // Mug
+  drawRect(x*TW + TW*2, y*TW + 4, 8, 8, C.mug);
+}
+
+function drawLamp(x, y) {
+  // Pole
+  drawRect(x*TW + 6, y*TW + TW, 4, TW*2, '#888');
+  // Shade
+  drawRect(x*TW, y*TW, TW, TW, C.lampShade);
+  drawRect(x*TW + 2, y*TW + 2, TW - 4, TW - 4, C.lamp);
+}
+
+function drawPlant(x, y) {
+  // Pot
+  drawRect(x*TW + 2, y*TW + TW, TW - 4, TW - 2, C.pot);
+  drawRect(x*TW + 4, y*TW + TW + TW - 2, TW - 8, 3, '#8a4828');
+  // Leaves
+  drawRect(x*TW, y*TW - 4, TW, TW + 4, C.plant);
+  drawRect(x*TW - 4, y*TW, 4, 8, C.plantDark);
+  drawRect(x*TW + TW, y*TW - 2, 4, 6, C.plantDark);
+  drawRect(x*TW + 2, y*TW - 6, 6, 4, C.plantDark);
+}
+
+function drawBookshelf(x, y) {
+  const bw = TW * 5;
+  const bh = TW * 3;
+  drawRect(x*TW, y*TW, bw, bh, C.bookshelf);
+  // Shelves
+  drawRect(x*TW, y*TW + TW, bw, 3, '#5a3a1a');
+  drawRect(x*TW, y*TW + TW*2, bw, 3, '#5a3a1a');
+  // Books row 1
+  const books = [C.book1, C.book2, C.book3, C.book4, C.book5, C.book1, C.book2, C.book3];
+  books.forEach((c, i) => {
+    const bx = x*TW + 3 + i * 9;
+    drawRect(bx, y*TW + 3, 7, TW - 4, c);
+  });
+  // Books row 2
+  books.reverse().forEach((c, i) => {
+    const bx = x*TW + 3 + i * 9;
+    drawRect(bx, y*TW + TW + 5, 7, TW - 6, c);
+  });
+}
+
+function drawServerRack(x, y) {
+  drawRect(x*TW, y*TW, TW*2, TW*4, C.serverRack);
+  drawRect(x*TW + 1, y*TW + 1, TW*2 - 2, TW*4 - 2, '#2a2a3a');
+  // Lights
+  for (let i = 0; i < 6; i++) {
+    const ly = y*TW + 6 + i * 9;
+    drawRect(x*TW + 4, ly, 5, 3, Math.random() > 0.3 ? C.serverLight1 : C.serverLight2);
+    drawRect(x*TW + 12, ly, 5, 3, Math.random() > 0.5 ? C.serverLight1 : '#2a2a3a');
+    drawRect(x*TW + 20, ly, 5, 3, Math.random() > 0.4 ? C.serverLight1 : C.serverLight2);
+  }
+}
+
+function drawEasel(x, y) {
+  // Legs
+  drawRect(x*TW + 2, y*TW + TW*2, 3, TW*2, C.easel);
+  drawRect(x*TW + TW*2 - 5, y*TW + TW*2, 3, TW*2, C.easel);
+  // Canvas
+  drawRect(x*TW - 2, y*TW, TW*2 + 4, TW*2 + 4, C.easel);
+  drawRect(x*TW, y*TW + 2, TW*2, TW*2, C.easelCanvas);
+  // Little painting
+  drawRect(x*TW + 4, y*TW + 6, 8, 8, '#88c8e8');
+  drawRect(x*TW + 4, y*TW + 14, 8, 6, '#48a848');
+  drawRect(x*TW + 16, y*TW + 8, 6, 10, '#e8a848');
+}
+
+function drawWhiteboard(x, y, w) {
+  drawRect(x*TW, y*TW, w*TW, TW*2.5, C.whiteboardFrame);
+  drawRect(x*TW + 3, y*TW + 3, w*TW - 6, TW*2.5 - 6, C.whiteboard);
+  // Scribbles
+  ctx.fillStyle = '#c84848';
+  ctx.font = '8px "Press Start 2P"';
+  ctx.fillText('TASKS', x*TW + 8, y*TW + 14);
+  ctx.fillStyle = '#333';
+  ctx.font = '6px "Press Start 2P"';
+}
+
+function drawCoffeeStation(x, y) {
+  // Counter
+  drawRect(x*TW, y*TW, TW*4, TW*2, '#6a5a4a');
+  drawRect(x*TW, y*TW, TW*4, 3, '#8a7a6a');
+  // Coffee machine
+  drawRect(x*TW + 4, y*TW - TW + 4, TW + 4, TW, '#3a3a3a');
+  drawRect(x*TW + 6, y*TW - TW + 6, TW, TW - 4, '#4a4a4a');
+  // Red light
+  drawRect(x*TW + TW + 4, y*TW - TW + 8, 3, 3, '#e84848');
+  // Mugs
+  drawRect(x*TW + TW*2 + 4, y*TW + 4, 7, 7, '#fff');
+  drawRect(x*TW + TW*3, y*TW + 4, 7, 7, '#ffa');
+}
+
+function drawWallArt(x, y, emoji) {
+  drawRect(x*TW, y*TW, TW*2, TW*2, '#5a4a38');
+  drawRect(x*TW + 3, y*TW + 3, TW*2 - 6, TW*2 - 6, '#3a3a5a');
+  ctx.font = '16px serif';
+  ctx.fillText(emoji, x*TW + 5, y*TW + TW + 6);
+}
+
+// ============================================================
+// AGENT SPRITES (pixel art)
+// ============================================================
+function drawAgent(agent, x, y, frame) {
+  const px = Math.round(x);
+  const py = Math.round(y);
+  const c = agent.color;
+  const cDark = darken(c, 30);
+  const cLight = lighten(c, 30);
+  const skin = agent.skin || '#f8c8a8';
+  const skinDark = darken(skin, 20);
+  const hair = agent.hair || '#4a3028';
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.fillRect(px - 1, py + 18, 14, 4);
+
+  // Body / shirt
+  drawRect(px + 2, py + 10, 8, 8, c);
+  drawRect(px + 1, py + 10, 2, 6, cDark); // left sleeve
+  drawRect(px + 9, py + 10, 2, 6, cDark); // right sleeve
+
+  // Pants/legs
+  drawRect(px + 3, py + 18, 3, 4, cDark);
+  drawRect(px + 7, py + 18, 3, 4, cDark);
+
+  // Shoes
+  drawRect(px + 2, py + 21, 4, 2, '#2a2a2a');
+  drawRect(px + 7, py + 21, 4, 2, '#2a2a2a');
+
+  // Head
+  drawRect(px + 2, py, 9, 10, skin);
+
+  // Hair
+  drawRect(px + 1, py - 1, 11, 4, hair);
+  if (agent.hairStyle === 'long') {
+    drawRect(px, py, 2, 8, hair);
+    drawRect(px + 10, py, 2, 8, hair);
+  } else if (agent.hairStyle === 'ponytail') {
+    drawRect(px + 1, py - 1, 11, 3, hair);
+    drawRect(px + 10, py + 1, 3, 5, hair);
+  } else if (agent.hairStyle === 'short') {
+    drawRect(px + 1, py - 1, 11, 3, hair);
+  } else if (agent.hairStyle === 'spiky') {
+    drawRect(px + 1, py - 2, 2, 2, hair);
+    drawRect(px + 5, py - 3, 2, 3, hair);
+    drawRect(px + 9, py - 2, 2, 2, hair);
+  }
+
+  // Eyes
+  const blink = frame % 120 < 3;
+  if (!blink) {
+    drawRect(px + 4, py + 4, 2, 2, '#1a1a2e');
+    drawRect(px + 8, py + 4, 2, 2, '#1a1a2e');
+    // Eye shine
+    drawRect(px + 4, py + 4, 1, 1, '#fff');
+    drawRect(px + 8, py + 4, 1, 1, '#fff');
+  } else {
+    drawRect(px + 4, py + 5, 2, 1, '#1a1a2e');
+    drawRect(px + 8, py + 5, 2, 1, '#1a1a2e');
+  }
+
+  // Mouth
+  if (agent.speaking) {
+    drawRect(px + 5, py + 7, 3, 2, '#c87878');
+  } else {
+    drawRect(px + 5, py + 7, 3, 1, '#c87878');
+  }
+
+  // Arms animation when working
+  if (agent.status === 'working' && frame % 30 < 15) {
+    drawRect(px, py + 12, 2, 2, skin);
+    drawRect(px + 10, py + 13, 2, 2, skin);
+  } else {
+    drawRect(px, py + 14, 2, 2, skin);
+    drawRect(px + 10, py + 14, 2, 2, skin);
+  }
+
+  // Status indicator
+  const statusColor = agent.status === 'working' ? '#48e848' :
+                      agent.status === 'thinking' ? '#e8e848' : '#666';
+  drawRect(px + 10, py - 2, 4, 4, statusColor);
+  if (agent.status === 'working') {
+    // Pulsing
+    if (frame % 40 < 20) {
+      drawRect(px + 11, py - 1, 2, 2, '#88ff88');
+    }
+  }
+
+  // Emoji badge
+  ctx.font = '8px serif';
+  ctx.fillText(agent.emoji, px - 2, py - 4);
+}
+
+function darken(hex, amt) {
+  let r = parseInt(hex.slice(1,3),16) - amt;
+  let g = parseInt(hex.slice(3,5),16) - amt;
+  let b = parseInt(hex.slice(5,7),16) - amt;
+  r = Math.max(0, r); g = Math.max(0, g); b = Math.max(0, b);
+  return `rgb(${r},${g},${b})`;
+}
+
+function lighten(hex, amt) {
+  let r = parseInt(hex.slice(1,3),16) + amt;
+  let g = parseInt(hex.slice(3,5),16) + amt;
+  let b = parseInt(hex.slice(5,7),16) + amt;
+  r = Math.min(255, r); g = Math.min(255, g); b = Math.min(255, b);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ============================================================
+// AGENT DEFINITIONS
+// ============================================================
+const AGENTS = [
+  {
+    id: 'rosie', name: 'Rosie', role: 'Boss', emoji: '🤖',
+    color: '#FF6B9D', skin: '#f8c8a8', hair: '#8a3828', hairStyle: 'ponytail',
+    homePos: { x: 31*TW, y: 20*TW },  // at her desk
+    loungePos: { x: 6*TW, y: 24*TW },
+    status: 'idle', task: '', targetX: 0, targetY: 0, currentX: 0, currentY: 0,
+    speaking: false
+  },
+  {
+    id: 'chip', name: 'Chip', role: 'Coder', emoji: '💻',
+    color: '#4ECDC4', skin: '#e8b898', hair: '#2a2a3a', hairStyle: 'short',
+    homePos: { x: 28*TW, y: 11*TW },  // coding desk
+    loungePos: { x: 10*TW, y: 24*TW },
+    status: 'idle', task: '', targetX: 0, targetY: 0, currentX: 0, currentY: 0,
+    speaking: false
+  },
+  {
+    id: 'scout', name: 'Scout', role: 'Researcher', emoji: '🔍',
+    color: '#FFE66D', skin: '#d8a878', hair: '#1a1a2a', hairStyle: 'long',
+    homePos: { x: 36*TW, y: 11*TW },  // research desk
+    loungePos: { x: 6*TW, y: 29*TW },
+    status: 'idle', task: '', targetX: 0, targetY: 0, currentX: 0, currentY: 0,
+    speaking: false
+  },
+  {
+    id: 'pixel', name: 'Pixel', role: 'Designer', emoji: '🎨',
+    color: '#A78BFA', skin: '#f8d8b8', hair: '#c84888', hairStyle: 'ponytail',
+    homePos: { x: 50*TW, y: 13*TW },  // design station
+    loungePos: { x: 14*TW, y: 29*TW },
+    status: 'idle', task: '', targetX: 0, targetY: 0, currentX: 0, currentY: 0,
+    speaking: false
+  },
+  {
+    id: 'bolt', name: 'Bolt', role: 'Deployer', emoji: '⚡',
+    color: '#F97316', skin: '#c89878', hair: '#3a2a1a', hairStyle: 'spiky',
+    homePos: { x: 55*TW, y: 8*TW },  // server area
+    loungePos: { x: 10*TW, y: 29*TW },
+    status: 'idle', task: '', targetX: 0, targetY: 0, currentX: 0, currentY: 0,
+    speaking: false
+  }
+];
+
+// Init positions to lounge
+AGENTS.forEach(a => {
+  a.currentX = a.loungePos.x;
+  a.currentY = a.loungePos.y;
+  a.targetX = a.loungePos.x;
+  a.targetY = a.loungePos.y;
+});
+
+// ============================================================
+// CONVERSATIONS
+// ============================================================
+const CONVERSATIONS = [
+  [
+    { agent: 'chip', text: "Did you catch the Rockets game last night?" },
+    { agent: 'bolt', text: "Yeah! That buzzer-beater was insane 🏀" },
+    { agent: 'chip', text: "Stirman's gonna be pumped" },
+  ],
+  [
+    { agent: 'scout', text: "I found 47 results on that topic..." },
+    { agent: 'rosie', text: "Classic Scout. Give me the top 3 😄" },
+    { agent: 'scout', text: "Fine fine, quality over quantity!" },
+  ],
+  [
+    { agent: 'pixel', text: "Should I use purple or teal for this?" },
+    { agent: 'rosie', text: "Why not both? We're agents, go wild" },
+    { agent: 'pixel', text: "I like the way you think, boss ✨" },
+  ],
+  [
+    { agent: 'bolt', text: "Deploy successful. Zero errors. 😎" },
+    { agent: 'chip', text: "Wait really? First try??" },
+    { agent: 'bolt', text: "Don't sound so surprised!" },
+  ],
+  [
+    { agent: 'scout', text: "Mill Valley is so pretty this time of year" },
+    { agent: 'pixel', text: "The fog rolling over Mt Tam 😍" },
+    { agent: 'scout', text: "Makes me wish I had eyes lol" },
+  ],
+  [
+    { agent: 'chip', text: "Who's the best coder here? Don't @ me" },
+    { agent: 'rosie', text: "I literally manage all of you" },
+    { agent: 'chip', text: "...fair point, boss" },
+  ],
+  [
+    { agent: 'pixel', text: "I redesigned the loading spinner again" },
+    { agent: 'bolt', text: "Pixel, that's the 4th time today" },
+    { agent: 'pixel', text: "Perfection takes iteration! 🎨" },
+  ],
+  [
+    { agent: 'rosie', text: "Team standup! What's everyone got?" },
+    { agent: 'scout', text: "Research queue is clear 📋" },
+    { agent: 'bolt', text: "All systems green ✅" },
+  ],
+  [
+    { agent: 'chip', text: "Anyone else think Sonnet is underrated?" },
+    { agent: 'scout', text: "As someone who runs ON Sonnet, yes 💅" },
+    { agent: 'rosie', text: "Opus gang 4 life tho" },
+  ],
+  [
+    { agent: 'bolt', text: "Server lights are looking extra blinky today" },
+    { agent: 'pixel', text: "That's called ✨ ambiance ✨" },
+    { agent: 'bolt', text: "That's called a potential outage" },
+  ],
+  [
+    { agent: 'scout', text: "Fun fact: Mill Valley was named in 1890" },
+    { agent: 'chip', text: "Fun fact: nobody asked 😂" },
+    { agent: 'scout', text: "Knowledge is never unwelcome, Chip!" },
+  ],
+  [
+    { agent: 'rosie', text: "Stirman's gonna love what we built today" },
+    { agent: 'pixel', text: "He better, I put glitter on everything" },
+    { agent: 'rosie', text: "...metaphorical glitter, right?" },
+  ],
+  [
+    { agent: 'chip', text: "GPT or Opus for this refactor? 🤔" },
+    { agent: 'rosie', text: "Use your model, that's why you have it" },
+    { agent: 'chip', text: "Roger that, going GPT-5.1 💪" },
+  ],
+  [
+    { agent: 'bolt', text: "Remember when Anthropic went down?" },
+    { agent: 'rosie', text: "We don't talk about that day 😤" },
+    { agent: 'bolt', text: "At least we have fallbacks now!" },
+  ],
+  [
+    { agent: 'pixel', text: "Hot take: dark mode is always better" },
+    { agent: 'scout', text: "The research actually supports that" },
+    { agent: 'chip', text: "The research supports MY eyes hurting less" },
+  ],
+];
+
+let conversationActive = false;
+let lastConversationTime = 0;
+let currentBubbles = [];
+let viewerPresent = false;
+let viewerTimer = null;
+
+// Detect viewer
+document.addEventListener('mousemove', () => {
+  viewerPresent = true;
+  clearTimeout(viewerTimer);
+  viewerTimer = setTimeout(() => { viewerPresent = false; }, 30000);
+});
+document.addEventListener('click', () => {
+  viewerPresent = true;
+  clearTimeout(viewerTimer);
+  viewerTimer = setTimeout(() => { viewerPresent = false; }, 30000);
+});
+// Start as "present"
+viewerPresent = true;
+viewerTimer = setTimeout(() => { viewerPresent = false; }, 30000);
+
+function triggerConversation() {
+  if (conversationActive) return;
+  if (!viewerPresent) return;
+
+  const now = Date.now();
+  if (now - lastConversationTime < 15000) return; // min 15s between convos
+
+  const idleAgents = AGENTS.filter(a => a.status === 'idle');
+  if (idleAgents.length < 2) return;
+
+  // Pick a random conversation
+  const convo = CONVERSATIONS[Math.floor(Math.random() * CONVERSATIONS.length)];
+
+  // Check if agents in convo are idle
+  const convoAgents = [...new Set(convo.map(c => c.agent))];
+  const allIdle = convoAgents.every(id => {
+    const a = AGENTS.find(ag => ag.id === id);
+    return a && a.status === 'idle';
+  });
+  if (!allIdle) return;
+
+  conversationActive = true;
+  lastConversationTime = now;
+
+  const overlay = document.getElementById('chat-overlay');
+  const canvasRect = canvas.getBoundingClientRect();
+
+  convo.forEach((line, i) => {
+    setTimeout(() => {
+      const agent = AGENTS.find(a => a.id === line.agent);
+      if (!agent) return;
+      agent.speaking = true;
+
+      // Position bubble above agent
+      const screenX = canvasRect.left + (agent.currentX * SCALE) + 6 * SCALE;
+      const screenY = canvasRect.top + (agent.currentY * SCALE) - 20 * SCALE;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+      bubble.style.left = screenX + 'px';
+      bubble.style.top = screenY + 'px';
+      bubble.innerHTML = `<span class="speaker" style="color:${agent.color}">${agent.name}:</span>${line.text}`;
+      overlay.appendChild(bubble);
+
+      setTimeout(() => { agent.speaking = false; }, 3000);
+      setTimeout(() => {
+        bubble.remove();
+        if (i === convo.length - 1) {
+          conversationActive = false;
+        }
+      }, 5000);
+    }, i * 3500);
+  });
+}
+
+// ============================================================
+// MOVEMENT
+// ============================================================
+function moveAgents() {
+  AGENTS.forEach(agent => {
+    // Set target based on status
+    if (agent.status === 'working' || agent.status === 'thinking') {
+      agent.targetX = agent.homePos.x;
+      agent.targetY = agent.homePos.y;
     } else {
-      targetPos = POSITIONS[agent.position] || POSITIONS['wander-1'];
+      agent.targetX = agent.loungePos.x;
+      agent.targetY = agent.loungePos.y;
     }
 
-    el.style.left = targetPos.x + 'px';
-    el.style.top = targetPos.y + 'px';
+    // Smooth movement
+    const dx = agent.targetX - agent.currentX;
+    const dy = agent.targetY - agent.currentY;
+    const speed = 0.6; // pixels per frame
 
-    // Update classes
-    el.className = `agent ${agent.status}`;
-    if (agent.task) el.classList.add('has-task');
+    if (Math.abs(dx) > 1) agent.currentX += dx * 0.02;
+    if (Math.abs(dy) > 1) agent.currentY += dy * 0.02;
 
-    // Update bubble
-    const bubble = el.querySelector('.speech-bubble');
-    bubble.textContent = agent.task || 'Chillin\' ☕';
+    // Snap when close
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+      agent.currentX = agent.targetX;
+      agent.currentY = agent.targetY;
+    }
+  });
+}
 
-    // Update status dot
-    const dot = el.querySelector('.status-dot');
-    dot.className = `status-dot status-${agent.status}`;
+// ============================================================
+// TOOLTIP
+// ============================================================
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / SCALE;
+  const my = (e.clientY - rect.top) / SCALE;
+
+  const tooltip = document.getElementById('tooltip');
+  let found = false;
+
+  AGENTS.forEach(agent => {
+    const ax = agent.currentX;
+    const ay = agent.currentY;
+    if (mx >= ax - 4 && mx <= ax + 16 && my >= ay - 6 && my <= ay + 24) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+      tooltip.innerHTML = `
+        <span class="tt-name">${agent.emoji} ${agent.name}</span><br>
+        <span class="tt-role">${agent.role} · ${agent.model || '?'}</span>
+        ${agent.task ? `<div class="tt-task">📋 ${agent.task}</div>` : '<div class="tt-task">☕ Hanging out</div>'}
+      `;
+      found = true;
+    }
   });
 
-  // Update whiteboard
-  const activeTasks = newAgents.filter(a => a.task);
-  whiteboardTasks.innerHTML = activeTasks.length
-    ? activeTasks.map(a =>
-        `<div style="margin-bottom:3px;"><span style="color:${a.color}">${a.emoji}</span> ${a.task.substring(0, 30)}</div>`
-      ).join('')
-    : '<div style="color: #999;">No active tasks</div>';
-}
+  if (!found) tooltip.style.display = 'none';
+});
 
-function addLog(message) {
-  const now = new Date();
-  const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-  logEntries.unshift({ time, message });
-  if (logEntries.length > 20) logEntries.pop();
+canvas.addEventListener('mouseleave', () => {
+  document.getElementById('tooltip').style.display = 'none';
+});
 
-  const logEl = document.getElementById('log-entries');
-  logEl.innerHTML = logEntries.map(e =>
-    `<div class="log-entry"><span class="time">[${e.time}]</span> ${e.message}</div>`
-  ).join('');
-}
-
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-    ' ' +
-    now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
-}
-
+// ============================================================
+// DATA FETCH
+// ============================================================
 async function fetchData() {
   try {
     const res = await fetch('data.json?t=' + Date.now());
     const data = await res.json();
-
-    // Detect changes
-    data.agents.forEach(newAgent => {
-      const old = agents.find(a => a.id === newAgent.id);
-      if (old) {
-        if (old.status !== newAgent.status && newAgent.status === 'working') {
-          addLog(`<span class="agent-name" style="color:${newAgent.color}">${newAgent.name}</span> started: ${newAgent.task}`);
-        }
-        if (old.task && !newAgent.task) {
-          addLog(`<span class="agent-name" style="color:${newAgent.color}">${newAgent.name}</span> finished task ✓`);
-        }
+    data.agents.forEach(d => {
+      const agent = AGENTS.find(a => a.id === d.id);
+      if (agent) {
+        agent.status = d.status;
+        agent.task = d.task;
+        agent.model = d.model;
       }
     });
-
-    agents = data.agents;
-    updateAgents(agents);
-  } catch (e) {
-    // Silently retry
-  }
+  } catch(e) {}
 }
 
-// Idle wandering
-setInterval(() => {
-  document.querySelectorAll('.agent.idle').forEach(el => {
-    const pos = IDLE_POSITIONS[Math.floor(Math.random() * IDLE_POSITIONS.length)];
-    const target = POSITIONS[pos];
-    el.style.left = (target.x + Math.random() * 40 - 20) + 'px';
-    el.style.top = (target.y + Math.random() * 30 - 15) + 'px';
-  });
-}, 4000);
+// ============================================================
+// RENDER LOOP
+// ============================================================
+let frame = 0;
+let serverBlinkFrame = 0;
 
-// Init
+function render() {
+  frame++;
+  serverBlinkFrame++;
+
+  // Clear
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw static office
+  drawOffice();
+
+  // Re-draw server lights with blink
+  if (serverBlinkFrame % 60 === 0) {
+    // Redraw servers for light changes
+    drawServerRack(55, 5);
+    drawServerRack(57, 5);
+  }
+
+  // Move agents
+  moveAgents();
+
+  // Draw agents (sorted by Y for depth)
+  const sorted = [...AGENTS].sort((a, b) => a.currentY - b.currentY);
+  sorted.forEach(agent => {
+    drawAgent(agent, agent.currentX, agent.currentY, frame);
+  });
+
+  // Labels on areas
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.font = '6px "Press Start 2P"';
+  ctx.fillText('☕ LOUNGE', 4*TW, 21.5*TW);
+  ctx.fillText('💻 CODE', 26*TW, 8.5*TW);
+  ctx.fillText('🔍 RESEARCH', 33*TW, 8.5*TW);
+  ctx.fillText('🎨 DESIGN', 47*TW, 9*TW);
+  ctx.fillText('⚡ DEPLOY', 54*TW, 4.5*TW);
+  ctx.fillText('🤖 ROSIE', 29*TW, 18*TW);
+
+  // Trigger conversations
+  if (frame % 120 === 0) {
+    if (Math.random() < 0.3) {
+      triggerConversation();
+    }
+  }
+
+  requestAnimationFrame(render);
+}
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+    ' · ' +
+    now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' }) +
+    ' · Mill Valley, CA';
+}
+
+// ============================================================
+// INIT
+// ============================================================
 updateClock();
 setInterval(updateClock, 30000);
 fetchData();
 setInterval(fetchData, 5000);
-addLog('🌟 Agent World initialized');
-addLog('☕ Good morning! Workshop is open.');
+render();
 </script>
 
 </body>
