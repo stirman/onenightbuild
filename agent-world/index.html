@@ -20,9 +20,16 @@
     -webkit-font-smoothing: none;
   }
 
+  .canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
   canvas {
     display: block;
-    margin: 0 auto;
     cursor: default;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
@@ -124,7 +131,7 @@
   <div class="info" id="clock"></div>
 </div>
 
-<canvas id="world"></canvas>
+<div class="canvas-wrap"><canvas id="world"></canvas></div>
 <div id="tooltip"></div>
 <div id="chat-overlay"></div>
 
@@ -132,8 +139,7 @@
 // ============================================================
 // CONFIG
 // ============================================================
-const SCALE = 3;
-const TW = 16; // tile width in base pixels
+const TW = 16;
 const COLS = 60;
 const ROWS = 34;
 const W = COLS * TW;
@@ -143,8 +149,22 @@ const canvas = document.getElementById('world');
 const ctx = canvas.getContext('2d');
 canvas.width = W;
 canvas.height = H;
-canvas.style.width = (W * SCALE) + 'px';
-canvas.style.height = (H * SCALE) + 'px';
+
+let SCALE = 2;
+
+function resizeCanvas() {
+  const header = document.querySelector('.header');
+  const availW = window.innerWidth;
+  const availH = window.innerHeight - header.offsetHeight;
+  const scaleX = availW / W;
+  const scaleY = availH / H;
+  SCALE = Math.min(scaleX, scaleY);
+  canvas.style.width = Math.floor(W * SCALE) + 'px';
+  canvas.style.height = Math.floor(H * SCALE) + 'px';
+}
+
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 // ============================================================
 // COLORS (8-bit palette)
@@ -770,8 +790,9 @@ function triggerConversation() {
       agent.speaking = true;
 
       // Position bubble above agent
-      const screenX = canvasRect.left + (agent.currentX * SCALE) + 6 * SCALE;
-      const screenY = canvasRect.top + (agent.currentY * SCALE) - 20 * SCALE;
+      const curScale = parseFloat(canvas.style.width) / W;
+      const screenX = canvasRect.left + (agent.currentX * curScale) + 6 * curScale;
+      const screenY = canvasRect.top + (agent.currentY * curScale) - 20 * curScale;
 
       const bubble = document.createElement('div');
       bubble.className = 'chat-bubble';
