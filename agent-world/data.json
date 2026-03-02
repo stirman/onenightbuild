@@ -1,0 +1,60 @@
+{
+  "lastUpdated": "2026-03-02T21:30:00Z",
+  "agents": [
+    {
+      "id": "rosie",
+      "name": "Rosie",
+      "role": "Boss",
+      "model": "anthropic/claude-opus-4-6",
+      "status": "working",
+      "task": "Building Agent World visualizer",
+      "emoji": "🤖",
+      "color": "#FF6B9D",
+      "position": "desk-center"
+    },
+    {
+      "id": "chip",
+      "name": "Chip",
+      "role": "Coder",
+      "model": "openai/gpt-5.1-codex",
+      "status": "idle",
+      "task": "",
+      "emoji": "💻",
+      "color": "#4ECDC4",
+      "position": "desk-left"
+    },
+    {
+      "id": "scout",
+      "name": "Scout",
+      "role": "Researcher",
+      "model": "anthropic/claude-sonnet-4-5",
+      "status": "idle",
+      "task": "",
+      "emoji": "🔍",
+      "color": "#FFE66D",
+      "position": "desk-right"
+    },
+    {
+      "id": "pixel",
+      "name": "Pixel",
+      "role": "Designer",
+      "model": "openai/gpt-5.1-codex",
+      "status": "idle",
+      "task": "",
+      "emoji": "🎨",
+      "color": "#A78BFA",
+      "position": "easel"
+    },
+    {
+      "id": "bolt",
+      "name": "Bolt",
+      "role": "Deployer",
+      "model": "anthropic/claude-sonnet-4-5",
+      "status": "idle",
+      "task": "",
+      "emoji": "⚡",
+      "color": "#F97316",
+      "position": "server-rack"
+    }
+  ]
+}

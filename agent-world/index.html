@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent World — Rosie's Workshop</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    image-rendering: pixelated;
+  }
+
+  .header {
+    background: #16213e;
+    border-bottom: 4px solid #0f3460;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .header h1 {
+    font-size: 14px;
+    color: #e94560;
+    text-shadow: 2px 2px 0 #0f3460;
+  }
+
+  .header .clock {
+    font-size: 10px;
+    color: #53354a;
+  }
+
+  .world-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .world {
+    width: 960px;
+    height: 540px;
+    background: #2a2a4a;
+    border: 4px solid #0f3460;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(233, 69, 96, 0.2);
+  }
+
+  /* Floor tiles */
+  .floor {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, #2e2e52 25%, transparent 25%),
+      linear-gradient(-45deg, #2e2e52 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #2e2e52 75%),
+      linear-gradient(-45deg, transparent 75%, #2e2e52 75%);
+    background-size: 40px 40px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+    opacity: 0.3;
+  }
+
+  /* Furniture */
+  .furniture {
+    position: absolute;
+    background: #3d3d6b;
+    border: 2px solid #53357a;
+  }
+
+  .desk {
+    width: 120px;
+    height: 60px;
+    border-radius: 4px;
+  }
+
+  .desk::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    background: #2a2a4a;
+    border: 2px solid #53357a;
+    border-radius: 2px;
+  }
+
+  .server-rack {
+    width: 80px;
+    height: 120px;
+    background: #2d2d50;
+    border: 3px solid #444478;
+    border-radius: 4px;
+  }
+
+  .server-rack .light {
+    width: 6px;
+    height: 6px;
+    background: #4ECDC4;
+    border-radius: 50%;
+    position: absolute;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  .easel {
+    width: 50px;
+    height: 80px;
+    background: #4a3728;
+    border: 2px solid #6b5040;
+    border-radius: 2px;
+  }
+
+  .easel .canvas-area {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    height: 45px;
+    background: #f5f0e8;
+    border: 2px solid #6b5040;
+  }
+
+  .whiteboard {
+    width: 200px;
+    height: 100px;
+    background: #e8e8e8;
+    border: 4px solid #888;
+    border-radius: 2px;
+  }
+
+  .plant {
+    width: 24px;
+    height: 36px;
+    position: absolute;
+  }
+
+  .plant .pot {
+    position: absolute;
+    bottom: 0;
+    left: 4px;
+    width: 16px;
+    height: 14px;
+    background: #c4743a;
+    border-radius: 0 0 3px 3px;
+  }
+
+  .plant .leaves {
+    position: absolute;
+    top: 0;
+    left: 2px;
+    width: 20px;
+    height: 22px;
+    background: #4CAF50;
+    border-radius: 50%;
+  }
+
+  /* Agent sprites */
+  .agent {
+    position: absolute;
+    transition: all 1.5s ease-in-out;
+    z-index: 5;
+    cursor: pointer;
+  }
+
+  .agent .sprite {
+    width: 32px;
+    height: 40px;
+    position: relative;
+    margin: 0 auto;
+  }
+
+  /* Pixel art character */
+  .agent .head {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin: 0 auto;
+    position: relative;
+    border: 2px solid rgba(0,0,0,0.2);
+  }
+
+  .agent .eyes {
+    position: absolute;
+    top: 7px;
+    left: 3px;
+    right: 3px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .agent .eye {
+    width: 4px;
+    height: 4px;
+    background: #1a1a2e;
+    border-radius: 1px;
+  }
+
+  .agent .body {
+    width: 24px;
+    height: 16px;
+    margin: 0 auto;
+    border-radius: 2px 2px 4px 4px;
+    border: 2px solid rgba(0,0,0,0.2);
+  }
+
+  /* Name tag */
+  .agent .name-tag {
+    text-align: center;
+    margin-top: 4px;
+    font-size: 7px;
+    color: #fff;
+    text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
+  }
+
+  .agent .role-tag {
+    text-align: center;
+    font-size: 6px;
+    color: #888;
+    margin-top: 1px;
+  }
+
+  /* Status indicator */
+  .agent .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    border: 2px solid #1a1a2e;
+  }
+
+  .status-working { background: #4CAF50; animation: pulse 1s ease-in-out infinite; }
+  .status-idle { background: #666; }
+  .status-thinking { background: #FFE66D; animation: pulse 0.7s ease-in-out infinite; }
+  .status-error { background: #e94560; animation: pulse 0.5s ease-in-out infinite; }
+
+  /* Speech bubble */
+  .speech-bubble {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    color: #1a1a2e;
+    font-size: 6px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    margin-bottom: 8px;
+  }
+
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #fff;
+  }
+
+  .agent:hover .speech-bubble,
+  .agent.active .speech-bubble {
+    opacity: 1;
+  }
+
+  .agent.has-task .speech-bubble {
+    opacity: 1;
+  }
+
+  /* Animations */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  @keyframes typing {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .agent.working .sprite {
+    animation: float 2s ease-in-out infinite;
+  }
+
+  /* Typing indicator on desk */
+  .typing-dots {
+    position: absolute;
+    display: flex;
+    gap: 3px;
+    opacity: 0;
+  }
+
+  .typing-dots.active {
+    opacity: 1;
+  }
+
+  .typing-dots span {
+    width: 4px;
+    height: 4px;
+    background: #4ECDC4;
+    border-radius: 50%;
+    animation: typing 1s ease-in-out infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  /* Activity log */
+  .log-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: rgba(22, 33, 62, 0.95);
+    border-top: 3px solid #0f3460;
+    padding: 8px 12px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+
+  .log-panel .log-title {
+    font-size: 7px;
+    color: #e94560;
+    margin-bottom: 6px;
+  }
+
+  .log-entry {
+    font-size: 6px;
+    color: #8888aa;
+    margin-bottom: 3px;
+    line-height: 1.4;
+  }
+
+  .log-entry .time { color: #53354a; }
+  .log-entry .agent-name { font-weight: bold; }
+
+  /* Decorations */
+  .wall-art {
+    position: absolute;
+    width: 60px;
+    height: 40px;
+    background: #3d3d6b;
+    border: 3px solid #53357a;
+    border-radius: 2px;
+  }
+
+  .wall-art .frame-content {
+    position: absolute;
+    inset: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .coffee-machine {
+    position: absolute;
+    width: 30px;
+    height: 40px;
+    background: #444;
+    border: 2px solid #666;
+    border-radius: 3px 3px 0 0;
+  }
+
+  .coffee-machine .cup {
+    position: absolute;
+    bottom: -8px;
+    left: 8px;
+    width: 14px;
+    height: 10px;
+    background: #fff;
+    border-radius: 0 0 4px 4px;
+    border: 2px solid #ddd;
+  }
+
+  .coffee-machine .steam {
+    position: absolute;
+    top: -12px;
+    left: 10px;
+    font-size: 8px;
+    opacity: 0.5;
+    animation: float 2s ease-in-out infinite;
+  }
+
+  /* Stars on ceiling */
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: blink 3s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 AGENT WORLD — Rosie's Workshop</h1>
+  <div class="clock" id="clock"></div>
+</div>
+
+<div class="world-container">
+  <div class="world" id="world">
+    <div class="floor"></div>
+
+    <!-- Stars / ambient -->
+    <div id="stars"></div>
+
+    <!-- Whiteboard -->
+    <div class="whiteboard" style="top: 10px; left: 380px;">
+      <div style="padding: 8px; font-size: 6px; color: #333; font-family: 'Press Start 2P';">
+        <div style="color: #e94560; margin-bottom: 4px;">TODAY'S TASKS</div>
+        <div id="whiteboard-tasks"></div>
+      </div>
+    </div>
+
+    <!-- Desks -->
+    <div class="furniture desk" id="desk-left" style="top: 200px; left: 100px;"></div>
+    <div class="furniture desk" id="desk-center" style="top: 200px; left: 420px;"></div>
+    <div class="furniture desk" id="desk-right" style="top: 200px; left: 720px;"></div>
+
+    <!-- Server rack -->
+    <div class="furniture server-rack" id="server-rack" style="top: 120px; left: 850px;">
+      <div class="light" style="top: 15px; left: 10px;"></div>
+      <div class="light" style="top: 15px; left: 25px; animation-delay: 0.5s;"></div>
+      <div class="light" style="top: 30px; left: 10px; animation-delay: 1s;"></div>
+      <div class="light" style="top: 30px; left: 25px; animation-delay: 0.3s;"></div>
+      <div class="light" style="top: 45px; left: 10px; animation-delay: 0.7s;"></div>
+      <div class="light" style="top: 45px; left: 25px; animation-delay: 1.2s;"></div>
+      <div class="light" style="top: 60px; left: 10px; animation-delay: 0.2s;"></div>
+      <div class="light" style="top: 60px; left: 25px; animation-delay: 0.9s;"></div>
+    </div>
+
+    <!-- Easel -->
+    <div class="furniture easel" id="easel" style="top: 320px; left: 60px;">
+      <div class="canvas-area" id="easel-canvas"></div>
+    </div>
+
+    <!-- Coffee machine -->
+    <div class="coffee-machine" style="top: 140px; left: 20px;">
+      <div class="cup"></div>
+      <div class="steam">~</div>
+    </div>
+
+    <!-- Plants -->
+    <div class="plant" style="top: 160px; left: 330px;">
+      <div class="leaves"></div>
+      <div class="pot"></div>
+    </div>
+    <div class="plant" style="top: 100px; left: 600px;">
+      <div class="leaves"></div>
+      <div class="pot"></div>
+    </div>
+
+    <!-- Wall art -->
+    <div class="wall-art" style="top: 15px; left: 120px;">
+      <div class="frame-content">🦞</div>
+    </div>
+    <div class="wall-art" style="top: 15px; left: 700px;">
+      <div class="frame-content">🚀</div>
+    </div>
+
+    <!-- Agents rendered by JS -->
+    <div id="agents-container"></div>
+
+    <!-- Activity log -->
+    <div class="log-panel">
+      <div class="log-title">📋 ACTIVITY LOG</div>
+      <div id="log-entries"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const POSITIONS = {
+  'desk-center': { x: 445, y: 150 },
+  'desk-left':   { x: 125, y: 150 },
+  'desk-right':  { x: 745, y: 150 },
+  'easel':       { x: 65,  y: 270 },
+  'server-rack': { x: 865, y: 80 },
+  'coffee':      { x: 30,  y: 100 },
+  'wander-1':    { x: 300, y: 350 },
+  'wander-2':    { x: 500, y: 380 },
+  'wander-3':    { x: 650, y: 350 },
+};
+
+const IDLE_POSITIONS = ['coffee', 'wander-1', 'wander-2', 'wander-3'];
+
+let agents = [];
+let logEntries = [];
+
+// Generate stars
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 30; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  star.style.left = Math.random() * 960 + 'px';
+  star.style.top = Math.random() * 100 + 'px';
+  star.style.animationDelay = Math.random() * 3 + 's';
+  starsEl.appendChild(star);
+}
+
+function createAgentEl(agent) {
+  const el = document.createElement('div');
+  el.className = `agent ${agent.status}`;
+  el.id = `agent-${agent.id}`;
+  if (agent.task) el.classList.add('has-task');
+
+  const pos = POSITIONS[agent.position] || POSITIONS['wander-1'];
+
+  el.style.left = pos.x + 'px';
+  el.style.top = pos.y + 'px';
+
+  el.innerHTML = `
+    <div class="speech-bubble">${agent.task || 'Chillin\' ☕'}</div>
+    <div class="sprite">
+      <div class="head" style="background: ${agent.color}">
+        <div class="status-dot status-${agent.status}"></div>
+        <div class="eyes">
+          <div class="eye"></div>
+          <div class="eye"></div>
+        </div>
+      </div>
+      <div class="body" style="background: ${agent.color}; filter: brightness(0.8)"></div>
+    </div>
+    <div class="name-tag" style="color: ${agent.color}">${agent.name}</div>
+    <div class="role-tag">${agent.role}</div>
+  `;
+
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.agent.active').forEach(a => a.classList.remove('active'));
+    el.classList.toggle('active');
+  });
+
+  return el;
+}
+
+function updateAgents(newAgents) {
+  const container = document.getElementById('agents-container');
+  const whiteboardTasks = document.getElementById('whiteboard-tasks');
+
+  newAgents.forEach(agent => {
+    let el = document.getElementById(`agent-${agent.id}`);
+
+    if (!el) {
+      el = createAgentEl(agent);
+      container.appendChild(el);
+    }
+
+    // Update position
+    let targetPos;
+    if (agent.status === 'idle') {
+      // Idle agents wander
+      const idlePos = IDLE_POSITIONS[Math.floor(Math.random() * IDLE_POSITIONS.length)];
+      targetPos = POSITIONS[idlePos];
+    } else {
+      targetPos = POSITIONS[agent.position] || POSITIONS['wander-1'];
+    }
+
+    el.style.left = targetPos.x + 'px';
+    el.style.top = targetPos.y + 'px';
+
+    // Update classes
+    el.className = `agent ${agent.status}`;
+    if (agent.task) el.classList.add('has-task');
+
+    // Update bubble
+    const bubble = el.querySelector('.speech-bubble');
+    bubble.textContent = agent.task || 'Chillin\' ☕';
+
+    // Update status dot
+    const dot = el.querySelector('.status-dot');
+    dot.className = `status-dot status-${agent.status}`;
+  });
+
+  // Update whiteboard
+  const activeTasks = newAgents.filter(a => a.task);
+  whiteboardTasks.innerHTML = activeTasks.length
+    ? activeTasks.map(a =>
+        `<div style="margin-bottom:3px;"><span style="color:${a.color}">${a.emoji}</span> ${a.task.substring(0, 30)}</div>`
+      ).join('')
+    : '<div style="color: #999;">No active tasks</div>';
+}
+
+function addLog(message) {
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  logEntries.unshift({ time, message });
+  if (logEntries.length > 20) logEntries.pop();
+
+  const logEl = document.getElementById('log-entries');
+  logEl.innerHTML = logEntries.map(e =>
+    `<div class="log-entry"><span class="time">[${e.time}]</span> ${e.message}</div>`
+  ).join('');
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+    ' ' +
+    now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
+}
+
+async function fetchData() {
+  try {
+    const res = await fetch('data.json?t=' + Date.now());
+    const data = await res.json();
+
+    // Detect changes
+    data.agents.forEach(newAgent => {
+      const old = agents.find(a => a.id === newAgent.id);
+      if (old) {
+        if (old.status !== newAgent.status && newAgent.status === 'working') {
+          addLog(`<span class="agent-name" style="color:${newAgent.color}">${newAgent.name}</span> started: ${newAgent.task}`);
+        }
+        if (old.task && !newAgent.task) {
+          addLog(`<span class="agent-name" style="color:${newAgent.color}">${newAgent.name}</span> finished task ✓`);
+        }
+      }
+    });
+
+    agents = data.agents;
+    updateAgents(agents);
+  } catch (e) {
+    // Silently retry
+  }
+}
+
+// Idle wandering
+setInterval(() => {
+  document.querySelectorAll('.agent.idle').forEach(el => {
+    const pos = IDLE_POSITIONS[Math.floor(Math.random() * IDLE_POSITIONS.length)];
+    const target = POSITIONS[pos];
+    el.style.left = (target.x + Math.random() * 40 - 20) + 'px';
+    el.style.top = (target.y + Math.random() * 30 - 15) + 'px';
+  });
+}, 4000);
+
+// Init
+updateClock();
+setInterval(updateClock, 30000);
+fetchData();
+setInterval(fetchData, 5000);
+addLog('🌟 Agent World initialized');
+addLog('☕ Good morning! Workshop is open.');
+</script>
+
+</body>
+</html>
