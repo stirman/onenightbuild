@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MealStack — Weekly Meal Prep Planner</title>
+<meta name="description" content="Generate a personalized weekly meal prep plan in 60 seconds. Pick your diet, goals, and time — get 5 days of recipes with a printable grocery list.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e2e;--text:#e8e8ed;--muted:#8888a0;--accent1:#f97316;--accent2:#a855f7;--accent3:#22d3ee;--green:#22c55e}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(249,115,22,.12),transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(168,85,247,.1),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(34,211,238,.06),transparent 60%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.container{max-width:680px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:1}
+.hero{text-align:center;padding:60px 0 40px}
+.hero-emoji{font-size:48px;margin-bottom:16px;display:block}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+.hero p{color:var(--muted);font-size:1.05rem;max-width:440px;margin:0 auto;line-height:1.5}
+.step{display:none;animation:fadeUp .4s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.step-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent1);margin-bottom:8px;font-weight:600}
+.step h2{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:20px}
+.options{display:flex;flex-wrap:wrap;gap:10px}
+.opt{padding:10px 18px;border-radius:40px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.92rem;cursor:pointer;transition:all .2s}
+.opt:hover{border-color:var(--accent1);background:rgba(249,115,22,.06)}
+.opt.selected{border-color:var(--accent1);background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(168,85,247,.1));color:#fff;font-weight:600}
+.progress{display:flex;gap:8px;justify-content:center;margin-bottom:40px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.done{background:var(--accent1)}
+.dot.current{background:var(--accent2);box-shadow:0 0 8px rgba(168,85,247,.5)}
+#results{display:none;animation:fadeUp .5s ease}
+#results.show{display:block}
+.plan-header{text-align:center;margin-bottom:32px}
+.plan-header h2{font-family:'Instrument Serif',serif;font-size:2rem;margin-bottom:6px}
+.plan-header p{color:var(--muted);font-size:.95rem}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;border-top:3px solid transparent;border-image:linear-gradient(90deg,var(--accent1),var(--accent2)) 1}
+.day-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent1);font-weight:700;margin-bottom:4px}
+.meal-name{font-family:'Instrument Serif',serif;font-size:1.35rem;margin-bottom:6px}
+.meal-meta{display:flex;gap:16px;font-size:.82rem;color:var(--muted);margin-bottom:10px;flex-wrap:wrap}
+.meal-meta span::before{margin-right:4px}
+.meal-desc{font-size:.9rem;line-height:1.55;color:#c0c0d0;margin-bottom:12px}
+.meal-macros{display:flex;gap:12px;flex-wrap:wrap}
+.macro{font-size:.78rem;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.macro b{color:var(--accent3)}
+.section-title{font-family:'Instrument Serif',serif;font-size:1.5rem;margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.grocery-list{columns:2;column-gap:24px;list-style:none}
+.grocery-list li{padding:6px 0;font-size:.9rem;break-inside:avoid;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.grocery-list li::before{content:'○';color:var(--accent2);font-size:.7rem;flex-shrink:0}
+.grocery-cat{font-weight:700;color:var(--accent1);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;margin-top:16px;break-after:avoid}
+.gear-section{margin-top:48px}
+.gear-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:12px;display:flex;gap:16px;align-items:center}
+.gear-info{flex:1}
+.gear-info h4{font-size:1rem;margin-bottom:4px}
+.gear-info p{font-size:.82rem;color:var(--muted);line-height:1.45}
+.gear-price{font-size:.85rem;color:var(--green);font-weight:600}
+.gear-link{display:inline-block;margin-top:8px;padding:8px 16px;border-radius:24px;background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;transition:opacity .2s}
+.gear-link:hover{opacity:.85}
+.cta-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;margin-top:40px}
+.cta-box h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:8px}
+.cta-box p{color:var(--muted);font-size:.88rem;margin-bottom:16px}
+.cta-box input{padding:10px 14px;border-radius:8px 0 0 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.9rem;width:60%;max-width:240px}
+.cta-box button{padding:10px 18px;border-radius:0 8px 8px 0;border:1px solid var(--accent1);background:var(--accent1);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.9rem;cursor:pointer;font-weight:600}
+.actions{display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.action-btn{padding:10px 20px;border-radius:24px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.88rem;cursor:pointer;transition:all .2s}
+.action-btn:hover{border-color:var(--accent1);background:rgba(249,115,22,.08)}
+.footer{text-align:center;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);color:var(--muted);font-size:.8rem}
+.footer a{color:var(--accent2);text-decoration:none}
+@media(max-width:500px){.grocery-list{columns:1}.gear-card{flex-direction:column;text-align:center}.meal-meta{justify-content:center}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="hero" id="hero">
+<span class="hero-emoji">🥘</span>
+<h1>MealStack</h1>
+<p>Build your perfect weekly meal prep plan in 60 seconds. Five days of meals, one grocery list, zero guesswork.</p>
+</div>
+
+<div class="progress" id="progress">
+<div class="dot current" data-s="0"></div>
+<div class="dot" data-s="1"></div>
+<div class="dot" data-s="2"></div>
+<div class="dot" data-s="3"></div>
+<div class="dot" data-s="4"></div>
+</div>
+
+<div class="step active" data-step="0">
+<div class="step-label">Step 1 of 5</div>
+<h2>What's your main goal?</h2>
+<div class="options" data-key="goal">
+<button class="opt" data-val="lose">🔥 Lose Weight</button>
+<button class="opt" data-val="maintain">⚖️ Maintain</button>
+<button class="opt" data-val="gain">💪 Build Muscle</button>
+<button class="opt" data-val="save">💰 Save Money</button>
+<button class="opt" data-val="quick">⚡ Quick & Easy</button>
+<button class="opt" data-val="family">👨‍👩‍👧‍👦 Feed the Family</button>
+</div>
+</div>
+
+<div class="step" data-step="1">
+<div class="step-label">Step 2 of 5</div>
+<h2>Any dietary preference?</h2>
+<div class="options" data-key="diet">
+<button class="opt" data-val="none">🍽️ No Restrictions</button>
+<button class="opt" data-val="lowcarb">🥑 Low Carb / Keto</button>
+<button class="opt" data-val="vegetarian">🥬 Vegetarian</button>
+<button class="opt" data-val="vegan">🌱 Vegan</button>
+<button class="opt" data-val="highprotein">🥩 High Protein</button>
+<button class="opt" data-val="mediterranean">🫒 Mediterranean</button>
+</div>
+</div>
+
+<div class="step" data-step="2">
+<div class="step-label">Step 3 of 5</div>
+<h2>How many servings per meal?</h2>
+<div class="options" data-key="servings">
+<button class="opt" data-val="1">1 — Just me</button>
+<button class="opt" data-val="2">2 — Couple</button>
+<button class="opt" data-val="4">4 — Family</button>
+<button class="opt" data-val="6">6 — Big crew</button>
+</div>
+</div>
+
+<div class="step" data-step="3">
+<div class="step-label">Step 4 of 5</div>
+<h2>How much time for Sunday prep?</h2>
+<div class="options" data-key="time">
+<button class="opt" data-val="30">⚡ 30 min (super quick)</button>
+<button class="opt" data-val="60">🕐 1 hour (balanced)</button>
+<button class="opt" data-val="90">👨‍🍳 1.5 hours (go all out)</button>
+<button class="opt" data-val="120">🔥 2+ hours (I love cooking)</button>
+</div>
+</div>
+
+<div class="step" data-step="4">
+<div class="step-label">Step 5 of 5</div>
+<h2>What protein do you prefer?</h2>
+<div class="options multi" data-key="protein">
+<button class="opt" data-val="chicken">🍗 Chicken</button>
+<button class="opt" data-val="beef">🥩 Beef</button>
+<button class="opt" data-val="fish">🐟 Fish / Seafood</button>
+<button class="opt" data-val="turkey">🦃 Turkey</button>
+<button class="opt" data-val="tofu">🧈 Tofu / Tempeh</button>
+<button class="opt" data-val="eggs">🥚 Eggs</button>
+<button class="opt" data-val="beans">🫘 Beans / Lentils</button>
+</div>
+<p style="color:var(--muted);font-size:.82rem;margin-top:12px">Pick as many as you like, then tap Generate ↓</p>
+<button class="opt" style="margin-top:16px;background:linear-gradient(135deg,var(--accent1),var(--accent2));border:none;color:#fff;font-weight:700;padding:12px 32px" onclick="generatePlan()">🚀 Generate My Plan</button>
+</div>
+
+<div id="results">
+<div class="plan-header">
+<h2>Your 5-Day Meal Prep Plan</h2>
+<p id="plan-subtitle"></p>
+</div>
+<div id="plan-cards"></div>
+
+<h3 class="section-title">🛒 Grocery List</h3>
+<div id="grocery"></div>
+
+<div class="actions">
+<button class="action-btn" onclick="copyGrocery()">📋 Copy Grocery List</button>
+<button class="action-btn" onclick="copyPlan()">📄 Copy Full Plan</button>
+<button class="action-btn" onclick="sharePlan()">📤 Share</button>
+<button class="action-btn" onclick="startOver()">🔄 New Plan</button>
+</div>
+
+<div class="gear-section">
+<h3 class="section-title">🔧 Meal Prep Essentials</h3>
+<div id="gear-cards"></div>
+</div>
+
+<div class="cta-box">
+<h3>Get Weekly Meal Prep Plans</h3>
+<p>New plan + grocery list every Sunday morning. Free forever.</p>
+<div>
+<input type="email" id="email" placeholder="you@email.com">
+<button onclick="captureEmail()">Subscribe</button>
+</div>
+</div>
+
+<div class="footer">
+<p>Built by <a href="https://stirman.net" target="_blank">stirman.net</a> · <a href="https://onenightbuild.com" target="_blank">One Night Build #19</a></p>
+<p style="margin-top:6px;font-size:.72rem">Affiliate links help support this free tool. We only recommend gear we'd actually use.</p>
+</div>
+</div>
+</div>
+
+<script>
+const A={};let step=0;const totalSteps=5;
+const meals={
+chicken:{
+lose:[
+{name:"Lemon Herb Grilled Chicken & Roasted Veggies",desc:"Juicy chicken breast marinated in lemon, garlic, and herbs, served over a bed of roasted broccoli, bell peppers, and zucchini.",time:25,cal:380,protein:42,carbs:18,fat:14,ingredients:["chicken breast","broccoli","bell pepper","zucchini","lemon","garlic","olive oil","Italian herbs"]},
+{name:"Thai Peanut Chicken Lettuce Wraps",desc:"Shredded chicken in a light peanut-lime sauce, wrapped in crisp butter lettuce with shredded carrots and cucumber.",time:20,cal:340,protein:38,carbs:14,fat:16,ingredients:["chicken breast","butter lettuce","carrots","cucumber","peanut butter","lime","soy sauce","sriracha"]},
+{name:"Chicken Fajita Bowl (No Tortilla)",desc:"Seasoned chicken strips with sautéed peppers and onions over cauliflower rice. All the flavor, fraction of the carbs.",time:25,cal:360,protein:40,carbs:16,fat:15,ingredients:["chicken breast","bell pepper","onion","cauliflower rice","chili powder","cumin","lime","olive oil"]},
+{name:"Greek Chicken Quinoa Bowl",desc:"Grilled chicken over fluffy quinoa with cucumber, tomato, kalamata olives, and a light tzatziki drizzle.",time:30,cal:410,protein:40,carbs:32,fat:14,ingredients:["chicken breast","quinoa","cucumber","cherry tomatoes","kalamata olives","red onion","Greek yogurt","dill"]},
+{name:"Sesame Ginger Chicken Stir-Fry",desc:"Quick stir-fried chicken with snap peas, mushrooms, and bok choy in a sesame-ginger sauce over brown rice.",time:20,cal:390,protein:38,carbs:34,fat:12,ingredients:["chicken breast","snap peas","mushrooms","bok choy","brown rice","sesame oil","ginger","soy sauce"]}
+],
+gain:[
+{name:"Loaded Chicken Burrito Bowl",desc:"Double chicken over cilantro-lime rice with black beans, corn, avocado, cheese, and salsa. Serious fuel.",time:30,cal:680,protein:55,carbs:62,fat:22,ingredients:["chicken breast","rice","black beans","corn","avocado","cheddar cheese","salsa","cilantro","lime"]},
+{name:"Chicken Parmesan with Pasta",desc:"Baked chicken breast with marinara and melted mozzarella over whole wheat penne. Classic comfort, real protein.",time:35,cal:650,protein:52,carbs:58,fat:20,ingredients:["chicken breast","whole wheat penne","marinara sauce","mozzarella","parmesan","Italian breadcrumbs","egg","olive oil"]},
+{name:"BBQ Chicken Sweet Potato Stack",desc:"Shredded BBQ chicken piled on roasted sweet potato halves with coleslaw and a drizzle of ranch.",time:40,cal:620,protein:48,carbs:56,fat:18,ingredients:["chicken breast","sweet potatoes","BBQ sauce","cabbage","carrots","Greek yogurt","apple cider vinegar","ranch seasoning"]},
+{name:"Teriyaki Chicken Rice Bowl",desc:"Glazed teriyaki chicken thighs over jasmine rice with steamed edamame and pickled ginger.",time:25,cal:640,protein:46,carbs:68,fat:16,ingredients:["chicken thighs","jasmine rice","edamame","soy sauce","honey","rice vinegar","ginger","sesame seeds"]},
+{name:"Chicken & Broccoli Alfredo",desc:"Creamy garlic alfredo sauce with chicken and broccoli over fettuccine. Indulgent but packed with protein.",time:30,cal:670,protein:50,carbs:54,fat:26,ingredients:["chicken breast","fettuccine","broccoli","heavy cream","parmesan","garlic","butter","black pepper"]}
+],
+maintain:[
+{name:"Mediterranean Chicken Bowl",desc:"Herb-roasted chicken with couscous, roasted chickpeas, cucumber, tomato, feta, and lemon-tahini dressing.",time:30,cal:520,protein:42,carbs:44,fat:18,ingredients:["chicken breast","couscous","chickpeas","cucumber","cherry tomatoes","feta cheese","tahini","lemon"]},
+{name:"Honey Mustard Chicken & Roasted Vegetables",desc:"Baked chicken glazed with honey mustard alongside roasted sweet potato, Brussels sprouts, and red onion.",time:35,cal:490,protein:40,carbs:42,fat:16,ingredients:["chicken breast","sweet potato","Brussels sprouts","red onion","honey","Dijon mustard","olive oil","garlic"]},
+{name:"Chicken Tikka Masala with Rice",desc:"Tender chicken in a creamy tomato-spice sauce over basmati rice. Restaurant flavor, meal prep friendly.",time:35,cal:530,protein:40,carbs:48,fat:18,ingredients:["chicken breast","basmati rice","crushed tomatoes","coconut milk","onion","garlic","ginger","garam masala","turmeric"]},
+{name:"Southwest Chicken Salad",desc:"Grilled chicken over romaine with black beans, corn, avocado, tortilla strips, and chipotle-lime dressing.",time:20,cal:480,protein:42,carbs:36,fat:20,ingredients:["chicken breast","romaine","black beans","corn","avocado","tortilla strips","chipotle","lime","Greek yogurt"]},
+{name:"Chicken Sausage & Veggie Sheet Pan",desc:"Sliced chicken sausage with roasted potatoes, peppers, and onions. One pan, zero effort, great macros.",time:30,cal:460,protein:34,carbs:40,fat:18,ingredients:["chicken sausage","baby potatoes","bell pepper","onion","olive oil","smoked paprika","garlic powder","Italian herbs"]}
+]
+},
+beef:{
+lose:[
+{name:"Korean Beef Lettuce Cups",desc:"Savory ground beef in a sweet-spicy Korean sauce wrapped in crisp butter lettuce with pickled veggies.",time:20,cal:370,protein:36,carbs:12,fat:20,ingredients:["lean ground beef","butter lettuce","soy sauce","sesame oil","ginger","garlic","rice vinegar","green onion","sriracha"]},
+{name:"Steak & Asparagus with Chimichurri",desc:"Seared flank steak sliced thin with roasted asparagus and a bright herb chimichurri sauce.",time:25,cal:400,protein:42,carbs:8,fat:22,ingredients:["flank steak","asparagus","parsley","cilantro","garlic","red wine vinegar","olive oil","red pepper flakes"]},
+{name:"Beef & Broccoli (Lighter Version)",desc:"Tender beef strips stir-fried with broccoli in a light soy-ginger sauce over cauliflower rice.",time:20,cal:360,protein:38,carbs:14,fat:18,ingredients:["sirloin steak","broccoli","cauliflower rice","soy sauce","ginger","garlic","cornstarch","sesame oil"]},
+{name:"Taco Salad Bowl",desc:"Seasoned ground beef over mixed greens with pico de gallo, jalapeño, and a squeeze of lime. No shell needed.",time:15,cal:380,protein:36,carbs:12,fat:22,ingredients:["lean ground beef","mixed greens","tomato","onion","jalapeño","lime","chili powder","cumin","cilantro"]},
+{name:"Beef Zucchini Boats",desc:"Hollowed zucchini stuffed with seasoned ground beef, tomato sauce, and a sprinkle of cheese. Low carb comfort.",time:30,cal:350,protein:34,carbs:14,fat:18,ingredients:["lean ground beef","zucchini","marinara sauce","mozzarella","onion","garlic","Italian herbs","olive oil"]}
+],
+gain:[
+{name:"Steak & Loaded Baked Potato",desc:"Grilled ribeye with a fully loaded baked potato — butter, sour cream, cheese, bacon bits, chives.",time:40,cal:780,protein:52,carbs:56,fat:36,ingredients:["ribeye steak","russet potato","butter","sour cream","cheddar cheese","bacon","chives","olive oil"]},
+{name:"Beef Chili with Cornbread",desc:"Hearty ground beef chili with beans, tomatoes, and spices. Served with warm buttery cornbread.",time:45,cal:720,protein:48,carbs:64,fat:26,ingredients:["ground beef","kidney beans","crushed tomatoes","onion","bell pepper","chili powder","cumin","cornmeal","butter"]},
+{name:"Smash Burger Bowl",desc:"Double smash-style beef patties over rice with pickles, special sauce, cheese, and crispy onions.",time:20,cal:700,protein:50,carbs:52,fat:30,ingredients:["ground beef","rice","American cheese","pickles","onion","ketchup","mustard","mayo","lettuce"]},
+{name:"Beef Stroganoff",desc:"Tender beef strips in a creamy mushroom sauce over egg noodles. Old-school gains meal.",time:35,cal:680,protein:46,carbs:54,fat:28,ingredients:["sirloin steak","egg noodles","mushrooms","onion","sour cream","beef broth","garlic","Worcestershire sauce"]},
+{name:"Beef & Black Bean Rice Bowl",desc:"Seasoned ground beef with black beans, corn, and peppers over Spanish rice with melted cheese.",time:25,cal:660,protein:46,carbs:62,fat:24,ingredients:["ground beef","rice","black beans","corn","bell pepper","tomato sauce","cumin","chili powder","cheddar cheese"]}
+],
+maintain:[
+{name:"Mediterranean Beef Kofta Bowl",desc:"Spiced beef kofta over couscous with cucumber-tomato salad, hummus, and a drizzle of tahini.",time:30,cal:530,protein:40,carbs:42,fat:22,ingredients:["ground beef","couscous","cucumber","tomato","hummus","tahini","parsley","cumin","coriander"]},
+{name:"Beef & Vegetable Stew",desc:"Slow-simmered beef chunks with potatoes, carrots, and celery in a rich tomato-herb broth.",time:50,cal:480,protein:38,carbs:40,fat:18,ingredients:["beef chuck","potatoes","carrots","celery","crushed tomatoes","beef broth","onion","garlic","thyme"]},
+{name:"Asian Beef Noodle Bowl",desc:"Sliced beef with rice noodles, snap peas, and carrots in a savory soy-hoisin sauce.",time:25,cal:510,protein:38,carbs:48,fat:18,ingredients:["sirloin steak","rice noodles","snap peas","carrots","soy sauce","hoisin sauce","garlic","lime","cilantro"]},
+{name:"Classic Meatloaf with Mashed Potatoes",desc:"Tender glazed meatloaf with creamy garlic mashed potatoes and steamed green beans.",time:50,cal:540,protein:38,carbs:44,fat:22,ingredients:["ground beef","breadcrumbs","egg","onion","ketchup","potatoes","butter","milk","green beans"]},
+{name:"Beef Tacos with Corn Salsa",desc:"Seasoned ground beef in corn tortillas with fresh corn salsa, cotija cheese, and lime crema.",time:20,cal:490,protein:36,carbs:42,fat:20,ingredients:["ground beef","corn tortillas","corn","tomato","red onion","cotija cheese","sour cream","lime","cilantro"]}
+]
+},
+fish:{
+lose:[
+{name:"Garlic Butter Salmon & Asparagus",desc:"Pan-seared salmon fillet with garlic butter, served alongside roasted asparagus and lemon wedges.",time:20,cal:380,protein:40,carbs:6,fat:22,ingredients:["salmon fillet","asparagus","butter","garlic","lemon","olive oil","salt","pepper"]},
+{name:"Shrimp Cauliflower Fried Rice",desc:"Quick stir-fried shrimp with cauliflower rice, peas, carrots, and egg in a light soy-sesame sauce.",time:15,cal:320,protein:34,carbs:14,fat:14,ingredients:["shrimp","cauliflower rice","peas","carrots","egg","soy sauce","sesame oil","garlic","green onion"]},
+{name:"Tuna Poke Bowl",desc:"Fresh ahi tuna over rice with avocado, edamame, cucumber, and a soy-sesame dressing.",time:15,cal:400,protein:38,carbs:32,fat:16,ingredients:["ahi tuna","sushi rice","avocado","edamame","cucumber","soy sauce","sesame oil","rice vinegar","sesame seeds"]},
+{name:"Blackened Cod with Slaw",desc:"Cajun-spiced cod fillet with a crunchy apple-cabbage slaw and lemon-herb aioli.",time:15,cal:340,protein:36,carbs:12,fat:16,ingredients:["cod fillet","cabbage","apple","lemon","mayo","cajun seasoning","olive oil","cilantro"]},
+{name:"Mediterranean Shrimp Skewers",desc:"Grilled shrimp skewers with zucchini and cherry tomatoes, served with tzatziki and a side salad.",time:20,cal:330,protein:36,carbs:12,fat:14,ingredients:["shrimp","zucchini","cherry tomatoes","Greek yogurt","cucumber","dill","lemon","olive oil"]}
+],
+gain:[
+{name:"Salmon Teriyaki Rice Bowl",desc:"Glazed teriyaki salmon over jasmine rice with steamed broccoli and pickled ginger.",time:25,cal:620,protein:44,carbs:62,fat:18,ingredients:["salmon fillet","jasmine rice","broccoli","soy sauce","honey","rice vinegar","ginger","sesame seeds"]},
+{name:"Shrimp Pasta Alfredo",desc:"Jumbo shrimp in a creamy parmesan alfredo sauce over linguine with sun-dried tomatoes.",time:25,cal:650,protein:42,carbs:56,fat:26,ingredients:["shrimp","linguine","heavy cream","parmesan","garlic","butter","sun-dried tomatoes","basil"]},
+{name:"Fish Tacos with Mango Salsa",desc:"Crispy beer-battered fish in flour tortillas with mango salsa, cabbage, and chipotle crema. Three per serving.",time:30,cal:640,protein:38,carbs:58,fat:24,ingredients:["white fish","flour tortillas","mango","red onion","jalapeño","cabbage","sour cream","chipotle","lime"]},
+{name:"Cajun Shrimp & Grits",desc:"Blackened shrimp over creamy cheddar grits with andouille sausage and a spicy cream sauce.",time:30,cal:660,protein:44,carbs:52,fat:28,ingredients:["shrimp","grits","cheddar cheese","andouille sausage","heavy cream","cajun seasoning","butter","green onion"]},
+{name:"Tuna Melt with Sweet Potato Fries",desc:"Open-faced tuna melt on sourdough with melted Swiss, served with baked sweet potato fries.",time:25,cal:620,protein:40,carbs:54,fat:24,ingredients:["canned tuna","sourdough bread","Swiss cheese","mayo","celery","sweet potatoes","olive oil","Dijon mustard"]}
+],
+maintain:[
+{name:"Honey Garlic Salmon Bowl",desc:"Baked salmon in honey-garlic glaze over quinoa with steamed broccoli and edamame.",time:25,cal:520,protein:42,carbs:44,fat:18,ingredients:["salmon fillet","quinoa","broccoli","edamame","honey","garlic","soy sauce","sesame seeds"]},
+{name:"Shrimp Stir-Fry with Noodles",desc:"Garlic shrimp with vegetables and lo mein noodles in a savory oyster sauce.",time:20,cal:480,protein:36,carbs:48,fat:14,ingredients:["shrimp","lo mein noodles","bell pepper","snap peas","carrots","garlic","oyster sauce","sesame oil"]},
+{name:"Baked Cod with Roasted Potatoes",desc:"Herb-crusted baked cod with lemon, served alongside roasted baby potatoes and green beans.",time:30,cal:460,protein:38,carbs:40,fat:14,ingredients:["cod fillet","baby potatoes","green beans","lemon","panko","parsley","garlic","olive oil"]},
+{name:"Tuna Nicoise Salad",desc:"Classic French salad with seared tuna, boiled eggs, potatoes, green beans, olives, and Dijon vinaigrette.",time:25,cal:500,protein:40,carbs:32,fat:22,ingredients:["ahi tuna","eggs","baby potatoes","green beans","mixed greens","kalamata olives","Dijon mustard","olive oil"]},
+{name:"Coconut Curry Shrimp",desc:"Shrimp simmered in a fragrant coconut curry with bell peppers and spinach, served over basmati rice.",time:25,cal:490,protein:36,carbs:46,fat:18,ingredients:["shrimp","coconut milk","bell pepper","spinach","basmati rice","curry paste","garlic","ginger","lime"]}
+]
+},
+tofu:{
+lose:[
+{name:"Crispy Tofu Buddha Bowl",desc:"Baked crispy tofu over brown rice with roasted sweet potato, kale, avocado, and tahini dressing.",time:30,cal:380,protein:22,carbs:40,fat:16,ingredients:["firm tofu","brown rice","sweet potato","kale","avocado","tahini","lemon","garlic","soy sauce"]},
+{name:"Tofu Lettuce Wraps",desc:"Crumbled tofu sautéed with water chestnuts in a hoisin-ginger sauce, served in butter lettuce cups.",time:15,cal:300,protein:20,carbs:18,fat:16,ingredients:["firm tofu","butter lettuce","water chestnuts","hoisin sauce","ginger","garlic","soy sauce","sesame oil","green onion"]},
+{name:"Tofu Stir-Fry with Vegetables",desc:"Crispy tofu with broccoli, bell peppers, and snap peas in a garlic-soy sauce over cauliflower rice.",time:20,cal:320,protein:22,carbs:18,fat:18,ingredients:["firm tofu","broccoli","bell pepper","snap peas","cauliflower rice","soy sauce","garlic","cornstarch","sesame oil"]},
+{name:"Miso Soup with Tofu & Greens",desc:"Warming miso broth with silken tofu, wakame, mushrooms, and bok choy. Light but satisfying.",time:15,cal:240,protein:16,carbs:14,fat:12,ingredients:["silken tofu","miso paste","wakame","mushrooms","bok choy","green onion","ginger","dashi"]},
+{name:"Spicy Tofu Cauliflower Tacos",desc:"Crispy spiced tofu crumbles in corn tortillas with roasted cauliflower, cabbage slaw, and avocado crema.",time:25,cal:350,protein:20,carbs:32,fat:16,ingredients:["firm tofu","corn tortillas","cauliflower","cabbage","avocado","lime","chili powder","cumin","cilantro"]}
+],
+gain:[
+{name:"Tofu Pad Thai",desc:"Classic pad thai with crispy tofu, rice noodles, bean sprouts, peanuts, and a tangy tamarind sauce.",time:25,cal:580,protein:28,carbs:64,fat:22,ingredients:["firm tofu","rice noodles","bean sprouts","peanuts","egg","tamarind paste","fish sauce","lime","green onion"]},
+{name:"Tofu Tikka Masala",desc:"Baked tofu in a creamy spiced tomato sauce over basmati rice with naan on the side.",time:30,cal:600,protein:26,carbs:62,fat:24,ingredients:["firm tofu","basmati rice","crushed tomatoes","coconut milk","onion","garlic","ginger","garam masala","naan"]},
+{name:"BBQ Tofu & Loaded Sweet Potatoes",desc:"Smoky BBQ-glazed tofu on top of loaded baked sweet potatoes with black beans and corn.",time:35,cal:560,protein:24,carbs:72,fat:16,ingredients:["firm tofu","sweet potatoes","BBQ sauce","black beans","corn","green onion","cilantro","olive oil"]},
+{name:"Tofu Fried Rice",desc:"Crispy tofu cubes in a loaded fried rice with peas, carrots, corn, egg, and soy sauce.",time:20,cal:540,protein:26,carbs:60,fat:20,ingredients:["firm tofu","jasmine rice","peas","carrots","corn","egg","soy sauce","sesame oil","garlic","green onion"]},
+{name:"Peanut Tofu Noodle Bowl",desc:"Thick peanut sauce over soba noodles with crispy tofu, edamame, shredded carrots, and cucumber.",time:20,cal:580,protein:30,carbs:58,fat:24,ingredients:["firm tofu","soba noodles","peanut butter","edamame","carrots","cucumber","soy sauce","lime","sriracha"]}
+],
+maintain:[
+{name:"Teriyaki Tofu Bowl",desc:"Glazed teriyaki tofu over rice with steamed broccoli, edamame, and pickled ginger.",time:25,cal:480,protein:24,carbs:52,fat:18,ingredients:["firm tofu","jasmine rice","broccoli","edamame","soy sauce","honey","rice vinegar","ginger","sesame seeds"]},
+{name:"Tofu & Vegetable Curry",desc:"Coconut curry with tofu, chickpeas, spinach, and sweet potato over basmati rice.",time:30,cal:500,protein:22,carbs:56,fat:20,ingredients:["firm tofu","coconut milk","chickpeas","spinach","sweet potato","basmati rice","curry paste","garlic","ginger"]},
+{name:"Stuffed Bell Peppers with Tofu",desc:"Bell peppers stuffed with seasoned tofu crumble, rice, black beans, and cheese, baked until bubbly.",time:35,cal:460,protein:24,carbs:44,fat:18,ingredients:["firm tofu","bell peppers","rice","black beans","corn","cheese","tomato sauce","cumin","chili powder"]},
+{name:"Tofu Banh Mi Bowl",desc:"Lemongrass-marinated tofu with pickled daikon, carrots, cucumber, jalapeño, and cilantro over rice.",time:25,cal:470,protein:22,carbs:50,fat:18,ingredients:["firm tofu","rice","daikon","carrots","cucumber","jalapeño","cilantro","lemongrass","soy sauce","rice vinegar"]},
+{name:"Maple Miso Tofu with Roasted Vegetables",desc:"Tofu glazed in maple-miso sauce with roasted Brussels sprouts, sweet potato, and quinoa.",time:35,cal:490,protein:24,carbs:52,fat:18,ingredients:["firm tofu","quinoa","Brussels sprouts","sweet potato","miso paste","maple syrup","soy sauce","olive oil"]}
+]
+},
+eggs:{
+lose:[
+{name:"Veggie Frittata Cups",desc:"Egg muffins loaded with spinach, bell peppers, onion, and feta. Grab two for a perfect high-protein meal.",time:25,cal:320,protein:26,carbs:8,fat:20,ingredients:["eggs","spinach","bell pepper","onion","feta cheese","olive oil","salt","pepper"]},
+{name:"Shakshuka",desc:"Eggs poached in a spiced tomato-pepper sauce with crumbled feta and fresh herbs. Serve with one slice of toast.",time:25,cal:340,protein:24,carbs:18,fat:20,ingredients:["eggs","crushed tomatoes","bell pepper","onion","garlic","cumin","paprika","feta cheese","bread"]},
+{name:"Egg & Avocado Power Bowl",desc:"Soft-boiled eggs over mixed greens with avocado, cherry tomatoes, seeds, and a lemon-olive oil dressing.",time:15,cal:380,protein:24,carbs:16,fat:26,ingredients:["eggs","mixed greens","avocado","cherry tomatoes","pumpkin seeds","lemon","olive oil","everything bagel seasoning"]},
+{name:"Turkish Eggs (Cilbir)",desc:"Poached eggs over garlicky yogurt with a drizzle of spiced butter and Aleppo pepper. Served with cucumber.",time:15,cal:340,protein:22,carbs:8,fat:24,ingredients:["eggs","Greek yogurt","butter","garlic","Aleppo pepper","dill","cucumber","olive oil"]},
+{name:"Egg Roll in a Bowl",desc:"Scrambled eggs with ground turkey, cabbage, carrots, and a soy-ginger sauce. All the egg roll flavor, no wrapper.",time:15,cal:360,protein:30,carbs:12,fat:20,ingredients:["eggs","ground turkey","cabbage","carrots","soy sauce","ginger","garlic","sesame oil","green onion"]}
+],
+gain:[
+{name:"Breakfast Burrito Meal Prep",desc:"Scrambled eggs with chorizo, black beans, cheese, and potatoes wrapped in large flour tortillas.",time:25,cal:680,protein:38,carbs:54,fat:32,ingredients:["eggs","chorizo","black beans","cheddar cheese","potatoes","flour tortillas","salsa","sour cream"]},
+{name:"French Toast Casserole",desc:"Thick-cut brioche baked in a cinnamon-vanilla egg custard. Top with maple syrup and berries.",time:40,cal:620,protein:28,carbs:66,fat:26,ingredients:["eggs","brioche bread","milk","vanilla","cinnamon","maple syrup","butter","berries"]},
+{name:"Egg Fried Rice (Loaded)",desc:"Three-egg fried rice with bacon, peas, corn, and green onion in a wok-charred soy sauce.",time:15,cal:600,protein:32,carbs:58,fat:24,ingredients:["eggs","jasmine rice","bacon","peas","corn","soy sauce","sesame oil","garlic","green onion"]},
+{name:"Huevos Rancheros Plate",desc:"Fried eggs over crispy tortillas with ranchero sauce, refried beans, cheese, avocado, and rice.",time:25,cal:700,protein:34,carbs:62,fat:32,ingredients:["eggs","corn tortillas","refried beans","tomato sauce","jalapeño","cheddar cheese","avocado","rice","cilantro"]},
+{name:"Eggs Benedict (Meal Prep Style)",desc:"Poached eggs and Canadian bacon on English muffins with a quick hollandaise. Two per serving.",time:30,cal:640,protein:36,carbs:40,fat:34,ingredients:["eggs","Canadian bacon","English muffins","butter","lemon","Dijon mustard","cayenne","chives"]}
+],
+maintain:[
+{name:"Egg & Veggie Breakfast Burritos",desc:"Scrambled eggs with sautéed peppers, onions, black beans, and cheese in whole wheat tortillas.",time:20,cal:480,protein:28,carbs:42,fat:22,ingredients:["eggs","whole wheat tortillas","bell pepper","onion","black beans","cheddar cheese","salsa","olive oil"]},
+{name:"Crustless Quiche",desc:"Baked egg custard with broccoli, mushrooms, Swiss cheese, and herbs. Slices beautifully for meal prep.",time:40,cal:420,protein:28,carbs:10,fat:30,ingredients:["eggs","heavy cream","broccoli","mushrooms","Swiss cheese","onion","thyme","nutmeg"]},
+{name:"Egg Curry",desc:"Hard-boiled eggs simmered in a fragrant onion-tomato curry sauce. Served over basmati rice.",time:30,cal:480,protein:24,carbs:46,fat:22,ingredients:["eggs","basmati rice","onion","tomato","coconut milk","garlic","ginger","curry powder","cilantro"]},
+{name:"Nicoise-Style Egg Salad",desc:"Halved eggs over mixed greens with potatoes, green beans, olives, and a tangy Dijon vinaigrette.",time:20,cal:440,protein:24,carbs:30,fat:24,ingredients:["eggs","mixed greens","baby potatoes","green beans","kalamata olives","Dijon mustard","olive oil","capers"]},
+{name:"Korean Egg & Rice Bowl",desc:"Fried eggs over steamed rice with kimchi, soy sauce, sesame oil, and a drizzle of gochujang.",time:10,cal:460,protein:22,carbs:52,fat:18,ingredients:["eggs","jasmine rice","kimchi","soy sauce","sesame oil","gochujang","green onion","sesame seeds"]}
+]
+},
+beans:{
+lose:[
+{name:"Black Bean & Sweet Potato Bowl",desc:"Roasted sweet potato cubes with seasoned black beans, corn, avocado, and a lime-cilantro dressing.",time:30,cal:380,protein:16,carbs:54,fat:12,ingredients:["black beans","sweet potato","corn","avocado","lime","cilantro","cumin","chili powder","olive oil"]},
+{name:"Lentil Soup",desc:"Hearty red lentil soup with carrots, celery, onion, and warm spices. High fiber, incredibly filling.",time:30,cal:320,protein:20,carbs:46,fat:6,ingredients:["red lentils","carrots","celery","onion","garlic","cumin","turmeric","lemon","olive oil"]},
+{name:"Chickpea Salad Stuffed Avocados",desc:"Mashed chickpea salad with celery, red onion, and lemon-dill dressing, stuffed into avocado halves.",time:10,cal:360,protein:14,carbs:30,fat:22,ingredients:["chickpeas","avocado","celery","red onion","lemon","dill","Dijon mustard","olive oil"]},
+{name:"White Bean & Kale Soup",desc:"Tuscan-style soup with cannellini beans, kale, tomatoes, and Italian herbs. Rustic and satisfying.",time:25,cal:310,protein:18,carbs:42,fat:8,ingredients:["cannellini beans","kale","crushed tomatoes","onion","garlic","Italian herbs","parmesan rind","olive oil"]},
+{name:"Spicy Lentil Tacos",desc:"Seasoned lentils as taco filling with cabbage slaw, pico de gallo, and avocado crema in corn tortillas.",time:20,cal:370,protein:18,carbs:48,fat:12,ingredients:["brown lentils","corn tortillas","cabbage","tomato","onion","avocado","lime","chili powder","cumin"]}
+],
+gain:[
+{name:"Three-Bean Chili with Cornbread",desc:"Hearty chili with kidney, black, and pinto beans in a smoky tomato base. Served with buttery cornbread.",time:40,cal:640,protein:32,carbs:80,fat:18,ingredients:["kidney beans","black beans","pinto beans","crushed tomatoes","onion","bell pepper","chili powder","cornmeal","butter"]},
+{name:"Chickpea & Spinach Curry with Naan",desc:"Creamy coconut chickpea curry with spinach over rice, served with garlic naan.",time:30,cal:620,protein:24,carbs:76,fat:22,ingredients:["chickpeas","coconut milk","spinach","basmati rice","naan","onion","garlic","ginger","curry powder"]},
+{name:"Lentil Bolognese with Pasta",desc:"Rich lentil-mushroom ragu over rigatoni with parmesan. Meaty texture, entirely plant-based protein.",time:35,cal:580,protein:28,carbs:78,fat:14,ingredients:["brown lentils","rigatoni","mushrooms","crushed tomatoes","onion","garlic","carrots","parmesan","olive oil"]},
+{name:"Black Bean Enchiladas",desc:"Rolled flour tortillas stuffed with black beans, cheese, and corn, smothered in enchilada sauce.",time:35,cal:640,protein:28,carbs:70,fat:24,ingredients:["black beans","flour tortillas","cheddar cheese","corn","enchilada sauce","onion","sour cream","cilantro"]},
+{name:"Falafel Plate with Hummus",desc:"Crispy baked falafel with hummus, pita, tabbouleh, and pickled turnips.",time:40,cal:600,protein:24,carbs:68,fat:24,ingredients:["chickpeas","pita bread","tahini","parsley","bulgur","cucumber","tomato","lemon","garlic"]}
+],
+maintain:[
+{name:"Mediterranean Lentil Bowl",desc:"Green lentils with roasted red pepper, feta, cucumber, and a lemon-herb vinaigrette over mixed greens.",time:25,cal:460,protein:24,carbs:48,fat:18,ingredients:["green lentils","roasted red pepper","feta cheese","cucumber","mixed greens","lemon","olive oil","herbs"]},
+{name:"Black Bean Burrito Bowl",desc:"Black beans over cilantro-lime rice with corn, salsa, avocado, and a dollop of Greek yogurt.",time:20,cal:480,protein:20,carbs:62,fat:16,ingredients:["black beans","rice","corn","salsa","avocado","Greek yogurt","lime","cilantro"]},
+{name:"Chickpea Stir-Fry",desc:"Crispy roasted chickpeas with broccoli, bell peppers, and cashews in a teriyaki sauce over rice.",time:25,cal:490,protein:20,carbs:56,fat:20,ingredients:["chickpeas","broccoli","bell pepper","cashews","rice","soy sauce","honey","garlic","ginger"]},
+{name:"Lentil & Roasted Vegetable Salad",desc:"Warm French lentils with roasted beets, goat cheese, walnuts, and a balsamic-Dijon dressing.",time:35,cal:470,protein:22,carbs:44,fat:22,ingredients:["French lentils","beets","goat cheese","walnuts","arugula","balsamic vinegar","Dijon mustard","olive oil"]},
+{name:"White Bean & Sausage Skillet",desc:"Cannellini beans with chicken sausage, cherry tomatoes, and spinach in a garlic-herb broth.",time:20,cal:460,protein:30,carbs:38,fat:18,ingredients:["cannellini beans","chicken sausage","cherry tomatoes","spinach","garlic","chicken broth","Italian herbs","olive oil"]}
+]
+},
+turkey:{
+lose:[
+{name:"Turkey Taco Lettuce Wraps",desc:"Seasoned ground turkey with salsa, corn, and cheese in crisp butter lettuce cups.",time:15,cal:340,protein:36,carbs:12,fat:16,ingredients:["ground turkey","butter lettuce","salsa","corn","cheddar cheese","chili powder","cumin","garlic","lime"]},
+{name:"Turkey & Zucchini Noodle Stir-Fry",desc:"Ground turkey with spiralized zucchini noodles in a light sesame-soy sauce with veggies.",time:15,cal:320,protein:34,carbs:14,fat:14,ingredients:["ground turkey","zucchini","bell pepper","carrots","soy sauce","sesame oil","ginger","garlic","green onion"]},
+{name:"Turkey Meatball & Veggie Soup",desc:"Lean turkey meatballs in a light tomato broth with zucchini, spinach, and cannellini beans.",time:30,cal:360,protein:36,carbs:22,fat:14,ingredients:["ground turkey","crushed tomatoes","zucchini","spinach","cannellini beans","onion","garlic","Italian herbs","parmesan"]},
+{name:"Turkey Stuffed Peppers",desc:"Bell peppers stuffed with ground turkey, cauliflower rice, tomato sauce, and mozzarella.",time:35,cal:350,protein:34,carbs:16,fat:16,ingredients:["ground turkey","bell peppers","cauliflower rice","tomato sauce","mozzarella","onion","garlic","Italian herbs"]},
+{name:"Asian Turkey Lettuce Cups",desc:"Ground turkey in a sweet chili-lime sauce with water chestnuts, served in butter lettuce with crispy wonton strips.",time:20,cal:350,protein:34,carbs:16,fat:16,ingredients:["ground turkey","butter lettuce","water chestnuts","sweet chili sauce","lime","soy sauce","garlic","wonton strips"]}
+],
+gain:[
+{name:"Turkey Sausage Pasta Bake",desc:"Italian turkey sausage with penne in a creamy tomato sauce, topped with mozzarella and baked golden.",time:35,cal:660,protein:44,carbs:56,fat:26,ingredients:["Italian turkey sausage","penne","marinara sauce","heavy cream","mozzarella","parmesan","garlic","basil"]},
+{name:"Turkey Burger with Sweet Potato Fries",desc:"Loaded turkey burgers with avocado, bacon, and Swiss on brioche buns. Baked sweet potato fries on the side.",time:30,cal:700,protein:46,carbs:58,fat:28,ingredients:["ground turkey","brioche buns","avocado","bacon","Swiss cheese","sweet potatoes","olive oil","lettuce","tomato"]},
+{name:"Turkey Chili Mac",desc:"Ground turkey chili with elbow macaroni, beans, and cheese. One-pot comfort food.",time:30,cal:640,protein:44,carbs:60,fat:22,ingredients:["ground turkey","elbow macaroni","kidney beans","crushed tomatoes","cheddar cheese","onion","chili powder","cumin"]},
+{name:"Thanksgiving Bowl",desc:"Sliced turkey breast over stuffing with mashed potatoes, gravy, cranberry sauce, and green beans.",time:40,cal:680,protein:48,carbs:62,fat:24,ingredients:["turkey breast","stuffing mix","potatoes","butter","cranberry sauce","green beans","turkey gravy","thyme"]},
+{name:"Turkey Bolognese with Garlic Bread",desc:"Rich ground turkey bolognese over spaghetti with toasted garlic bread.",time:35,cal:660,protein:42,carbs:64,fat:22,ingredients:["ground turkey","spaghetti","crushed tomatoes","onion","garlic","carrots","celery","Italian bread","butter","parmesan"]}
+],
+maintain:[
+{name:"Turkey & Quinoa Stuffed Zucchini",desc:"Zucchini boats filled with ground turkey, quinoa, tomatoes, and herbs, topped with melted cheese.",time:35,cal:460,protein:38,carbs:30,fat:20,ingredients:["ground turkey","zucchini","quinoa","cherry tomatoes","mozzarella","garlic","basil","olive oil"]},
+{name:"Turkey & Sweet Potato Skillet",desc:"Ground turkey with sweet potato, black beans, corn, and Southwest spices. One-pan meal.",time:25,cal:480,protein:38,carbs:44,fat:16,ingredients:["ground turkey","sweet potato","black beans","corn","chili powder","cumin","lime","cilantro","olive oil"]},
+{name:"Turkey Club Wrap",desc:"Sliced turkey breast with bacon, avocado, lettuce, tomato, and ranch in a whole wheat wrap.",time:10,cal:480,protein:38,carbs:34,fat:22,ingredients:["deli turkey","whole wheat wraps","bacon","avocado","lettuce","tomato","ranch dressing"]},
+{name:"Turkey Meatballs with Marinara & Rice",desc:"Baked turkey meatballs in a rich marinara sauce over fluffy white rice with steamed broccoli.",time:35,cal:490,protein:38,carbs:46,fat:16,ingredients:["ground turkey","rice","marinara sauce","breadcrumbs","egg","garlic","Italian herbs","broccoli","parmesan"]},
+{name:"Greek Turkey Bowl",desc:"Seasoned ground turkey over rice with cucumber, tomato, red onion, feta, and tzatziki.",time:20,cal:470,protein:38,carbs:40,fat:18,ingredients:["ground turkey","rice","cucumber","tomato","red onion","feta cheese","Greek yogurt","dill","lemon"]}
+]
+}
+};
+
+const goalMap={lose:'lose',maintain:'maintain',gain:'gain',save:'maintain',quick:'maintain',family:'maintain'};
+const gear=[
+{name:"Glass Meal Prep Containers (10-pack)",desc:"Airtight, microwave-safe, dishwasher-safe. The #1 upgrade for serious meal preppers.",price:"$32",url:"https://www.amazon.com/dp/B0CL5R6DKR?tag=stirman-20"},
+{name:"Instant Pot Duo 7-in-1 (6 Qt)",desc:"Pressure cooker, slow cooker, rice cooker, steamer, and more. Cuts cooking time by 70%.",price:"$89",url:"https://www.amazon.com/dp/B00FLYWNYQ?tag=stirman-20"},
+{name:"OXO Good Grips 3-Piece Cutting Board Set",desc:"Non-slip, color-coded boards for proteins, veggies, and everything else.",price:"$35",url:"https://www.amazon.com/dp/B09BJPTKHZ?tag=stirman-20"},
+{name:"Lodge 12\" Cast Iron Skillet",desc:"The do-everything pan. Sears, bakes, goes stovetop to oven. Lasts a lifetime.",price:"$28",url:"https://www.amazon.com/dp/B00006JSUA?tag=stirman-20"},
+{name:"ThermoPro Digital Meat Thermometer",desc:"Instant-read temp in 3 seconds. Never over/undercook protein again.",price:"$14",url:"https://www.amazon.com/dp/B01IHHLB3W?tag=stirman-20"},
+{name:"Prep Naturals Portion Control Containers (21-pack)",desc:"Color-coded portion containers for perfect macros every time. Great with any meal plan.",price:"$18",url:"https://www.amazon.com/dp/B0787YGG56?tag=stirman-20"},
+{name:"\"Meal Prep\" by Flavcity (Cookbook)",desc:"200+ meal prep recipes with macro breakdowns. The bible for batch cooking.",price:"$22",url:"https://www.amazon.com/dp/1642505773?tag=stirman-20"},
+{name:"KitchenAid Immersion Blender",desc:"Perfect for soups, sauces, and smoothies. Blend right in the pot.",price:"$38",url:"https://www.amazon.com/dp/B07NQS7GQT?tag=stirman-20"}
+];
+
+function pickMeals(){
+const goal=goalMap[A.goal]||'maintain';
+const proteins=A.protein||['chicken'];
+let pool=[];
+proteins.forEach(p=>{
+if(meals[p]&&meals[p][goal])pool.push(...meals[p][goal]);
+});
+if(pool.length===0){pool.push(...meals.chicken.maintain)}
+// shuffle and pick 5 unique
+for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+return pool.slice(0,5);
+}
+
+function getAllIngredients(mealList){
+const all={};
+mealList.forEach(m=>{
+m.ingredients.forEach(ing=>{
+all[ing]=(all[ing]||0)+1;
+});
+});
+// categorize
+const cats={
+'🥩 Proteins':['chicken breast','chicken thighs','chicken sausage','ground beef','lean ground beef','sirloin steak','flank steak','ribeye steak','beef chuck','salmon fillet','shrimp','cod fillet','ahi tuna','canned tuna','white fish','ground turkey','deli turkey','Italian turkey sausage','turkey breast','firm tofu','silken tofu','eggs','Canadian bacon','chorizo','bacon','andouille sausage'],
+'🥬 Produce':['broccoli','bell pepper','zucchini','onion','red onion','garlic','ginger','asparagus','sweet potato','mushrooms','bok choy','snap peas','kale','spinach','cabbage','carrots','celery','Brussels sprouts','cauliflower','cauliflower rice','cherry tomatoes','tomato','cucumber','avocado','jalapeño','green onion','lettuce','romaine','mixed greens','arugula','butter lettuce','lemon','lime','apple','mango','berries','beets','daikon','water chestnuts','bean sprouts','corn','peas','edamame'],
+'🫘 Pantry & Grains':['rice','brown rice','jasmine rice','basmati rice','sushi rice','quinoa','couscous','bulgur','oats','pasta','fettuccine','linguine','penne','rigatoni','spaghetti','elbow macaroni','whole wheat penne','lo mein noodles','rice noodles','soba noodles','egg noodles','bread','sourdough bread','brioche bread','brioche buns','English muffins','flour tortillas','corn tortillas','whole wheat wraps','naan','pita bread','grits','stuffing mix','cornmeal','panko','breadcrumbs','Italian breadcrumbs','wonton strips','tortilla strips','black beans','kidney beans','pinto beans','cannellini beans','refried beans','chickpeas','red lentils','brown lentils','green lentils','French lentils','crushed tomatoes','tomato sauce','marinara sauce','enchilada sauce','salsa','peanuts','cashews','walnuts','pumpkin seeds','sesame seeds','everything bagel seasoning'],
+'🧄 Sauces & Seasonings':['soy sauce','sesame oil','olive oil','rice vinegar','apple cider vinegar','balsamic vinegar','red wine vinegar','hoisin sauce','oyster sauce','fish sauce','tamarind paste','Worcestershire sauce','BBQ sauce','sweet chili sauce','sriracha','gochujang','hot sauce','Dijon mustard','ketchup','mayo','ranch dressing','ranch seasoning','tahini','hummus','peanut butter','honey','maple syrup','vanilla','curry paste','curry powder','garam masala','turmeric','cumin','chili powder','paprika','smoked paprika','cajun seasoning','Italian herbs','thyme','dill','basil','parsley','cilantro','coriander','nutmeg','cayenne','red pepper flakes','Aleppo pepper','lemongrass','miso paste','wakame','dashi','salt','pepper','cornstarch','beef broth','chicken broth'],
+'🧀 Dairy & Cold':['butter','heavy cream','milk','sour cream','Greek yogurt','cheddar cheese','mozzarella','Swiss cheese','American cheese','parmesan','feta cheese','goat cheese','cotija cheese','cream cheese','parmesan rind','egg','coconut milk','kimchi','pickles','pickled ginger','cranberry sauce','sun-dried tomatoes','roasted red pepper','kalamata olives','capers','potatoes','baby potatoes','russet potato','turkey gravy']
+};
+const result=[];
+for(const[cat,items]of Object.entries(cats)){
+const found=items.filter(i=>all[i]);
+if(found.length){
+result.push({cat,items:found.map(i=>({name:i,count:all[i]}))});
+}
+}
+return result;
+}
+
+document.querySelectorAll('.options:not(.multi)').forEach(optGroup=>{
+optGroup.querySelectorAll('.opt').forEach(btn=>{
+btn.addEventListener('click',()=>{
+const key=optGroup.dataset.key;
+const val=btn.dataset.val;
+optGroup.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));
+btn.classList.add('selected');
+A[key]=val;
+setTimeout(()=>nextStep(),300);
+});
+});
+});
+
+document.querySelectorAll('.options.multi .opt').forEach(btn=>{
+btn.addEventListener('click',()=>{
+btn.classList.toggle('selected');
+const key=btn.closest('.options').dataset.key;
+A[key]=Array.from(btn.closest('.options').querySelectorAll('.opt.selected')).map(b=>b.dataset.val);
+});
+});
+
+function nextStep(){
+if(step>=totalSteps-1)return;
+document.querySelector(`.step[data-step="${step}"]`).classList.remove('active');
+step++;
+document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
+updateDots();
+}
+
+function updateDots(){
+document.querySelectorAll('.dot').forEach((d,i)=>{
+d.classList.remove('done','current');
+if(i<step)d.classList.add('done');
+if(i===step)d.classList.add('current');
+});
+}
+
+function generatePlan(){
+if(!A.protein||A.protein.length===0)A.protein=['chicken'];
+const mealList=pickMeals();
+const days=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const servings=parseInt(A.servings)||2;
+
+let html='';
+mealList.forEach((m,i)=>{
+const cals=m.cal*servings;
+html+=`<div class="day-card">
+<div class="day-label">${days[i]}</div>
+<div class="meal-name">${m.name}</div>
+<div class="meal-meta">
+<span>⏱ ${m.time} min prep</span>
+<span>🍽 ${servings} serving${servings>1?'s':''}</span>
+<span>🔥 ${cals} cal total</span>
+</div>
+<div class="meal-desc">${m.desc}</div>
+<div class="meal-macros">
+<div class="macro"><b>${m.protein}g</b> protein</div>
+<div class="macro"><b>${m.carbs}g</b> carbs</div>
+<div class="macro"><b>${m.fat}g</b> fat</div>
+<div class="macro"><b>${m.cal}</b> cal/serving</div>
+</div>
+</div>`;
+});
+document.getElementById('plan-cards').innerHTML=html;
+
+const goalLabel={lose:'Weight Loss',maintain:'Balanced',gain:'Muscle Building',save:'Budget-Friendly',quick:'Quick & Easy',family:'Family-Friendly'};
+document.getElementById('plan-subtitle').textContent=`${goalLabel[A.goal]||'Custom'} plan · ${servings} serving${servings>1?'s':''} per meal · ${A.protein.join(', ')}`;
+
+// grocery
+const cats=getAllIngredients(mealList);
+let gHtml='<ul class="grocery-list">';
+cats.forEach(c=>{
+gHtml+=`<li class="grocery-cat">${c.cat}</li>`;
+c.items.forEach(it=>{
+gHtml+=`<li>${it.name}${it.count>1?' ×'+it.count:''}</li>`;
+});
+});
+gHtml+='</ul>';
+document.getElementById('grocery').innerHTML=gHtml;
+
+// gear
+let gearHtml='';
+const shown=gear.sort(()=>Math.random()-.5).slice(0,4);
+shown.forEach(g=>{
+gearHtml+=`<div class="gear-card">
+<div class="gear-info">
+<h4>${g.name}</h4>
+<p>${g.desc}</p>
+<div class="gear-price">${g.price}</div>
+<a href="${g.url}" target="_blank" rel="noopener" class="gear-link">View on Amazon →</a>
+</div>
+</div>`;
+});
+document.getElementById('gear-cards').innerHTML=gearHtml;
+
+document.getElementById('hero').style.display='none';
+document.getElementById('progress').style.display='none';
+document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+const r=document.getElementById('results');
+r.classList.add('show');
+r.scrollIntoView({behavior:'smooth'});
+
+// save to localStorage
+localStorage.setItem('mealstack_plan',JSON.stringify({answers:A,meals:mealList,date:new Date().toISOString()}));
+}
+
+function copyGrocery(){
+const cats=getAllIngredients(pickMeals());
+let text="🛒 MealStack Grocery List\n\n";
+cats.forEach(c=>{text+=c.cat+"\n";c.items.forEach(it=>{text+=`  □ ${it.name}${it.count>1?' ×'+it.count:''}\n`});text+="\n"});
+navigator.clipboard.writeText(text).then(()=>alert('Grocery list copied!'));
+}
+
+function copyPlan(){
+const cards=document.querySelectorAll('.day-card');
+let text="🥘 MealStack — Weekly Meal Prep Plan\n\n";
+cards.forEach(c=>{
+text+=c.querySelector('.day-label').textContent+"\n";
+text+=c.querySelector('.meal-name').textContent+"\n";
+text+=c.querySelector('.meal-desc').textContent+"\n";
+text+=c.querySelector('.meal-macros').textContent.trim()+"\n\n";
+});
+text+="\nGenerated at stirman.net/mealstack";
+navigator.clipboard.writeText(text).then(()=>alert('Plan copied!'));
+}
+
+function sharePlan(){
+if(navigator.share){
+navigator.share({title:'MealStack — My Meal Prep Plan',text:'Check out my weekly meal prep plan!',url:window.location.href});
+}else{
+navigator.clipboard.writeText(window.location.href).then(()=>alert('Link copied!'));
+}
+}
+
+function startOver(){
+location.reload();
+}
+
+function captureEmail(){
+const email=document.getElementById('email').value;
+if(email&&email.includes('@')){
+alert('Thanks! Weekly plans coming soon to '+email);
+document.getElementById('email').value='';
+}
+}
+</script>
+</body>
+</html>
