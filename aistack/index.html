@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIStack — Find Your Perfect AI Toolkit</title>
+<meta name="description" content="Take a 60-second quiz to discover the perfect AI tools for your workflow. Personalized recommendations based on your role, tasks, and budget.">
+<meta property="og:title" content="AIStack — Find Your Perfect AI Toolkit">
+<meta property="og:description" content="60-second quiz → personalized AI tool recommendations for your workflow.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e2e;--text:#e8e8f0;--muted:#8888a0;--accent1:#6c5ce7;--accent2:#00cec9;--accent3:#fd79a8;--grad1:linear-gradient(135deg,#6c5ce7,#00cec9);--grad2:linear-gradient(135deg,#fd79a8,#f39c12);--grad3:linear-gradient(135deg,#00cec9,#6c5ce7,#fd79a8)}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(108,92,231,.12),transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(0,206,201,.1),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(253,121,168,.06),transparent 60%);pointer-events:none;z-index:0}
+.noise{position:fixed;inset:0;opacity:.03;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.container{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:24px 16px 60px}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;text-align:center;margin-bottom:8px}
+h1 span{background:var(--grad3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);font-size:1rem;margin-bottom:40px}
+.step{display:none;animation:fadeUp .4s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.step-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.step-q{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:20px}
+.options{display:flex;flex-wrap:wrap;gap:10px}
+.opt{padding:10px 18px;border-radius:99px;border:1px solid var(--border);background:rgba(255,255,255,.03);cursor:pointer;font-size:.9rem;transition:all .2s;user-select:none}
+.opt:hover{border-color:var(--accent1);background:rgba(108,92,231,.08)}
+.opt.selected{background:var(--accent1);border-color:var(--accent1);color:#fff;font-weight:600}
+.opt.multi.selected{background:rgba(108,92,231,.25);border-color:var(--accent1)}
+.progress{display:flex;gap:6px;justify-content:center;margin-bottom:32px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.done{background:var(--accent1)}
+.dot.current{background:var(--accent2);box-shadow:0 0 8px var(--accent2)}
+.next-btn{display:block;margin:24px auto 0;padding:12px 36px;border:none;border-radius:99px;background:var(--grad1);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:transform .15s,opacity .15s}
+.next-btn:hover{transform:scale(1.03)}
+.next-btn:disabled{opacity:.3;cursor:default;transform:none}
+
+/* Results */
+.results{display:none;animation:fadeUp .5s ease}
+.results.active{display:block}
+.res-header{text-align:center;margin-bottom:32px}
+.res-header h2{font-family:'Instrument Serif',serif;font-size:2rem;margin-bottom:4px}
+.res-header p{color:var(--muted)}
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.tool-card:nth-child(1)::before{background:var(--grad1)}
+.tool-card:nth-child(2)::before{background:var(--grad2)}
+.tool-card:nth-child(3)::before{background:linear-gradient(90deg,#00cec9,#55efc4)}
+.tool-card:nth-child(4)::before{background:linear-gradient(90deg,#f39c12,#fd79a8)}
+.tool-card:nth-child(5)::before{background:linear-gradient(90deg,#6c5ce7,#a29bfe)}
+.rank{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+.tool-card:nth-child(1) .rank{background:rgba(108,92,231,.2);color:#a29bfe}
+.tool-card:nth-child(2) .rank{background:rgba(253,121,168,.2);color:#fd79a8}
+.tool-card:nth-child(3) .rank{background:rgba(0,206,201,.2);color:#00cec9}
+.tool-card:nth-child(4) .rank{background:rgba(243,156,18,.2);color:#f39c12}
+.tool-card:nth-child(5) .rank{background:rgba(108,92,231,.15);color:#a29bfe}
+.tool-name{font-size:1.25rem;font-weight:700;margin-bottom:2px}
+.tool-cat{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.tool-desc{font-size:.9rem;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.tool-why{font-size:.85rem;background:rgba(108,92,231,.08);border-radius:10px;padding:10px 14px;margin-bottom:14px;line-height:1.5}
+.tool-why strong{color:var(--accent2)}
+.tool-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-bottom:14px}
+.tool-meta span::before{margin-right:4px}
+.tool-link{display:inline-block;padding:8px 20px;border-radius:99px;background:var(--grad1);color:#fff;text-decoration:none;font-size:.85rem;font-weight:600;transition:transform .15s}
+.tool-link:hover{transform:scale(1.03)}
+
+.section-title{font-family:'Instrument Serif',serif;font-size:1.4rem;margin:32px 0 12px}
+.gear-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.gear-info{flex:1}
+.gear-name{font-weight:600;font-size:.95rem}
+.gear-why{font-size:.8rem;color:var(--muted);margin-top:2px}
+.gear-link{padding:6px 16px;border-radius:99px;background:rgba(108,92,231,.15);color:#a29bfe;text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;transition:background .2s}
+.gear-link:hover{background:rgba(108,92,231,.3)}
+
+.cta-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-top:32px}
+.cta-box h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:6px}
+.cta-box p{font-size:.85rem;color:var(--muted);margin-bottom:14px}
+.email-row{display:flex;gap:8px;max-width:380px;margin:0 auto}
+.email-row input{flex:1;padding:10px 14px;border-radius:99px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.9rem;outline:none}
+.email-row input:focus{border-color:var(--accent1)}
+.email-row button{padding:10px 20px;border:none;border-radius:99px;background:var(--grad1);color:#fff;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.85rem}
+.share-row{display:flex;gap:8px;justify-content:center;margin-top:24px}
+.share-btn{padding:8px 18px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.8rem;transition:all .2s}
+.share-btn:hover{border-color:var(--accent1);background:rgba(108,92,231,.08)}
+
+.footer{text-align:center;margin-top:48px;font-size:.75rem;color:var(--muted);opacity:.6}
+.footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+<h1><span>AIStack</span></h1>
+<p class="subtitle">Find your perfect AI toolkit in 60 seconds</p>
+
+<div class="progress" id="progress"></div>
+
+<div id="quiz">
+  <div class="step" data-step="0">
+    <p class="step-label">Step 1 of 5</p>
+    <h2 class="step-q">What's your role?</h2>
+    <div class="options" data-key="role">
+      <div class="opt" data-val="marketer">Marketer</div>
+      <div class="opt" data-val="developer">Developer</div>
+      <div class="opt" data-val="designer">Designer</div>
+      <div class="opt" data-val="writer">Writer / Creator</div>
+      <div class="opt" data-val="founder">Founder / Solo</div>
+      <div class="opt" data-val="student">Student</div>
+      <div class="opt" data-val="pm">Product / PM</div>
+      <div class="opt" data-val="sales">Sales / BD</div>
+    </div>
+    <button class="next-btn" disabled onclick="nextStep()">Continue →</button>
+  </div>
+
+  <div class="step" data-step="1">
+    <p class="step-label">Step 2 of 5</p>
+    <h2 class="step-q">What do you spend most time on?</h2>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px">Pick up to 3</p>
+    <div class="options" data-key="tasks" data-multi="3">
+      <div class="opt multi" data-val="writing">Writing & Content</div>
+      <div class="opt multi" data-val="coding">Coding</div>
+      <div class="opt multi" data-val="design">Design & Visuals</div>
+      <div class="opt multi" data-val="research">Research & Analysis</div>
+      <div class="opt multi" data-val="email">Email & Outreach</div>
+      <div class="opt multi" data-val="data">Data & Spreadsheets</div>
+      <div class="opt multi" data-val="meetings">Meetings & Notes</div>
+      <div class="opt multi" data-val="social">Social Media</div>
+      <div class="opt multi" data-val="video">Video & Audio</div>
+      <div class="opt multi" data-val="automation">Automation & Workflows</div>
+    </div>
+    <button class="next-btn" disabled onclick="nextStep()">Continue →</button>
+  </div>
+
+  <div class="step" data-step="2">
+    <p class="step-label">Step 3 of 5</p>
+    <h2 class="step-q">Monthly AI budget?</h2>
+    <div class="options" data-key="budget">
+      <div class="opt" data-val="free">Free only</div>
+      <div class="opt" data-val="low">Under $30/mo</div>
+      <div class="opt" data-val="mid">$30–$100/mo</div>
+      <div class="opt" data-val="high">$100+/mo</div>
+    </div>
+    <button class="next-btn" disabled onclick="nextStep()">Continue →</button>
+  </div>
+
+  <div class="step" data-step="3">
+    <p class="step-label">Step 4 of 5</p>
+    <h2 class="step-q">AI experience level?</h2>
+    <div class="options" data-key="level">
+      <div class="opt" data-val="beginner">Beginner — just getting started</div>
+      <div class="opt" data-val="intermediate">Intermediate — use ChatGPT regularly</div>
+      <div class="opt" data-val="advanced">Advanced — built workflows & automations</div>
+    </div>
+    <button class="next-btn" disabled onclick="nextStep()">Continue →</button>
+  </div>
+
+  <div class="step" data-step="4">
+    <p class="step-label">Step 5 of 5</p>
+    <h2 class="step-q">What matters most?</h2>
+    <div class="options" data-key="priority">
+      <div class="opt" data-val="speed">Save time</div>
+      <div class="opt" data-val="quality">Better output quality</div>
+      <div class="opt" data-val="cost">Keep costs low</div>
+      <div class="opt" data-val="easy">Easy to learn</div>
+    </div>
+    <button class="next-btn" disabled onclick="nextStep()">See My AI Stack →</button>
+  </div>
+</div>
+
+<div class="results" id="results"></div>
+
+<div class="footer">Built in one night by <a href="https://stirman.net" target="_blank">stirman.net</a> · <a href="https://onenightbuild.com" target="_blank">One Night Build</a></div>
+</div>
+
+<script>
+const TOOLS=[
+{name:"ChatGPT Plus",cat:"General AI",url:"https://chat.openai.com",price:"$20/mo",tier:"low",desc:"The gold standard for conversational AI. GPT-4o handles writing, analysis, coding, research, and creative tasks. Plugins and custom GPTs extend it further.",roles:["marketer","developer","designer","writer","founder","student","pm","sales"],tasks:["writing","coding","research","email","data","meetings","social"],levels:["beginner","intermediate","advanced"],priorities:["speed","quality","easy"]},
+{name:"Claude Pro",cat:"General AI",url:"https://claude.ai",price:"$20/mo",tier:"low",desc:"Anthropic's Claude excels at long-form writing, nuanced analysis, and careful reasoning. Handles 200K token context — perfect for analyzing entire documents.",roles:["writer","developer","founder","pm","student","marketer"],tasks:["writing","coding","research","data","meetings"],levels:["intermediate","advanced"],priorities:["quality","speed"]},
+{name:"Perplexity Pro",cat:"Research",url:"https://perplexity.ai",price:"$20/mo",tier:"low",desc:"AI-powered research engine with real-time web citations. Replaces hours of Googling with sourced, accurate answers. Essential for anyone who does research.",roles:["marketer","writer","founder","student","pm","sales"],tasks:["research","writing","email"],levels:["beginner","intermediate","advanced"],priorities:["speed","quality","easy"]},
+{name:"Cursor Pro",cat:"Coding",url:"https://cursor.com",price:"$20/mo",tier:"low",desc:"AI-first code editor that autocompletes entire functions, refactors code, and explains bugs. Like having a senior developer pair-programming with you 24/7.",roles:["developer","founder"],tasks:["coding","automation"],levels:["intermediate","advanced"],priorities:["speed","quality"]},
+{name:"v0 by Vercel",cat:"Design → Code",url:"https://v0.dev",price:"Free / $20/mo",tier:"free",desc:"Describe a UI in plain English, get production-ready React code instantly. Designers can prototype without coding; developers can skip boilerplate.",roles:["developer","designer","founder"],tasks:["coding","design"],levels:["beginner","intermediate","advanced"],priorities:["speed","easy"]},
+{name:"Midjourney",cat:"Image Generation",url:"https://midjourney.com",price:"$10/mo",tier:"low",desc:"Best-in-class AI image generation. Create stunning visuals for marketing, social media, presentations, and products. Unmatched aesthetic quality.",roles:["designer","marketer","writer","founder","social"],tasks:["design","social","writing"],levels:["beginner","intermediate","advanced"],priorities:["quality","speed"]},
+{name:"Canva AI",cat:"Design",url:"https://canva.com",price:"Free / $13/mo",tier:"free",desc:"All-in-one design platform with AI features: Magic Write, text-to-image, background remover, Magic Resize. Non-designers can create pro-quality visuals in minutes.",roles:["marketer","writer","founder","student","sales","social"],tasks:["design","social","writing"],levels:["beginner","intermediate"],priorities:["easy","speed","cost"]},
+{name:"Notion AI",cat:"Productivity",url:"https://notion.so",price:"$10/mo add-on",tier:"low",desc:"AI built into your workspace. Summarize meeting notes, draft docs, create action items, and search across all your knowledge. The connective tissue for your workflow.",roles:["pm","founder","marketer","developer","writer","student"],tasks:["meetings","writing","research","data"],levels:["beginner","intermediate","advanced"],priorities:["speed","easy"]},
+{name:"Jasper",cat:"Marketing AI",url:"https://jasper.ai",price:"$49/mo",tier:"mid",desc:"Purpose-built for marketing teams. Brand voice training, campaign generators, SEO content, ad copy, and email sequences. Designed for marketers, not general chat.",roles:["marketer","sales","founder"],tasks:["writing","email","social"],levels:["beginner","intermediate"],priorities:["speed","quality"]},
+{name:"Copy.ai",cat:"Sales & Marketing",url:"https://copy.ai",price:"Free / $49/mo",tier:"mid",desc:"AI-powered workflows for sales and marketing. Automated prospecting, personalized outreach, content generation, and lead enrichment. Built for revenue teams.",roles:["sales","marketer","founder"],tasks:["email","writing","social","automation"],levels:["beginner","intermediate","advanced"],priorities:["speed","easy"]},
+{name:"Descript",cat:"Video & Audio",url:"https://descript.com",price:"$24/mo",tier:"low",desc:"Edit video and podcasts by editing text. AI removes filler words, generates captions, clones your voice for corrections. Revolutionary for content creators.",roles:["writer","marketer","founder"],tasks:["video","social","writing"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"ElevenLabs",cat:"Voice AI",url:"https://elevenlabs.io",price:"$5/mo+",tier:"free",desc:"Ultra-realistic AI voice generation and cloning. Create voiceovers, audiobooks, podcasts without a studio. Clone your own voice for consistent content.",roles:["writer","marketer","founder"],tasks:["video","social","writing"],levels:["beginner","intermediate","advanced"],priorities:["quality","speed"]},
+{name:"Runway",cat:"Video Generation",url:"https://runwayml.com",price:"$12/mo+",tier:"low",desc:"AI video generation and editing. Text-to-video, image-to-video, motion brush, and more. Create stunning video content without a production team.",roles:["designer","marketer","writer","founder"],tasks:["video","design","social"],levels:["intermediate","advanced"],priorities:["quality","speed"]},
+{name:"Gamma",cat:"Presentations",url:"https://gamma.app",price:"Free / $10/mo",tier:"free",desc:"AI-powered presentations, docs, and websites. Describe your content and get beautiful slides instantly. No more struggling with PowerPoint layouts.",roles:["marketer","founder","pm","student","sales"],tasks:["writing","design","meetings"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"Otter.ai",cat:"Meeting Notes",url:"https://otter.ai",price:"Free / $17/mo",tier:"low",desc:"AI meeting assistant that records, transcribes, and summarizes meetings in real time. Auto-generates action items and lets you search past conversations.",roles:["pm","founder","sales","marketer"],tasks:["meetings","writing"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"Zapier AI",cat:"Automation",url:"https://zapier.com",price:"Free / $20/mo",tier:"low",desc:"Connect 6,000+ apps with AI-powered automation. Natural language workflow builder — describe what you want automated and Zapier builds it. The glue between all your tools.",roles:["founder","marketer","pm","developer","sales"],tasks:["automation","email","data"],levels:["intermediate","advanced"],priorities:["speed","easy"]},
+{name:"Make (Integromat)",cat:"Automation",url:"https://make.com",price:"Free / $9/mo",tier:"free",desc:"Visual automation platform for complex workflows. More powerful than Zapier for multi-step processes. AI modules for text, image, and data processing.",roles:["developer","founder","marketer"],tasks:["automation","data","email"],levels:["intermediate","advanced"],priorities:["speed","cost"]},
+{name:"GitHub Copilot",cat:"Coding",url:"https://github.com/features/copilot",price:"$10/mo",tier:"low",desc:"AI pair programmer embedded in your editor. Autocompletes code, writes functions from comments, and explains existing code. Doubles developer productivity.",roles:["developer","founder"],tasks:["coding"],levels:["intermediate","advanced"],priorities:["speed","quality"]},
+{name:"Grammarly",cat:"Writing",url:"https://grammarly.com",price:"Free / $12/mo",tier:"free",desc:"AI writing assistant for tone, clarity, and correctness. Works everywhere — email, docs, social media. The easiest AI tool to start with.",roles:["marketer","writer","student","sales","pm","founder"],tasks:["writing","email","social"],levels:["beginner","intermediate"],priorities:["quality","easy"]},
+{name:"Superhuman",cat:"Email",url:"https://superhuman.com",price:"$30/mo",tier:"mid",desc:"The fastest email experience with AI. Auto-drafts replies in your voice, summarizes threads, and surfaces what matters. Saves 4+ hours per week on email.",roles:["founder","sales","pm","marketer"],tasks:["email"],levels:["intermediate","advanced"],priorities:["speed","quality"]},
+{name:"Fireflies.ai",cat:"Meeting Notes",url:"https://fireflies.ai",price:"Free / $10/mo",tier:"free",desc:"AI notetaker for meetings. Auto-joins calls, transcribes, summarizes, and creates action items. Searchable meeting archive. Works with Zoom, Meet, Teams.",roles:["pm","founder","sales"],tasks:["meetings"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"Lovable",cat:"App Builder",url:"https://lovable.dev",price:"$20/mo",tier:"low",desc:"Build full-stack web apps from text descriptions. No coding required. Generates React frontends, Supabase backends, and deploys in minutes. The future of vibe coding.",roles:["founder","designer","marketer"],tasks:["coding","design","automation"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"Bolt.new",cat:"App Builder",url:"https://bolt.new",price:"Free / $20/mo",tier:"low",desc:"Build and deploy full-stack apps in the browser. Describe what you want, get a working app. Powered by StackBlitz WebContainers. Zero setup required.",roles:["founder","developer","designer"],tasks:["coding","design"],levels:["beginner","intermediate","advanced"],priorities:["speed","easy"]},
+{name:"Replit AI",cat:"Coding",url:"https://replit.com",price:"Free / $25/mo",tier:"low",desc:"Cloud IDE with AI agent that builds, debugs, and deploys. Describe your app and Replit's AI agent builds it end-to-end. Great for prototyping and learning.",roles:["developer","founder","student"],tasks:["coding","automation"],levels:["beginner","intermediate","advanced"],priorities:["speed","easy","cost"]},
+{name:"Leonardo.ai",cat:"Image Generation",url:"https://leonardo.ai",price:"Free / $12/mo",tier:"free",desc:"AI image generation with fine-tuned models for gaming, product shots, and marketing assets. More control over style and consistency than general tools.",roles:["designer","marketer","founder"],tasks:["design","social"],levels:["intermediate","advanced"],priorities:["quality","cost"]},
+{name:"Opus Clip",cat:"Video",url:"https://opus.pro",price:"Free / $19/mo",tier:"low",desc:"AI turns long videos into viral short clips. Auto-identifies the best moments, adds captions, and formats for TikTok/Reels/Shorts. Content repurposing on autopilot.",roles:["marketer","writer","founder"],tasks:["video","social"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"Beehiiv",cat:"Newsletter",url:"https://beehiiv.com",price:"Free / $49/mo",tier:"mid",desc:"Newsletter platform with AI writing assistant, built-in monetization (ads, paid subs, boosts), and growth tools. The platform of choice for creator newsletters.",roles:["writer","marketer","founder"],tasks:["writing","email","social"],levels:["beginner","intermediate"],priorities:["speed","quality"]},
+{name:"Pictory",cat:"Video",url:"https://pictory.ai",price:"$19/mo",tier:"low",desc:"Turn blog posts and scripts into videos automatically. AI selects stock footage, adds captions, and creates voiceovers. Turn one piece of content into many formats.",roles:["marketer","writer","founder"],tasks:["video","social","writing"],levels:["beginner","intermediate"],priorities:["speed","easy"]},
+{name:"Writesonic",cat:"SEO Content",url:"https://writesonic.com",price:"Free / $16/mo",tier:"low",desc:"AI content platform built for SEO. Generates blog posts, landing pages, and product descriptions optimized for search. Built-in fact-checking and brand voice.",roles:["marketer","writer","founder"],tasks:["writing","social"],levels:["beginner","intermediate"],priorities:["speed","cost"]},
+{name:"Tome",cat:"Presentations",url:"https://tome.app",price:"Free / $16/mo",tier:"low",desc:"AI-powered storytelling and presentations. Create narrative-driven decks, one-pagers, and pitches from a simple prompt. Beautiful defaults, zero design skill needed.",roles:["founder","sales","marketer","pm"],tasks:["design","meetings","writing"],levels:["beginner","intermediate"],priorities:["speed","easy","quality"]}
+];
+
+let answers={};let currentStep=0;const totalSteps=5;
+
+function initProgress(){const p=document.getElementById('progress');p.innerHTML='';for(let i=0;i<totalSteps;i++){const d=document.createElement('div');d.className='dot'+(i===0?' current':'');p.appendChild(d)}}
+
+function updateProgress(){document.querySelectorAll('.dot').forEach((d,i)=>{d.className='dot'+(i<currentStep?' done':'')+(i===currentStep?' current':'')})}
+
+function nextStep(){
+  currentStep++;
+  if(currentStep>=totalSteps){showResults();return}
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateProgress();
+}
+
+function showResults(){
+  document.getElementById('quiz').style.display='none';
+  document.querySelectorAll('.dot').forEach(d=>d.className='dot done');
+  
+  const scored=TOOLS.map(t=>{
+    let s=0;
+    if(t.roles.includes(answers.role))s+=30;
+    const taskMatch=(answers.tasks||[]).filter(tk=>t.tasks.includes(tk)).length;
+    s+=taskMatch*15;
+    const budgetMap={free:['free'],low:['free','low'],mid:['free','low','mid'],high:['free','low','mid','high']};
+    if(budgetMap[answers.budget||'low'].includes(t.tier))s+=15;else s-=10;
+    if(t.levels.includes(answers.level))s+=10;
+    if(t.priorities.includes(answers.priority))s+=10;
+    return{...t,score:s};
+  }).sort((a,b)=>b.score-a.score).slice(0,5);
+
+  const taskLabels={writing:'Writing & Content',coding:'Coding',design:'Design',research:'Research',email:'Email',data:'Data',meetings:'Meetings',social:'Social Media',video:'Video & Audio',automation:'Automation'};
+  
+  let html=`<div class="res-header"><h2>Your AI Stack</h2><p>Personalized for your workflow · ${scored[0].score}% match score</p></div>`;
+  
+  scored.forEach((t,i)=>{
+    const matchedTasks=(answers.tasks||[]).filter(tk=>t.tasks.includes(tk)).map(tk=>taskLabels[tk]||tk).join(', ');
+    html+=`<div class="tool-card">
+      <div class="rank">#${i+1}</div>
+      <div class="tool-name">${t.name}</div>
+      <div class="tool-cat">${t.cat}</div>
+      <div class="tool-desc">${t.desc}</div>
+      <div class="tool-why"><strong>Why it fits you:</strong> Matches your ${matchedTasks||'workflow'} needs${answers.budget==='free'&&t.tier==='free'?' and has a solid free tier':''}</div>
+      <div class="tool-meta"><span>💰 ${t.price}</span></div>
+      <a class="tool-link" href="${t.url}" target="_blank" rel="noopener">Try ${t.name} →</a>
+    </div>`;
+  });
+
+  // Gear section
+  html+=`<h3 class="section-title">⚡ Level Up Your Setup</h3>`;
+  const gear=[
+    {name:'Logitech MX Keys S',why:'Best keyboard for AI-heavy workflows — smart backlighting, quiet keys',url:'https://www.amazon.com/dp/B0BKP27NH5?tag=stirman-20'},
+    {name:'Sony WH-1000XM5',why:'Noise-cancelling for deep focus — essential for AI-assisted work',url:'https://www.amazon.com/dp/B0BX2L8PBT?tag=stirman-20'},
+    {name:'LG DualUp Monitor',why:'Vertical screen real estate for AI chat + your work side by side',url:'https://www.amazon.com/dp/B09VHQ4RSH?tag=stirman-20'}
+  ];
+  gear.forEach(g=>{
+    html+=`<div class="gear-card"><div class="gear-info"><div class="gear-name">${g.name}</div><div class="gear-why">${g.why}</div></div><a class="gear-link" href="${g.url}" target="_blank" rel="noopener">View →</a></div>`;
+  });
+
+  html+=`<div class="cta-box"><h3>Get weekly AI tool drops</h3><p>New tools, deals, and workflow tips every Tuesday. Free forever.</p><div class="email-row"><input type="email" placeholder="you@email.com" id="emailInput"><button onclick="captureEmail()">Subscribe</button></div></div>`;
+
+  html+=`<div class="share-row"><button class="share-btn" onclick="copyResults()">📋 Copy Results</button><button class="share-btn" onclick="shareTwitter()">𝕏 Share</button></div>`;
+
+  const res=document.getElementById('results');
+  res.innerHTML=html;
+  res.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function captureEmail(){
+  const input=document.getElementById('emailInput');
+  if(input.value.includes('@')){input.value='';input.placeholder='✓ Subscribed!'}
+}
+
+function copyResults(){
+  const cards=document.querySelectorAll('.tool-card');
+  let text='My AI Stack (via aistack.stirman.net):\n\n';
+  cards.forEach((c,i)=>{
+    text+=`${i+1}. ${c.querySelector('.tool-name').textContent} — ${c.querySelector('.tool-cat').textContent}\n`;
+  });
+  navigator.clipboard.writeText(text).then(()=>{
+    document.querySelector('.share-row .share-btn').textContent='✓ Copied!';
+  });
+}
+
+function shareTwitter(){
+  const cards=document.querySelectorAll('.tool-card');
+  let tools=[];
+  cards.forEach(c=>tools.push(c.querySelector('.tool-name').textContent));
+  const text=`My AI Stack for 2026:\n\n${tools.map((t,i)=>`${i+1}. ${t}`).join('\n')}\n\nFind yours →`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://stirman.net/aistack/')}`,'_blank');
+}
+
+// Event delegation
+document.getElementById('quiz').addEventListener('click',e=>{
+  const opt=e.target.closest('.opt');if(!opt)return;
+  const container=opt.closest('.options');
+  const key=container.dataset.key;
+  const multi=container.dataset.multi;
+  
+  if(multi){
+    const max=parseInt(multi);
+    if(opt.classList.contains('selected')){
+      opt.classList.remove('selected');
+    }else{
+      const selected=container.querySelectorAll('.selected');
+      if(selected.length>=max)return;
+      opt.classList.add('selected');
+    }
+    answers[key]=[...container.querySelectorAll('.selected')].map(o=>o.dataset.val);
+    const btn=opt.closest('.step').querySelector('.next-btn');
+    btn.disabled=answers[key].length===0;
+  }else{
+    container.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    answers[key]=opt.dataset.val;
+    opt.closest('.step').querySelector('.next-btn').disabled=false;
+  }
+});
+
+initProgress();
+document.querySelector('.step[data-step="0"]').classList.add('active');
+</script>
+</body>
+</html>
