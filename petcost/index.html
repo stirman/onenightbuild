@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PetCost — The True Cost of Your Pet</title>
+<meta name="description" content="Find out the real lifetime cost of owning a dog, cat, or other pet. Annual breakdown of food, vet bills, grooming, insurance, and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e2e;--text:#e8e6e3;--muted:#8a8a9a;--accent1:#f4845f;--accent2:#7b68ee;--accent3:#2dd4bf;--accent4:#fbbf24}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(244,132,95,.12),transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(123,104,238,.1),transparent 60%),radial-gradient(ellipse at 50% 50%,rgba(45,212,191,.05),transparent 70%);pointer-events:none;z-index:0}
+.noise{position:fixed;inset:0;opacity:.035;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.container{max-width:640px;margin:0 auto;padding:24px 16px;position:relative;z-index:2}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.subtitle{color:var(--muted);font-size:1rem;margin-bottom:32px;line-height:1.5}
+.step{display:none}.step.active{display:block}
+.step-label{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:16px}
+.progress{display:flex;gap:6px;margin-bottom:28px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:.3s}.dot.filled{background:var(--accent1)}
+.options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.opt{padding:10px 20px;border-radius:99px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.95rem;cursor:pointer;transition:.2s}
+.opt:hover{border-color:var(--accent2)}
+.opt.sel{background:linear-gradient(135deg,var(--accent1),var(--accent2));border-color:transparent;color:#fff;font-weight:600}
+.emoji-opt{font-size:1.3rem;display:flex;align-items:center;gap:8px}
+
+/* Results */
+.results{display:none}
+.results.show{display:block}
+.score-section{text-align:center;padding:40px 0 24px}
+.big-num{font-family:'Instrument Serif',serif;font-size:clamp(3rem,10vw,4.5rem);background:linear-gradient(135deg,var(--accent1),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.big-label{color:var(--muted);font-size:1rem;margin-top:4px}
+.lifetime-num{font-family:'Instrument Serif',serif;font-size:2rem;color:var(--accent2);margin-top:12px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+.card-title{font-family:'Instrument Serif',serif;font-size:1.25rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{width:100px;font-size:.85rem;color:var(--muted);flex-shrink:0}
+.bar-track{flex:1;height:24px;background:var(--border);border-radius:12px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:12px;transition:width 1s ease;position:relative}
+.bar-val{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:.75rem;font-weight:600;color:#fff}
+
+.tip-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 20px;margin-bottom:12px;border-left:3px solid var(--accent3)}
+.tip-title{font-weight:600;margin-bottom:4px}
+.tip-text{color:var(--muted);font-size:.9rem;line-height:1.5}
+.tip-link{display:inline-block;margin-top:8px;color:var(--accent1);text-decoration:none;font-weight:600;font-size:.9rem}
+.tip-link:hover{text-decoration:underline}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compare-item{text-align:center;padding:16px;background:rgba(255,255,255,.03);border-radius:12px}
+.compare-num{font-family:'Instrument Serif',serif;font-size:1.8rem;color:var(--accent4)}
+.compare-label{font-size:.8rem;color:var(--muted);margin-top:4px}
+
+.cta-box{background:linear-gradient(135deg,rgba(244,132,95,.1),rgba(123,104,238,.1));border:1px solid rgba(244,132,95,.2);border-radius:16px;padding:24px;text-align:center;margin:20px 0}
+.cta-box h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:8px}
+.cta-box p{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+.cta-btn{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;border:none;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.95rem;cursor:pointer;text-decoration:none;transition:.2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(244,132,95,.3)}
+
+.email-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin:24px 0}
+.email-box input{width:100%;max-width:300px;padding:10px 16px;border-radius:99px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;margin:12px 0 8px}
+.email-box button{padding:10px 24px;border-radius:99px;border:none;background:var(--accent2);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:600;cursor:pointer}
+
+.share-row{display:flex;gap:10px;justify-content:center;margin:20px 0}
+.share-btn{padding:10px 20px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'Space Grotesk',sans-serif;cursor:pointer;font-size:.9rem;transition:.2s}
+.share-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+
+.restart{display:block;margin:24px auto;padding:12px 28px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Space Grotesk',sans-serif;cursor:pointer;font-size:.9rem}
+.restart:hover{color:var(--text);border-color:var(--text)}
+
+footer{text-align:center;padding:40px 0 20px;color:var(--muted);font-size:.8rem}
+footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+<div id="quiz">
+<h1>PetCost</h1>
+<p class="subtitle">Find out the true lifetime cost of your pet — and smart ways to save.</p>
+
+<div class="progress" id="progress"></div>
+
+<!-- Step 1: Pet Type -->
+<div class="step active" data-step="0">
+<p class="step-label">What kind of pet?</p>
+<div class="options">
+<button class="opt emoji-opt" data-val="dog" onclick="pick(0,this)">🐕 Dog</button>
+<button class="opt emoji-opt" data-val="cat" onclick="pick(0,this)">🐈 Cat</button>
+<button class="opt emoji-opt" data-val="bird" onclick="pick(0,this)">🦜 Bird</button>
+<button class="opt emoji-opt" data-val="fish" onclick="pick(0,this)">🐠 Fish</button>
+<button class="opt emoji-opt" data-val="rabbit" onclick="pick(0,this)">🐇 Rabbit</button>
+<button class="opt emoji-opt" data-val="reptile" onclick="pick(0,this)">🦎 Reptile</button>
+</div>
+</div>
+
+<!-- Step 2: Size (dogs) / Breed category -->
+<div class="step" data-step="1">
+<p class="step-label" id="step2label">What size?</p>
+<div class="options" id="step2opts"></div>
+</div>
+
+<!-- Step 3: Age -->
+<div class="step" data-step="2">
+<p class="step-label">How old is your pet?</p>
+<div class="options">
+<button class="opt" data-val="puppy" onclick="pick(2,this)">Baby / Puppy / Kitten</button>
+<button class="opt" data-val="young" onclick="pick(2,this)">Young (1-3 yrs)</button>
+<button class="opt" data-val="adult" onclick="pick(2,this)">Adult (3-7 yrs)</button>
+<button class="opt" data-val="senior" onclick="pick(2,this)">Senior (7+ yrs)</button>
+</div>
+</div>
+
+<!-- Step 4: Insurance -->
+<div class="step" data-step="3">
+<p class="step-label">Do you have pet insurance?</p>
+<div class="options">
+<button class="opt" data-val="yes" onclick="pick(3,this)">✅ Yes</button>
+<button class="opt" data-val="no" onclick="pick(3,this)">❌ No</button>
+<button class="opt" data-val="considering" onclick="pick(3,this)">🤔 Considering it</button>
+</div>
+</div>
+
+<!-- Step 5: Location -->
+<div class="step" data-step="4">
+<p class="step-label">Where do you live?</p>
+<div class="options">
+<button class="opt" data-val="urban" onclick="pick(4,this)">🏙️ Urban / City</button>
+<button class="opt" data-val="suburban" onclick="pick(4,this)">🏡 Suburban</button>
+<button class="opt" data-val="rural" onclick="pick(4,this)">🌾 Rural</button>
+</div>
+</div>
+</div>
+
+<div class="results" id="results"></div>
+
+</div>
+
+<footer>
+<p>Built by <a href="https://onenightbuild.com">One Night Build</a> · A <a href="https://stirman.net">stirman.net</a> project</p>
+</footer>
+
+<script>
+const answers = [];
+const STEPS = 5;
+const tag = 'stirman-20';
+
+// Cost data per pet type (annual estimates in USD)
+const costs = {
+  dog: {
+    small: { food:400, vet:700, grooming:300, insurance:480, toys:100, supplies:150, training:200, boarding:300, treats:120, dental:200, lifespan:14 },
+    medium: { food:600, vet:800, grooming:350, insurance:540, toys:120, supplies:180, training:200, boarding:400, treats:150, dental:200, lifespan:12 },
+    large: { food:900, vet:900, grooming:400, insurance:600, toys:150, supplies:220, training:250, boarding:500, treats:180, dental:250, lifespan:10 },
+    giant: { food:1200, vet:1100, grooming:500, insurance:720, toys:180, supplies:280, training:300, boarding:600, treats:200, dental:300, lifespan:8 }
+  },
+  cat: {
+    indoor: { food:350, vet:500, grooming:100, insurance:360, toys:80, supplies:120, litter:250, dental:150, treats:80, lifespan:16 },
+    outdoor: { food:400, vet:700, grooming:80, insurance:480, toys:60, supplies:100, litter:100, dental:150, treats:80, lifespan:13 }
+  },
+  bird: {
+    small: { food:150, vet:200, supplies:100, toys:80, cage:50, lifespan:10 },
+    large: { food:400, vet:400, supplies:200, toys:150, cage:80, lifespan:40 }
+  },
+  fish: {
+    freshwater: { food:50, supplies:150, equipment:100, electricity:60, lifespan:5 },
+    saltwater: { food:100, supplies:400, equipment:300, electricity:120, lifespan:7 }
+  },
+  rabbit: {
+    standard: { food:300, vet:350, supplies:150, toys:80, hay:200, grooming:60, lifespan:10 }
+  },
+  reptile: {
+    standard: { food:200, vet:200, supplies:100, equipment:120, electricity:150, lifespan:15 }
+  }
+};
+
+// Multipliers
+const ageMult = { puppy:1.4, young:1.0, adult:1.0, senior:1.3 };
+const locMult = { urban:1.2, suburban:1.0, rural:0.85 };
+
+const step2Config = {
+  dog: { label:'What size is your dog?', opts:[
+    {val:'small',text:'🐩 Small (<25 lbs)'},
+    {val:'medium',text:'🐕 Medium (25-55 lbs)'},
+    {val:'large',text:'🦮 Large (55-90 lbs)'},
+    {val:'giant',text:'🐕‍🦺 Giant (90+ lbs)'}
+  ]},
+  cat: { label:'Indoor or outdoor?', opts:[
+    {val:'indoor',text:'🏠 Indoor'},
+    {val:'outdoor',text:'🌿 Indoor/Outdoor'}
+  ]},
+  bird: { label:'What size bird?', opts:[
+    {val:'small',text:'🐦 Small (budgie, finch, canary)'},
+    {val:'large',text:'🦜 Large (parrot, macaw, cockatoo)'}
+  ]},
+  fish: { label:'What type of tank?', opts:[
+    {val:'freshwater',text:'🐟 Freshwater'},
+    {val:'saltwater',text:'🐠 Saltwater / Reef'}
+  ]},
+  rabbit: { label:'Got it! Bunnies are great.', opts:[
+    {val:'standard',text:'🐇 Let\'s calculate!'}
+  ]},
+  reptile: { label:'Cool pet!', opts:[
+    {val:'standard',text:'🦎 Let\'s calculate!'}
+  ]}
+};
+
+function initProgress(){
+  const p=document.getElementById('progress');
+  p.innerHTML='';
+  for(let i=0;i<STEPS;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' filled':'');
+    p.appendChild(d);
+  }
+}
+initProgress();
+
+function pick(step, el){
+  answers[step]=el.dataset.val;
+  el.parentElement.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+
+  if(step===0){
+    // Configure step 2 based on pet type
+    const cfg=step2Config[answers[0]];
+    document.getElementById('step2label').textContent=cfg.label;
+    const cont=document.getElementById('step2opts');
+    cont.innerHTML='';
+    cfg.opts.forEach(o=>{
+      const b=document.createElement('button');
+      b.className='opt emoji-opt';
+      b.dataset.val=o.val;
+      b.textContent=o.text;
+      b.onclick=function(){pick(1,this)};
+      cont.appendChild(b);
+    });
+  }
+
+  setTimeout(()=>{
+    if(step<STEPS-1){
+      document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+      document.querySelectorAll('.step')[step+1].classList.add('active');
+      document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('filled',i<=step+1));
+    } else {
+      showResults();
+    }
+  },300);
+}
+
+function showResults(){
+  document.getElementById('quiz').style.display='none';
+  const r=document.getElementById('results');
+  r.classList.add('show');
+
+  const pet=answers[0], sub=answers[1], age=answers[2], ins=answers[3], loc=answers[4];
+  const base=costs[pet][sub];
+  const mult=ageMult[age]*locMult[loc];
+
+  // Calculate annual costs
+  const annual={};
+  let totalAnnual=0;
+  for(const [k,v] of Object.entries(base)){
+    if(k==='lifespan') continue;
+    let cost=Math.round(v*mult);
+    if(k==='insurance' && ins==='no') cost=0;
+    if(k==='insurance' && ins==='considering') cost=0;
+    annual[k]=cost;
+    totalAnnual+=cost;
+  }
+  const lifespan=base.lifespan;
+  const remaining=age==='puppy'?lifespan:age==='young'?lifespan-2:age==='adult'?lifespan-5:Math.max(lifespan-9,2);
+  const lifetime=totalAnnual*remaining;
+
+  // First year extras
+  const firstYear=pet==='dog'?2500:pet==='cat'?1500:pet==='bird'?(sub==='large'?3000:500):pet==='fish'?(sub==='saltwater'?1500:400):pet==='rabbit'?600:800;
+
+  const petEmoji={dog:'🐕',cat:'🐈',bird:'🦜',fish:'🐠',rabbit:'🐇',reptile:'🦎'}[pet];
+  const petName={dog:'Dog',cat:'Cat',bird:'Bird',fish:'Fish',rabbit:'Rabbit',reptile:'Reptile'}[pet];
+
+  // Colors for bars
+  const barColors=['#f4845f','#7b68ee','#2dd4bf','#fbbf24','#ec4899','#a78bfa','#34d399','#fb923c','#60a5fa','#f87171'];
+
+  // Sort costs descending
+  const sorted=Object.entries(annual).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const maxCost=sorted[0]?sorted[0][1]:1;
+
+  const labels={food:'Food',vet:'Vet Care',grooming:'Grooming',insurance:'Insurance',toys:'Toys',supplies:'Supplies',training:'Training',boarding:'Boarding/Sitting',treats:'Treats',dental:'Dental',litter:'Litter',cage:'Cage/Habitat',equipment:'Equipment',electricity:'Electricity',hay:'Hay'};
+
+  let barsHTML=sorted.map(([k,v],i)=>`
+    <div class="bar-row">
+      <div class="bar-label">${labels[k]||k}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(v/maxCost*100).toFixed(1)}%;background:${barColors[i%barColors.length]}" >
+          <span class="bar-val">$${v.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Comparisons
+  const lattes=Math.round(totalAnnual/6);
+  const netflixMonths=Math.round(totalAnnual/15.49);
+  const flights=Math.round(totalAnnual/350);
+  const iphones=(totalAnnual/1199).toFixed(1);
+
+  // Tips based on answers
+  let tips=[];
+  if(ins!=='yes'){
+    tips.push({
+      title:'🛡️ Consider Pet Insurance',
+      text:`A single emergency vet visit can cost $3,000-$10,000. Pet insurance typically runs $30-60/month but can save you thousands. Most plans cover accidents, illness, and even hereditary conditions.`,
+      link:`https://www.amazon.com/s?k=pet+insurance+guide&tag=${tag}`,
+      linkText:'Compare Pet Insurance Plans →'
+    });
+  }
+  if(pet==='dog'||pet==='cat'){
+    tips.push({
+      title:'🦷 Don\'t Skip Dental Care',
+      text:'80% of pets show signs of dental disease by age 3. Regular dental chews and annual cleanings prevent expensive extractions ($500-3,000+).',
+      link:`https://www.amazon.com/s?k=pet+dental+chews&tag=${tag}`,
+      linkText:'Shop Dental Chews →'
+    });
+  }
+  if(pet==='dog'&&(sub==='large'||sub==='giant')){
+    tips.push({
+      title:'🦴 Joint Health Matters for Big Dogs',
+      text:'Large and giant breeds are prone to hip dysplasia and joint issues. Starting glucosamine supplements early can delay or prevent costly surgeries ($3,000-7,000).',
+      link:`https://www.amazon.com/s?k=dog+joint+supplement+large+breed&tag=${tag}`,
+      linkText:'Shop Joint Supplements →'
+    });
+  }
+  tips.push({
+    title:'🛒 Buy Food in Bulk',
+    text:`Buying premium pet food in bulk (30-40 lb bags) saves 20-30% vs small bags. Subscribe-and-save on Amazon adds another 5-15% off.`,
+    link:`https://www.amazon.com/s?k=premium+${pet}+food&tag=${tag}`,
+    linkText:`Shop ${petName} Food Deals →`
+  });
+  if(pet==='dog'){
+    tips.push({
+      title:'✂️ Learn Basic Grooming',
+      text:'A good clipper set pays for itself in 1-2 sessions. Even basic brushing and nail trims at home can save $200-400/year.',
+      link:`https://www.amazon.com/s?k=dog+grooming+kit+professional&tag=${tag}`,
+      linkText:'Shop Grooming Kits →'
+    });
+  }
+  tips.push({
+    title:'🧸 DIY Enrichment Toys',
+    text:'Puzzle feeders and snuffle mats keep pets entertained longer than regular toys. One $20 puzzle feeder replaces months of destroyed $10 toys.',
+    link:`https://www.amazon.com/s?k=${pet}+puzzle+feeder+toy&tag=${tag}`,
+    linkText:`Shop Puzzle Toys →`
+  });
+
+  let tipsHTML=tips.map(t=>`
+    <div class="tip-card">
+      <div class="tip-title">${t.title}</div>
+      <div class="tip-text">${t.text}</div>
+      <a href="${t.link}" target="_blank" rel="noopener" class="tip-link">${t.linkText}</a>
+    </div>
+  `).join('');
+
+  // Gear recommendations
+  const gearByPet={
+    dog:[
+      {name:'Orthopedic Dog Bed',price:'$45-90',link:`https://www.amazon.com/s?k=orthopedic+dog+bed&tag=${tag}`,why:'Prevents joint problems, especially in large breeds'},
+      {name:'Automatic Water Fountain',price:'$25-40',link:`https://www.amazon.com/s?k=pet+water+fountain&tag=${tag}`,why:'Encourages hydration, reduces vet bills from kidney issues'},
+      {name:'GPS Tracker Collar',price:'$30-50',link:`https://www.amazon.com/s?k=dog+gps+tracker&tag=${tag}`,why:'Peace of mind — lost dog searches cost $300+ on average'},
+      {name:'Kong Classic',price:'$8-15',link:`https://www.amazon.com/s?k=kong+classic+dog+toy&tag=${tag}`,why:'Virtually indestructible, saves hundreds on destroyed toys'}
+    ],
+    cat:[
+      {name:'Cat Tree / Tower',price:'$50-120',link:`https://www.amazon.com/s?k=cat+tree+tower&tag=${tag}`,why:'Saves your furniture from scratching damage'},
+      {name:'Self-Cleaning Litter Box',price:'$100-500',link:`https://www.amazon.com/s?k=self+cleaning+litter+box&tag=${tag}`,why:'Saves 10+ hours/month and reduces litter usage 30%'},
+      {name:'Automatic Feeder',price:'$40-80',link:`https://www.amazon.com/s?k=automatic+cat+feeder&tag=${tag}`,why:'Portion control prevents obesity (and expensive weight-related vet bills)'},
+      {name:'Water Fountain',price:'$25-40',link:`https://www.amazon.com/s?k=cat+water+fountain&tag=${tag}`,why:'Cats drink 3x more from fountains — prevents costly UTIs'}
+    ],
+    bird:[
+      {name:'Large Flight Cage',price:'$100-300',link:`https://www.amazon.com/s?k=large+bird+flight+cage&tag=${tag}`,why:'More space = happier, healthier bird with fewer behavior issues'},
+      {name:'Foraging Toys Set',price:'$15-30',link:`https://www.amazon.com/s?k=bird+foraging+toys&tag=${tag}`,why:'Mental stimulation prevents feather plucking (expensive to treat)'}
+    ],
+    fish:[
+      {name:'Water Test Kit',price:'$20-30',link:`https://www.amazon.com/s?k=aquarium+water+test+kit&tag=${tag}`,why:'Catching water issues early prevents fish loss'},
+      {name:'Automatic Fish Feeder',price:'$15-25',link:`https://www.amazon.com/s?k=automatic+fish+feeder&tag=${tag}`,why:'Consistent feeding when you travel, prevents overfeeding'}
+    ],
+    rabbit:[
+      {name:'Large Exercise Pen',price:'$40-70',link:`https://www.amazon.com/s?k=rabbit+exercise+pen&tag=${tag}`,why:'Bunnies need space — prevents depression and destructive chewing'},
+      {name:'Timothy Hay (bulk)',price:'$25-35',link:`https://www.amazon.com/s?k=timothy+hay+rabbit+bulk&tag=${tag}`,why:'Bulk hay saves 40% vs pet store bags'}
+    ],
+    reptile:[
+      {name:'Digital Thermometer/Hygrometer',price:'$10-20',link:`https://www.amazon.com/s?k=reptile+thermometer+hygrometer&tag=${tag}`,why:'Proper temps prevent respiratory infections ($200-500 vet bill)'},
+      {name:'UVB Light Kit',price:'$30-60',link:`https://www.amazon.com/s?k=reptile+uvb+light&tag=${tag}`,why:'Essential for bone health — prevents metabolic bone disease'}
+    ]
+  };
+  const gear=gearByPet[pet]||[];
+  let gearHTML=gear.map(g=>`
+    <div class="tip-card">
+      <div class="tip-title">${g.name} <span style="color:var(--accent4);font-size:.85rem">${g.price}</span></div>
+      <div class="tip-text">${g.why}</div>
+      <a href="${g.link}" target="_blank" rel="noopener" class="tip-link">Shop on Amazon →</a>
+    </div>
+  `).join('');
+
+  r.innerHTML=`
+    <div class="score-section">
+      <div style="font-size:2.5rem">${petEmoji}</div>
+      <div class="big-num">$${totalAnnual.toLocaleString()}<span style="font-size:.5em;-webkit-text-fill-color:var(--muted)">/yr</span></div>
+      <div class="big-label">Estimated annual cost of your ${petName.toLowerCase()}</div>
+      <div class="lifetime-num">$${lifetime.toLocaleString()} lifetime<span style="color:var(--muted);font-size:.7em"> (~${remaining} years remaining)</span></div>
+      <div style="color:var(--muted);font-size:.85rem;margin-top:8px">+ ~$${firstYear.toLocaleString()} first-year setup costs</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Annual Breakdown</div>
+      ${barsHTML}
+    </div>
+
+    <div class="card">
+      <div class="card-title">🤯 Reality Check</div>
+      <div class="compare-grid">
+        <div class="compare-item">
+          <div class="compare-num">${lattes}</div>
+          <div class="compare-label">lattes per year</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-num">${netflixMonths}</div>
+          <div class="compare-label">months of Netflix</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-num">${flights}</div>
+          <div class="compare-label">domestic flights</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-num">${iphones}</div>
+          <div class="compare-label">iPhones</div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;text-align:center;margin-top:12px">That's <strong style="color:var(--accent1)">$${Math.round(totalAnnual/12).toLocaleString()}/month</strong> or <strong style="color:var(--accent1)">$${(totalAnnual/365).toFixed(2)}/day</strong></p>
+    </div>
+
+    ${(ins!=='yes')?`
+    <div class="cta-box">
+      <h3>🛡️ Protect Your Pet (and Wallet)</h3>
+      <p>The average emergency vet bill is $3,000-$5,000. Pet insurance pays up to 90% of covered costs.</p>
+      <a href="https://www.amazon.com/s?k=pet+insurance+guide+book&tag=${tag}" target="_blank" rel="noopener" class="cta-btn">Compare Pet Insurance →</a>
+    </div>
+    `:''}
+
+    <div class="card">
+      <div class="card-title">💡 Smart Ways to Save</div>
+      ${tipsHTML}
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎁 Gear That Pays for Itself</div>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Products that save money long-term:</p>
+      ${gearHTML}
+    </div>
+
+    <div class="email-box">
+      <h3 style="font-family:'Instrument Serif',serif;font-size:1.2rem">📬 Monthly Pet Budget Tips</h3>
+      <p style="color:var(--muted);font-size:.9rem">Get smart saving tips + product deals for pet owners.</p>
+      <input type="email" placeholder="your@email.com">
+      <button onclick="this.textContent='Subscribed! 🎉';this.disabled=true">Subscribe</button>
+    </div>
+
+    <div class="share-row">
+      <button class="share-btn" onclick="copyResults()">📋 Copy Results</button>
+      <button class="share-btn" onclick="tweetResults()">𝕏 Share</button>
+    </div>
+
+    <button class="restart" onclick="location.reload()">↺ Start Over</button>
+  `;
+
+  // Animate bars
+  requestAnimationFrame(()=>{
+    r.querySelectorAll('.bar-fill').forEach(b=>{
+      const w=b.style.width;b.style.width='0';
+      requestAnimationFrame(()=>b.style.width=w);
+    });
+  });
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyResults(){
+  const pet=answers[0], sub=answers[1];
+  const base=costs[pet][sub];
+  const mult=ageMult[answers[2]]*locMult[answers[4]];
+  let total=0;
+  for(const [k,v] of Object.entries(base)){
+    if(k==='lifespan') continue;
+    if(k==='insurance'&&answers[3]!=='yes') continue;
+    total+=Math.round(v*mult);
+  }
+  const text=`🐾 My ${pet} costs ~$${total.toLocaleString()}/year!\nFind out your pet's true cost: ${location.href}`;
+  navigator.clipboard.writeText(text);
+  event.target.textContent='Copied! ✓';
+  setTimeout(()=>event.target.textContent='📋 Copy Results',2000);
+}
+
+function tweetResults(){
+  const pet=answers[0], sub=answers[1];
+  const base=costs[pet][sub];
+  const mult=ageMult[answers[2]]*locMult[answers[4]];
+  let total=0;
+  for(const [k,v] of Object.entries(base)){
+    if(k==='lifespan') continue;
+    if(k==='insurance'&&answers[3]!=='yes') continue;
+    total+=Math.round(v*mult);
+  }
+  const text=encodeURIComponent(`My ${pet} costs ~$${total.toLocaleString()}/year! 🐾\nFind out your pet's true cost:`);
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(location.href)}`,'_blank');
+}
+</script>
+</body>
+</html>
