@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScreenDetox — Your Screen Time Reality Check</title>
+<meta name="description" content="Enter your daily screen time and see the shocking truth about how you spend your life. Plus get personalized tips to reclaim your time.">
+<meta name="keywords" content="screen time calculator, digital wellness, screen time reality check, phone addiction, screen detox">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e30;--text:#e8e6e3;--muted:#8a8a9a;--accent1:#6c63ff;--accent2:#ff6b9d;--accent3:#00d4aa;--accent4:#ffa726}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.035}
+.noise::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background:radial-gradient(ellipse at 20% 20%,rgba(108,99,255,.15),transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,107,157,.12),transparent 60%),radial-gradient(ellipse at 50% 50%,rgba(0,212,170,.08),transparent 70%)}
+.container{max-width:680px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:1}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.8rem,8vw,4.2rem);line-height:1.05;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:40px;line-height:1.5}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px}
+.card h2{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:16px}
+label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:8px;font-weight:500}
+.input-row{display:flex;gap:12px;align-items:flex-end;margin-bottom:20px}
+.input-group{flex:1}
+.input-group input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-size:1.1rem;font-family:inherit;outline:none;transition:border .2s}
+.input-group input:focus{border-color:var(--accent1)}
+.input-group .unit{font-size:.8rem;color:var(--muted);margin-top:4px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.preset{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:.85rem;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+.preset:hover{border-color:var(--accent1);color:var(--text)}
+.preset.active{background:var(--accent1);border-color:var(--accent1);color:#fff}
+.age-select{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.age-btn{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:.85rem;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+.age-btn:hover{border-color:var(--accent2);color:var(--text)}
+.age-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent1),var(--accent2));border:none;border-radius:12px;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,99,255,.3)}
+.btn:active{transform:translateY(0)}
+
+/* Results */
+.results{display:none}
+.results.show{display:block;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-stat{text-align:center;padding:32px 20px}
+.hero-number{font-family:'Instrument Serif',serif;font-size:clamp(4rem,12vw,6rem);line-height:1;background:linear-gradient(135deg,var(--accent2),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-label{color:var(--muted);font-size:1.1rem;margin-top:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.stat-card .num{font-family:'Instrument Serif',serif;font-size:2rem;margin-bottom:4px}
+.stat-card .num.purple{color:var(--accent1)}.stat-card .num.pink{color:var(--accent2)}.stat-card .num.green{color:var(--accent3)}.stat-card .num.orange{color:var(--accent4)}
+.stat-card .lbl{color:var(--muted);font-size:.8rem}
+.bar-section{margin-bottom:20px}
+.bar-label{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:6px}
+.bar-label span:last-child{color:var(--muted)}
+.bar-track{background:var(--bg);border-radius:8px;height:24px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:8px;transition:width 1s ease;width:0}
+.bar-fill.grad1{background:linear-gradient(90deg,var(--accent1),var(--accent2))}
+.bar-fill.grad2{background:linear-gradient(90deg,var(--accent3),var(--accent1))}
+.bar-fill.grad3{background:linear-gradient(90deg,var(--accent4),var(--accent2))}
+.bar-fill.grad4{background:linear-gradient(90deg,var(--accent2),var(--accent3))}
+
+.instead-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.instead-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px}
+.instead-item .emoji{font-size:1.6rem}
+.instead-item .info{font-size:.85rem;line-height:1.3}
+.instead-item .info strong{color:var(--text);display:block}
+.instead-item .info span{color:var(--muted)}
+
+.tip-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:12px;border-left:3px solid var(--accent3)}
+.tip-card h4{font-size:.95rem;margin-bottom:6px;color:var(--accent3)}
+.tip-card p{font-size:.85rem;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.tip-card a{display:inline-block;background:linear-gradient(90deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:.85rem;font-weight:600;text-decoration:none}
+.tip-card a:hover{text-decoration:underline}
+
+.verdict-card{text-align:center;padding:32px;border:1px solid var(--accent2);background:linear-gradient(135deg,rgba(255,107,157,.05),rgba(108,99,255,.05))}
+.verdict-card .emoji{font-size:3rem;margin-bottom:12px}
+.verdict-card h3{font-family:'Instrument Serif',serif;font-size:1.8rem;margin-bottom:8px}
+.verdict-card p{color:var(--muted);font-size:.95rem;line-height:1.5}
+
+.share-row{display:flex;gap:10px;margin-top:20px}
+.share-btn{flex:1;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.share-btn:hover{border-color:var(--accent1);background:rgba(108,99,255,.1)}
+
+.email-capture{background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(255,107,157,.1));border:1px solid rgba(108,99,255,.2);border-radius:16px;padding:28px;text-align:center;margin-bottom:20px}
+.email-capture h3{font-family:'Instrument Serif',serif;font-size:1.4rem;margin-bottom:8px}
+.email-capture p{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+.email-row{display:flex;gap:8px}
+.email-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:.9rem;font-family:inherit;outline:none}
+.email-row button{background:linear-gradient(135deg,var(--accent1),var(--accent2));border:none;border-radius:10px;padding:12px 20px;color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.reset-btn{display:block;margin:20px auto 0;background:none;border:1px solid var(--border);border-radius:10px;padding:10px 24px;color:var(--muted);font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .2s}
+.reset-btn:hover{border-color:var(--accent1);color:var(--text)}
+footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:40px}
+footer a{color:var(--accent1);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="bg-gradient"></div>
+<div class="container">
+  <!-- INPUT SECTION -->
+  <div id="inputSection">
+    <h1><span>ScreenDetox</span></h1>
+    <p class="subtitle">Enter your daily screen time and see the shocking truth about how you're spending your life.</p>
+
+    <div class="card">
+      <h2>📱 Your Daily Screen Time</h2>
+      <label>How many hours per day do you spend on screens? (phone + computer + TV)</label>
+      <div class="presets" id="timePresets">
+        <button class="preset" data-h="3" data-m="0">3h</button>
+        <button class="preset" data-h="5" data-m="0">5h</button>
+        <button class="preset" data-h="7" data-m="0">7h (avg)</button>
+        <button class="preset" data-h="9" data-m="0">9h</button>
+        <button class="preset" data-h="11" data-m="0">11h</button>
+        <button class="preset" data-h="13" data-m="0">13h+</button>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <input type="number" id="hours" min="0" max="24" placeholder="7" value="">
+          <div class="unit">hours</div>
+        </div>
+        <div class="input-group">
+          <input type="number" id="minutes" min="0" max="59" placeholder="0" value="">
+          <div class="unit">minutes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎂 Your Age</h2>
+      <label>We'll calculate lifetime screen hours remaining</label>
+      <div class="age-select" id="ageSelect">
+        <button class="age-btn" data-age="16">Teen</button>
+        <button class="age-btn" data-age="25">20s</button>
+        <button class="age-btn" data-age="35">30s</button>
+        <button class="age-btn" data-age="45">40s</button>
+        <button class="age-btn" data-age="55">50s</button>
+        <button class="age-btn" data-age="65">60s+</button>
+      </div>
+    </div>
+
+    <button class="btn" id="calcBtn">See Your Reality Check →</button>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div class="results" id="results">
+    <div class="card hero-stat">
+      <div class="hero-number" id="yearlyDays"></div>
+      <div class="hero-label">days per year staring at a screen</div>
+    </div>
+
+    <div class="card">
+      <h2>📊 The Breakdown</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num purple" id="weeklyH"></div><div class="lbl">hours / week</div></div>
+        <div class="stat-card"><div class="num pink" id="yearlyH"></div><div class="lbl">hours / year</div></div>
+        <div class="stat-card"><div class="num green" id="lifetimeYears"></div><div class="lbl">years of your remaining life</div></div>
+        <div class="stat-card"><div class="num orange" id="pctAwake"></div><div class="lbl">of waking hours</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⏰ Where Your Year Goes</h2>
+      <div id="breakdownBars"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔄 What You Could Do Instead</h2>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">With <strong id="reclaimH"></strong> reclaimed hours per year (cutting screen time by just 2h/day):</p>
+      <div class="instead-grid" id="insteadGrid"></div>
+    </div>
+
+    <div class="card verdict-card" id="verdictCard"></div>
+
+    <div class="email-capture">
+      <h3>📬 Weekly Digital Wellness Tips</h3>
+      <p>Get 1 actionable screen detox tip every Monday — backed by research, not guilt trips.</p>
+      <div class="email-row">
+        <input type="email" placeholder="your@email.com" id="emailInput">
+        <button onclick="document.getElementById('emailInput').value='';this.textContent='Subscribed ✓'">Subscribe</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🛠 Reclaim Your Time</h2>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">Personalized recommendations based on your screen time:</p>
+      <div id="tips"></div>
+    </div>
+
+    <div class="share-row">
+      <button class="share-btn" id="copyBtn">📋 Copy Results</button>
+      <button class="share-btn" id="tweetBtn">𝕏 Share</button>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">↻ Recalculate</button>
+  </div>
+
+  <footer>
+    <p>Built in one night by <a href="https://stirman.net" target="_blank">stirman.net</a> · Part of <a href="https://onenightbuild.com" target="_blank">One Night Build</a></p>
+    <p style="margin-top:4px">Affiliate links help keep this free.</p>
+  </footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// Presets
+$$('.preset').forEach(b => b.addEventListener('click', () => {
+  $$('.preset').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  $('#hours').value = b.dataset.h;
+  $('#minutes').value = b.dataset.m;
+}));
+
+let selectedAge = 35;
+$$('.age-btn').forEach(b => b.addEventListener('click', () => {
+  $$('.age-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  selectedAge = parseInt(b.dataset.age);
+}));
+
+$('#calcBtn').addEventListener('click', calculate);
+
+function calculate() {
+  const h = parseFloat($('#hours').value) || 0;
+  const m = parseFloat($('#minutes').value) || 0;
+  const daily = h + m / 60;
+  if (daily <= 0) { alert('Enter your daily screen time!'); return; }
+
+  const weekly = daily * 7;
+  const yearly = daily * 365;
+  const yearlyDays = yearly / 24;
+  const remainingYears = Math.max(80 - selectedAge, 10);
+  const lifetimeScreenH = yearly * remainingYears;
+  const lifetimeScreenYears = lifetimeScreenH / 8760;
+  const awakeH = 16; // assume 16 waking hours
+  const pctAwake = (daily / awakeH * 100);
+  const reclaimH = 2 * 365; // 2h/day saved
+
+  // Hero stat
+  $('#yearlyDays').textContent = Math.round(yearlyDays);
+  $('#weeklyH').textContent = Math.round(weekly);
+  $('#yearlyH').textContent = Math.round(yearly).toLocaleString();
+  $('#lifetimeYears').textContent = lifetimeScreenYears.toFixed(1) + ' yrs';
+  $('#pctAwake').textContent = Math.round(pctAwake) + '%';
+  $('#reclaimH').textContent = reclaimH.toLocaleString();
+
+  // Breakdown bars
+  const categories = [
+    { name: 'Social Media', pct: 28, grad: 'grad1' },
+    { name: 'Streaming / Video', pct: 24, grad: 'grad2' },
+    { name: 'Work / Productivity', pct: 30, grad: 'grad3' },
+    { name: 'Browsing / Other', pct: 18, grad: 'grad4' },
+  ];
+  let barsHTML = '';
+  categories.forEach(c => {
+    const hrs = Math.round(yearly * c.pct / 100);
+    barsHTML += `<div class="bar-section"><div class="bar-label"><span>${c.name}</span><span>~${hrs}h/yr (${c.pct}%)</span></div><div class="bar-track"><div class="bar-fill ${c.grad}" data-w="${c.pct}"></div></div></div>`;
+  });
+  $('#breakdownBars').innerHTML = barsHTML;
+
+  // Instead grid
+  const insteadItems = [
+    { emoji: '📚', title: Math.round(reclaimH / 6) + ' books', sub: 'at ~6h per book' },
+    { emoji: '🏃', title: Math.round(reclaimH / 0.5) + ' workouts', sub: '30 min each' },
+    { emoji: '🎸', title: 'Learn 2 instruments', sub: `${reclaimH}h of practice` },
+    { emoji: '🌍', title: Math.round(reclaimH / 40) + ' week-long trips', sub: 'at 40h planning + travel' },
+    { emoji: '🗣️', title: 'Fluency in a language', sub: '~600h needed' },
+    { emoji: '💰', title: '$' + (reclaimH * 30).toLocaleString() + ' freelancing', sub: 'at $30/hr side hustle' },
+  ];
+  $('#insteadGrid').innerHTML = insteadItems.map(i =>
+    `<div class="instead-item"><div class="emoji">${i.emoji}</div><div class="info"><strong>${i.title}</strong><span>${i.sub}</span></div></div>`
+  ).join('');
+
+  // Verdict
+  let verdict;
+  if (daily <= 4) verdict = { emoji: '✅', title: 'Balanced', text: 'Your screen time is below average. You\'re in good shape — just stay mindful of passive scrolling.' };
+  else if (daily <= 7) verdict = { emoji: '⚠️', title: 'Average — But Average Is High', text: `At ${daily.toFixed(1)}h/day, you\'re spending ${Math.round(pctAwake)}% of your waking life on screens. That\'s ${lifetimeScreenYears.toFixed(1)} years of your remaining life. Small cuts = massive gains.` };
+  else if (daily <= 10) verdict = { emoji: '🔴', title: 'Heavy Usage', text: `${daily.toFixed(1)} hours a day is ${Math.round(yearlyDays)} full days per year — almost ${Math.round(yearlyDays/30)} months. You\'re spending more time on screens than sleeping. Time to audit.` };
+  else verdict = { emoji: '🚨', title: 'Critical', text: `${daily.toFixed(1)}h/day means screens consume ${Math.round(pctAwake)}% of your waking life. That\'s ${lifetimeScreenYears.toFixed(1)} YEARS gone. This is worth taking seriously.` };
+  $('#verdictCard').innerHTML = `<div class="emoji">${verdict.emoji}</div><h3>${verdict.title}</h3><p>${verdict.text}</p>`;
+
+  // Tips
+  const tips = [];
+  if (daily >= 5) tips.push({ title: '🕶️ Protect Your Eyes', text: 'Blue light exposure from 5+ hours of screens can disrupt sleep and cause eye strain. Blue light glasses reduce strain by 60%.', link: 'https://www.amazon.com/dp/B08D6P31SJ?tag=stirman-20', linkText: 'Top-rated blue light glasses →' });
+  if (daily >= 3) tips.push({ title: '📖 Replace 1 Hour with Reading', text: 'Swapping just 1 hour of scrolling for reading a Kindle adds up to 60+ books a year. E-ink has zero blue light.', link: 'https://www.amazon.com/dp/B09BS26B8B?tag=stirman-20', linkText: 'Kindle Paperwhite →' });
+  tips.push({ title: '📓 Start a Screen-Free Morning', text: 'The first hour sets your whole day. Replace phone-checking with journaling — even 10 minutes rewires your attention.', link: 'https://www.amazon.com/dp/B0BW2TN1LJ?tag=stirman-20', linkText: 'Five-Minute Journal →' });
+  if (daily >= 7) tips.push({ title: '🔒 Use a Phone Lock Box', text: 'Physical distance is the most effective tool. A timed lock box removes temptation for focused blocks.', link: 'https://www.amazon.com/dp/B0CMZGB7ZB?tag=stirman-20', linkText: 'Kitchen Safe time lock box →' });
+  tips.push({ title: '🎲 Rediscover Analog Fun', text: 'Board games, puzzles, and outdoor activities with family replace screen time with genuine connection.', link: 'https://www.amazon.com/dp/B01MRG7T1C?tag=stirman-20', linkText: 'Codenames — great family game →' });
+  if (daily >= 6) tips.push({ title: '⌚ Use a Dumb Watch', text: 'Checking your phone for the time leads to 30+ unintended pickups/day. A simple watch breaks the cycle.', link: 'https://www.amazon.com/dp/B000GAYQJ0?tag=stirman-20', linkText: 'Classic Casio watch →' });
+  tips.push({ title: '🧘 Try a Digital Sabbath', text: 'One screen-free day per week sounds extreme — but people who do it report better sleep, mood, and relationships within a month.', link: 'https://www.amazon.com/dp/B084HJRG27?tag=stirman-20', linkText: '"How to Break Up with Your Phone" →' });
+
+  $('#tips').innerHTML = tips.map(t =>
+    `<div class="tip-card"><h4>${t.title}</h4><p>${t.text}</p><a href="${t.link}" target="_blank" rel="noopener">${t.linkText}</a></div>`
+  ).join('');
+
+  // Show results
+  $('#inputSection').style.display = 'none';
+  $('#results').classList.add('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Animate bars
+  setTimeout(() => {
+    $$('.bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
+  }, 300);
+
+  // Store for sharing
+  window._results = { daily, yearly: Math.round(yearly), yearlyDays: Math.round(yearlyDays), lifetimeYears: lifetimeScreenYears.toFixed(1), pctAwake: Math.round(pctAwake) };
+}
+
+$('#resetBtn').addEventListener('click', () => {
+  $('#results').classList.remove('show');
+  $('#inputSection').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+$('#copyBtn').addEventListener('click', () => {
+  const r = window._results;
+  const text = `🔋 My Screen Time Reality Check\n\n📱 ${r.daily}h/day → ${r.yearlyDays} days/year on screens\n⏰ ${r.yearly.toLocaleString()} hours per year\n😱 ${r.lifetimeYears} years of my remaining life\n🧠 ${r.pctAwake}% of waking hours\n\nCheck yours: https://stirman.net/screen-detox/`;
+  navigator.clipboard.writeText(text).then(() => { $('#copyBtn').textContent = 'Copied ✓'; setTimeout(() => $('#copyBtn').textContent = '📋 Copy Results', 2000); });
+});
+
+$('#tweetBtn').addEventListener('click', () => {
+  const r = window._results;
+  const text = encodeURIComponent(`I spend ${r.yearlyDays} DAYS per year staring at screens 😱 That's ${r.lifetimeYears} years of my remaining life.\n\nCheck your screen time reality: https://stirman.net/screen-detox/`);
+  window.open('https://twitter.com/intent/tweet?text=' + text, '_blank');
+});
+</script>
+</body>
+</html>
