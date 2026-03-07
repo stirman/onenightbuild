@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rent vs Buy — Should You Rent or Buy a Home?</title>
+<meta name="description" content="Interactive rent vs buy calculator. Enter your numbers and see the real financial comparison over 5-30 years. Make the smartest housing decision.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e2e;--text:#e8e8f0;--muted:#8888aa;--accent1:#ff6b4a;--accent2:#8b5cf6;--accent3:#06d6a0;--green:#06d6a0;--red:#ff6b4a}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 20%,rgba(139,92,246,.12),transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,107,74,.1),transparent 60%),radial-gradient(ellipse at 50% 50%,rgba(6,214,160,.06),transparent 70%);pointer-events:none;z-index:0}
+.noise{position:fixed;top:0;left:0;right:0;bottom:0;opacity:.035;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.container{max-width:720px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:2}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;margin-bottom:8px;background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1rem;margin-bottom:40px;line-height:1.5}
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px}
+.section-title{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.input-group{margin-bottom:20px}
+.input-group:last-child{margin-bottom:0}
+.input-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.input-label label{font-size:.85rem;color:var(--muted);font-weight:500}
+.input-label .value{font-size:1.1rem;font-weight:700;color:var(--text)}
+.input-label .value.green{color:var(--green)}
+.input-label .value.purple{color:var(--accent2)}
+.input-label .value.orange{color:var(--accent1)}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--border);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent2);cursor:pointer;border:3px solid var(--bg);box-shadow:0 0 10px rgba(139,92,246,.4)}
+.presets{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.preset{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.preset:hover,.preset.active{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;position:relative;overflow:hidden}
+.result-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.result-card.rent::before{background:linear-gradient(90deg,var(--accent1),#ff9a76)}
+.result-card.buy::before{background:linear-gradient(90deg,var(--accent2),#b794f6)}
+.result-card .label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.result-card .amount{font-size:1.8rem;font-weight:700;font-family:'Instrument Serif',serif}
+.result-card.rent .amount{color:var(--accent1)}
+.result-card.buy .amount{color:var(--accent2)}
+.result-card .sub{font-size:.75rem;color:var(--muted);margin-top:4px}
+.verdict-card{background:var(--card);border:2px solid;border-radius:16px;padding:32px;text-align:center;margin-bottom:24px}
+.verdict-card.buy-wins{border-color:var(--accent2)}
+.verdict-card.rent-wins{border-color:var(--accent1)}
+.verdict-emoji{font-size:2.4rem;margin-bottom:8px}
+.verdict-text{font-family:'Instrument Serif',serif;font-size:1.8rem;margin-bottom:8px}
+.verdict-sub{color:var(--muted);font-size:.95rem;line-height:1.5}
+.verdict-savings{font-size:1.3rem;font-weight:700;margin-top:12px}
+.buy-wins .verdict-savings{color:var(--accent2)}
+.rent-wins .verdict-savings{color:var(--accent1)}
+.chart-container{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px}
+.chart-container .section-title{margin-bottom:16px}
+.chart-bar-group{margin-bottom:16px}
+.chart-bar-group:last-child{margin-bottom:0}
+.chart-bar-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:6px}
+.chart-bar{height:28px;border-radius:8px;position:relative;overflow:hidden;background:var(--border)}
+.chart-bar-fill{height:100%;border-radius:8px;transition:width .8s ease;display:flex;align-items:center;padding:0 10px}
+.chart-bar-fill.rent{background:linear-gradient(90deg,var(--accent1),#ff9a76)}
+.chart-bar-fill.buy{background:linear-gradient(90deg,var(--accent2),#b794f6)}
+.chart-bar-fill span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap}
+.breakdown{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.breakdown-row:last-child{border-bottom:none}
+.breakdown-row .br-label{font-size:.85rem;color:var(--muted)}
+.breakdown-row .br-val{font-size:.95rem;font-weight:600}
+.breakdown-row .br-val.rent-c{color:var(--accent1)}
+.breakdown-row .br-val.buy-c{color:var(--accent2)}
+.breakdown-row .br-val.green-c{color:var(--green)}
+.tips-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px}
+.tip-card{padding:16px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:12px;margin-bottom:12px}
+.tip-card:last-child{margin-bottom:0}
+.tip-card h4{font-size:.9rem;margin-bottom:6px}
+.tip-card p{font-size:.8rem;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.tip-card a{display:inline-block;padding:6px 14px;background:var(--accent2);color:#fff;text-decoration:none;border-radius:8px;font-size:.8rem;font-weight:600;transition:opacity .2s}
+.tip-card a:hover{opacity:.8}
+.email-capture{background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(6,214,160,.1));border:1px solid rgba(139,92,246,.25);border-radius:16px;padding:32px;text-align:center;margin-bottom:24px}
+.email-capture h3{font-family:'Instrument Serif',serif;font-size:1.4rem;margin-bottom:8px}
+.email-capture p{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.email-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.email-row input{flex:1;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.9rem}
+.email-row button{padding:12px 20px;border-radius:10px;border:none;background:var(--accent2);color:#fff;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:opacity .2s}
+.email-row button:hover{opacity:.8}
+.footer{text-align:center;color:var(--muted);font-size:.75rem;padding:20px 0}
+.footer a{color:var(--accent2);text-decoration:none}
+.share-row{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.share-btn{padding:8px 18px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.share-btn:hover{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.assumptions{font-size:.7rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6}
+@media(max-width:500px){.results-grid{grid-template-columns:1fr}.email-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+<h1>Rent vs Buy</h1>
+<p class="subtitle">Enter your real numbers. See which decision saves you more over time — no bias, just math.</p>
+
+<div class="section">
+<div class="section-title">🏠 Home Price & Down Payment</div>
+<div class="input-group">
+<div class="input-label"><label>Home Price</label><span class="value purple" id="v-price">$400,000</span></div>
+<input type="range" id="price" min="100000" max="1500000" step="10000" value="400000">
+<div class="presets">
+<button class="preset" onclick="setVal('price',200000)">$200K</button>
+<button class="preset" onclick="setVal('price',400000)">$400K</button>
+<button class="preset" onclick="setVal('price',600000)">$600K</button>
+<button class="preset" onclick="setVal('price',800000)">$800K</button>
+<button class="preset" onclick="setVal('price',1000000)">$1M</button>
+</div>
+</div>
+<div class="input-group">
+<div class="input-label"><label>Down Payment</label><span class="value green" id="v-down">20%</span></div>
+<input type="range" id="down" min="0" max="40" step="1" value="20">
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">💰 Monthly Costs</div>
+<div class="input-group">
+<div class="input-label"><label>Monthly Rent</label><span class="value orange" id="v-rent">$2,000</span></div>
+<input type="range" id="rent" min="500" max="8000" step="50" value="2000">
+</div>
+<div class="input-group">
+<div class="input-label"><label>Annual Rent Increase</label><span class="value" id="v-rentinc">3%</span></div>
+<input type="range" id="rentinc" min="0" max="8" step="0.5" value="3">
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">📊 Assumptions</div>
+<div class="input-group">
+<div class="input-label"><label>Mortgage Rate</label><span class="value" id="v-rate">6.5%</span></div>
+<input type="range" id="rate" min="2" max="10" step="0.125" value="6.5">
+</div>
+<div class="input-group">
+<div class="input-label"><label>Loan Term</label><span class="value" id="v-term">30 years</span></div>
+<input type="range" id="term" min="10" max="30" step="5" value="30">
+</div>
+<div class="input-group">
+<div class="input-label"><label>Home Appreciation</label><span class="value green" id="v-apprc">3%/yr</span></div>
+<input type="range" id="apprc" min="0" max="8" step="0.5" value="3">
+</div>
+<div class="input-group">
+<div class="input-label"><label>Investment Return (if renting)</label><span class="value green" id="v-invest">7%/yr</span></div>
+<input type="range" id="invest" min="0" max="12" step="0.5" value="7">
+</div>
+<div class="input-group">
+<div class="input-label"><label>Time Horizon</label><span class="value purple" id="v-years">10 years</span></div>
+<input type="range" id="years" min="1" max="30" step="1" value="10">
+</div>
+</div>
+
+<div id="results"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString();
+const fmtM=n=>'$'+Math.round(n).toLocaleString()+'/mo';
+
+const sliders=['price','down','rent','rentinc','rate','term','apprc','invest','years'];
+sliders.forEach(id=>{
+$(id).addEventListener('input',()=>{update()});
+});
+
+function setVal(id,v){$(id).value=v;update()}
+
+function update(){
+const price=+$('price').value;
+const downPct=+$('down').value/100;
+const rent=+$('rent').value;
+const rentInc=+$('rentinc').value/100;
+const mortRate=+$('rate').value/100;
+const termYrs=+$('term').value;
+const apprc=+$('apprc').value/100;
+const investReturn=+$('invest').value/100;
+const years=+$('years').value;
+
+// Display values
+$('v-price').textContent=fmt(price);
+$('v-down').textContent=Math.round(downPct*100)+'% ('+fmt(price*downPct)+')';
+$('v-rent').textContent=fmtM(rent);
+$('v-rentinc').textContent=(rentInc*100).toFixed(1)+'%';
+$('v-rate').textContent=(mortRate*100).toFixed(2)+'%';
+$('v-term').textContent=termYrs+' years';
+$('v-apprc').textContent=(apprc*100).toFixed(1)+'%/yr';
+$('v-invest').textContent=(investReturn*100).toFixed(1)+'%/yr';
+$('v-years').textContent=years+(years===1?' year':' years');
+
+// Calculations
+const downPayment=price*downPct;
+const loanAmt=price-downPayment;
+const monthlyRate=mortRate/12;
+const nPayments=termYrs*12;
+const monthlyMortgage=loanAmt*(monthlyRate*Math.pow(1+monthlyRate,nPayments))/(Math.pow(1+monthlyRate,nPayments)-1);
+
+// Property tax ~1.1%, insurance ~0.35%, maintenance ~1%
+const propTaxRate=0.011, insRate=0.0035, maintRate=0.01;
+const monthlyPropTax=price*propTaxRate/12;
+const monthlyIns=price*insRate/12;
+const monthlyMaint=price*maintRate/12;
+const monthlyHOA=0; // could add
+const totalMonthlyBuy=monthlyMortgage+monthlyPropTax+monthlyIns+monthlyMaint;
+
+// Year-by-year simulation
+let totalRentPaid=0, totalBuyCost=0, totalInterest=0, totalPrincipal=0;
+let remainingLoan=loanAmt;
+let homeValue=price;
+let investmentBalance=downPayment; // renter invests the down payment
+let curRent=rent;
+
+for(let yr=1;yr<=years;yr++){
+  // Renter
+  for(let m=0;m<12;m++){
+    totalRentPaid+=curRent;
+    // Renter invests the difference (if buy costs more) each month
+    let diff=totalMonthlyBuy-curRent; // simplified: use initial buy cost
+    if(diff>0) investmentBalance+=diff;
+    investmentBalance*=(1+investReturn/12);
+  }
+  curRent*=(1+rentInc);
+
+  // Buyer
+  for(let m=0;m<12;m++){
+    let interestPmt=remainingLoan*monthlyRate;
+    let principalPmt=monthlyMortgage-interestPmt;
+    if(remainingLoan<=0){interestPmt=0;principalPmt=0}
+    totalInterest+=interestPmt;
+    totalPrincipal+=principalPmt;
+    remainingLoan=Math.max(0,remainingLoan-principalPmt);
+    totalBuyCost+=totalMonthlyBuy;
+  }
+  homeValue*=(1+apprc);
+}
+
+// Buyer net: home value - remaining loan - total costs (excluding principal which is equity)
+const equity=homeValue-Math.max(0,remainingLoan);
+const buyerNetWealth=equity; // they own equity
+const buyerTotalSpent=totalBuyCost+downPayment;
+const buyerNet=equity-buyerTotalSpent; // net gain/loss from buying
+
+// Renter net: investment balance - total rent paid
+const renterNet=investmentBalance-totalRentPaid;
+
+// Selling costs (~6%)
+const sellingCosts=homeValue*0.06;
+const buyerNetAfterSell=equity-sellingCosts-buyerTotalSpent+downPayment;
+const buyerFinalWealth=equity-sellingCosts;
+const renterFinalWealth=investmentBalance;
+
+const diff=buyerFinalWealth-renterFinalWealth;
+const buyWins=diff>0;
+
+const maxWealth=Math.max(buyerFinalWealth,renterFinalWealth,1);
+
+let html=`
+<div class="results-grid">
+  <div class="result-card buy">
+    <div class="label">Buying — Net Wealth</div>
+    <div class="amount">${fmt(buyerFinalWealth)}</div>
+    <div class="sub">After selling costs (6%)</div>
+  </div>
+  <div class="result-card rent">
+    <div class="label">Renting — Net Wealth</div>
+    <div class="amount">${fmt(renterFinalWealth)}</div>
+    <div class="sub">Down payment invested at ${(investReturn*100).toFixed(1)}%</div>
+  </div>
+</div>
+
+<div class="verdict-card ${buyWins?'buy-wins':'rent-wins'}">
+  <div class="verdict-emoji">${buyWins?'🏠':'💰'}</div>
+  <div class="verdict-text">${buyWins?'Buying Wins':'Renting Wins'}</div>
+  <div class="verdict-sub">Over ${years} year${years>1?'s':''}, ${buyWins?'buying':'renting'} puts you ahead by:</div>
+  <div class="verdict-savings">${fmt(Math.abs(diff))}</div>
+  <div class="share-row">
+    <button class="share-btn" onclick="copyResult()">📋 Copy Result</button>
+    <button class="share-btn" onclick="tweetResult()">𝕏 Share</button>
+  </div>
+</div>
+
+<div class="chart-container">
+  <div class="section-title">📊 Wealth Comparison</div>
+  <div class="chart-bar-group">
+    <div class="chart-bar-label"><span>🏠 Buying (equity after selling)</span><span>${fmt(buyerFinalWealth)}</span></div>
+    <div class="chart-bar"><div class="chart-bar-fill buy" style="width:${Math.max(2,buyerFinalWealth/maxWealth*100)}%"><span>${fmt(buyerFinalWealth)}</span></div></div>
+  </div>
+  <div class="chart-bar-group">
+    <div class="chart-bar-label"><span>🏢 Renting (investments)</span><span>${fmt(renterFinalWealth)}</span></div>
+    <div class="chart-bar"><div class="chart-bar-fill rent" style="width:${Math.max(2,renterFinalWealth/maxWealth*100)}%"><span>${fmt(renterFinalWealth)}</span></div></div>
+  </div>
+</div>
+
+<div class="breakdown">
+  <div class="section-title">🔍 Full Breakdown</div>
+  <div class="breakdown-row"><span class="br-label">Monthly Mortgage (P&I)</span><span class="br-val buy-c">${fmtM(monthlyMortgage)}</span></div>
+  <div class="breakdown-row"><span class="br-label">+ Property Tax</span><span class="br-val buy-c">${fmtM(monthlyPropTax)}</span></div>
+  <div class="breakdown-row"><span class="br-label">+ Insurance</span><span class="br-val buy-c">${fmtM(monthlyIns)}</span></div>
+  <div class="breakdown-row"><span class="br-label">+ Maintenance</span><span class="br-val buy-c">${fmtM(monthlyMaint)}</span></div>
+  <div class="breakdown-row"><span class="br-label">Total Monthly (Buying)</span><span class="br-val buy-c"><strong>${fmtM(totalMonthlyBuy)}</strong></span></div>
+  <div class="breakdown-row"><span class="br-label">Starting Rent</span><span class="br-val rent-c">${fmtM(rent)}</span></div>
+  <div class="breakdown-row"><span class="br-label">Rent in Year ${years}</span><span class="br-val rent-c">${fmtM(rent*Math.pow(1+rentInc,years-1))}</span></div>
+  <div class="breakdown-row"><span class="br-label">Total Rent Paid</span><span class="br-val rent-c">${fmt(totalRentPaid)}</span></div>
+  <div class="breakdown-row"><span class="br-label">Total Interest Paid</span><span class="br-val">${fmt(totalInterest)}</span></div>
+  <div class="breakdown-row"><span class="br-label">Home Value in Year ${years}</span><span class="br-val green-c">${fmt(homeValue)}</span></div>
+  <div class="breakdown-row"><span class="br-label">Equity Built</span><span class="br-val green-c">${fmt(equity)}</span></div>
+  <div class="breakdown-row"><span class="br-label">Selling Costs (6%)</span><span class="br-val">${fmt(sellingCosts)}</span></div>
+</div>
+
+<div class="tips-section">
+  <div class="section-title">📚 Make a Smarter Decision</div>
+  <div class="tip-card">
+    <h4>📖 The House Hacking Strategy</h4>
+    <p>Buy a duplex, live in one unit, rent out the other. Your tenant covers the mortgage while you build equity. This book shows you exactly how.</p>
+    <a href="https://www.amazon.com/dp/0997584718?tag=stirman-20" target="_blank" rel="noopener">The House Hacking Strategy →</a>
+  </div>
+  <div class="tip-card">
+    <h4>💡 Get Pre-Approved First</h4>
+    <p>Know your real budget before house hunting. Pre-approval takes 15 minutes and locks your rate for 60-90 days. Start with a rate comparison tool.</p>
+    <a href="https://www.amazon.com/dp/0525540636?tag=stirman-20" target="_blank" rel="noopener">I Will Teach You To Be Rich →</a>
+  </div>
+  <div class="tip-card">
+    <h4>📊 Track Your Net Worth</h4>
+    <p>Whether you rent or buy, tracking net worth is the #1 habit of wealth builders. See all accounts, investments, and real estate in one dashboard.</p>
+    <a href="https://www.amazon.com/dp/0593328779?tag=stirman-20" target="_blank" rel="noopener">Psychology of Money →</a>
+  </div>
+  ${buyWins?`<div class="tip-card">
+    <h4>🏠 First-Time Buyer Toolkit</h4>
+    <p>The numbers say buying wins for you. Get a home inspection checklist, closing cost calculator, and negotiation scripts in one book.</p>
+    <a href="https://www.amazon.com/dp/1119576164?tag=stirman-20" target="_blank" rel="noopener">Home Buying Kit for Dummies →</a>
+  </div>`:`<div class="tip-card">
+    <h4>📈 Invest the Difference</h4>
+    <p>The numbers favor renting + investing for you. Make sure that down payment money is actually working — a low-cost index fund is the easiest way.</p>
+    <a href="https://www.amazon.com/dp/1119404509?tag=stirman-20" target="_blank" rel="noopener">The Little Book of Common Sense Investing →</a>
+  </div>`}
+</div>
+
+<div class="email-capture">
+  <h3>🏡 Weekly Housing Market Insights</h3>
+  <p>Rates, market trends, and tips — so you make the best move at the right time.</p>
+  <div class="email-row">
+    <input type="email" placeholder="you@email.com" id="email-input">
+    <button onclick="this.textContent='✓ Joined!';this.style.background='var(--green)'">Subscribe</button>
+  </div>
+</div>
+
+<p class="assumptions">Assumes ${(propTaxRate*100).toFixed(1)}% property tax, ${(insRate*100).toFixed(1)}% insurance, ${(maintRate*100).toFixed(0)}% maintenance, 6% selling costs. Renter invests down payment + monthly savings at ${(investReturn*100).toFixed(1)}% return. This is a simplified model — consult a financial advisor for your specific situation.</p>
+`;
+$('results').innerHTML=html;
+}
+
+function copyResult(){
+const p=$('price').value,y=$('years').value;
+const text=`Rent vs Buy Calculator: On a ${fmt(+p)} home over ${y} years, the verdict is in! Check it out: https://stirman.net/rent-vs-buy/`;
+navigator.clipboard.writeText(text).then(()=>{
+  document.querySelector('.share-btn').textContent='✓ Copied!';
+  setTimeout(()=>document.querySelector('.share-btn').textContent='📋 Copy Result',2000);
+});
+}
+function tweetResult(){
+const p=$('price').value,y=$('years').value;
+const text=encodeURIComponent(`Just ran the numbers on renting vs buying a ${fmt(+p)} home over ${y} years 🏠📊\n\nhttps://stirman.net/rent-vs-buy/`);
+window.open(`https://twitter.com/intent/tweet?text=${text}`,'_blank');
+}
+
+update();
+</script>
+</body>
+</html>
