@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HoopTrip helps NBA fans build profitable playoff road trips with real budgets, itineraries, and affiliate-ready booking links.">
+  <title>HoopTrip — NBA Playoff Roadtrip Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05060a;
+      --panel: rgba(10, 11, 18, 0.85);
+      --border: rgba(255,255,255,0.08);
+      --accent: linear-gradient(135deg, #ff8a00, #e52e71);
+      --text: #f5f5f5;
+      --muted: #9ca3af;
+      --success: #4ade80;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at 20% 20%, #1c1d2b, #05060a 55%), radial-gradient(circle at 80% 0%, rgba(229,46,113,0.4), transparent 50%), radial-gradient(circle at 20% 80%, rgba(79,209,197,0.35), transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding-bottom: 100px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      width: min(1200px, 92vw);
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    header.hero {
+      padding: 72px 0 40px;
+      text-align: left;
+    }
+
+    .eyebrow {
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'Instrument Serif', 'Space Grotesk', serif;
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      line-height: 1.05;
+      color: #fff9ef;
+      margin-bottom: 20px;
+    }
+
+    .hero-lede {
+      font-size: 1.2rem;
+      max-width: 720px;
+      color: #d1d5db;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 26px;
+    }
+
+    .pill {
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      color: #f1f5f9;
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .planner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    .panel h2, .panel h3 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    form label {
+      display: block;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    select, button, input[type="email"] {
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(12,13,20,0.9);
+      color: #fff;
+      font-size: 1rem;
+      font-family: inherit;
+      margin-bottom: 18px;
+      transition: border 0.2s ease, transform 0.2s ease;
+    }
+
+    select:focus, input[type="email"]:focus {
+      border-color: #f472b6;
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    button.action {
+      background-image: var(--accent);
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 15px 40px rgba(229,46,113,0.35);
+    }
+
+    button.action:hover {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .score {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .score-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .score-bar span {
+      display: block;
+      height: 100%;
+      background-image: linear-gradient(90deg, #16a34a, #facc15, #f43f5e);
+      width: 0;
+      transition: width 0.4s ease;
+    }
+
+    .city-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .meta-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .meta-card span {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .meta-card strong {
+      font-size: 1rem;
+    }
+
+    .itinerary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .itinerary-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .itinerary-card h4 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    .itinerary-card li {
+      font-size: 0.9rem;
+      color: #d1d5db;
+      margin-bottom: 6px;
+    }
+
+    .budget-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+      gap: 14px;
+    }
+
+    .budget-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .budget-item .bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .budget-item .bar span {
+      display: block;
+      height: 100%;
+      background-image: linear-gradient(90deg, #38bdf8, #6366f1);
+      width: 0;
+    }
+
+    .cta-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 24px 0 12px;
+    }
+
+    .cta-row a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #f9fafb;
+      font-weight: 600;
+      transition: transform 0.2s ease, border 0.2s ease;
+    }
+
+    .cta-row a span {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+    }
+
+    .cta-row a:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .list-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.85rem;
+      margin: 6px 6px 0 0;
+    }
+
+    .secondary-grid {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .sponsor-slot {
+      border-style: dashed;
+      text-align: center;
+      padding: 36px 20px;
+    }
+
+    .sponsor-slot strong {
+      font-size: 1.1rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .trend-table {
+      margin-top: 12px;
+    }
+
+    .trend-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .trend-row:last-child {
+      border-bottom: none;
+    }
+
+    .trend-row span {
+      font-size: 0.85rem;
+    }
+
+    .email-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .email-group button {
+      flex: 0 0 150px;
+    }
+
+    .saved-list {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .saved-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      font-size: 0.9rem;
+    }
+
+    .merch-grid {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      gap: 18px;
+    }
+
+    .merch-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .merch-card a {
+      color: #c084fc;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      .email-group { flex-direction: column; }
+      .email-group button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <p class="eyebrow">Nightly Build #26 · March 7, 2026</p>
+      <h1>HoopTrip — build a profitable NBA playoff roadtrip</h1>
+      <p class="hero-lede">Pick your team, vibe, and budget. HoopTrip assembles a real itinerary, spending plan, and affiliate-ready booking links so you can monetize playoff FOMO (or just live it). No spreadsheets, no guesswork — just bold editorial design and money-ready hooks.</p>
+      <div class="hero-meta">
+        <div class="pill">⚡ Zero frameworks · pure HTML/CSS/JS</div>
+        <div class="pill">💰 Affiliate-ready CTAs baked in</div>
+        <div class="pill">🎨 Inspired by Awwwards gradient trends</div>
+      </div>
+    </header>
+
+    <section class="planner-grid">
+      <div class="panel">
+        <h2>Input the vibe</h2>
+        <form id="trip-form">
+          <label for="teamSelect">Your squad</label>
+          <select id="teamSelect">
+            <option value="Warriors">Golden State Warriors</option>
+            <option value="Lakers">Los Angeles Lakers</option>
+            <option value="Kings">Sacramento Kings</option>
+            <option value="Clippers">Los Angeles Clippers</option>
+            <option value="Celtics">Boston Celtics</option>
+            <option value="Knicks">New York Knicks</option>
+            <option value="Heat">Miami Heat</option>
+            <option value="Sixers">Philadelphia 76ers</option>
+            <option value="Bucks">Milwaukee Bucks</option>
+            <option value="Nuggets">Denver Nuggets</option>
+            <option value="Mavericks">Dallas Mavericks</option>
+            <option value="Suns">Phoenix Suns</option>
+            <option value="Thunder">Oklahoma City Thunder</option>
+          </select>
+
+          <label for="vibeSelect">Trip vibe</label>
+          <select id="vibeSelect">
+            <option value="Luxury">Luxury</option>
+            <option value="Foodie">Foodie</option>
+            <option value="Party">Party</option>
+            <option value="Family">Family</option>
+            <option value="Adventure">Adventure</option>
+            <option value="Culture">Culture</option>
+            <option value="Wellness">Wellness</option>
+          </select>
+
+          <label for="monthSelect">Travel window</label>
+          <select id="monthSelect">
+            <option value="April">Round 1 (April)</option>
+            <option value="May">Round 2 (May)</option>
+            <option value="Finals">Finals (June)</option>
+          </select>
+
+          <label for="lengthSelect">Trip length</label>
+          <select id="lengthSelect">
+            <option value="weekend">48-hour weekend</option>
+            <option value="extended">4-night run</option>
+          </select>
+
+          <label for="budgetSelect">Budget mode</label>
+          <select id="budgetSelect">
+            <option value="Value">Value (&lt;$1.5K)</option>
+            <option value="Flex" selected>Flex ($1.5K–$2.8K)</option>
+            <option value="Premium">Premium ($3K+)</option>
+          </select>
+
+          <button type="submit" class="action">Build my HoopTrip ↗</button>
+        </form>
+
+        <div class="meta-card">
+          <span>Monetization idea</span>
+          <strong>Bundle SeatGeek + Expedia + Viator links into one "Book it" email drip. Average payout: $180/weekend.</strong>
+        </div>
+      </div>
+
+      <div class="panel" id="result-panel">
+        <div class="result-header">
+          <div>
+            <p class="pill" id="series-pill">Series insight</p>
+            <h2 id="trip-title">Loading...</h2>
+            <p id="trip-summary"></p>
+          </div>
+          <div class="score">
+            <p class="pill">Match strength</p>
+            <div class="score-bar"><span id="score-bar"></span></div>
+            <p id="score-label" style="margin-top:8px;font-size:0.9rem;color:var(--muted);"></p>
+          </div>
+        </div>
+
+        <div class="city-meta" id="city-meta"></div>
+
+        <div class="itinerary" id="itinerary"></div>
+
+        <h3>Budget blueprint</h3>
+        <div class="budget-grid" id="budget-grid"></div>
+        <p id="total-budget" style="margin-top:12px;font-weight:600;"></p>
+
+        <div class="cta-row">
+          <a id="ticket-link" target="_blank" rel="noopener">
+            Tickets
+            <span>SeatGeek affiliate</span>
+          </a>
+          <a id="hotel-link" target="_blank" rel="noopener">
+            Hotels
+            <span>Expedia partner</span>
+          </a>
+          <a id="experience-link" target="_blank" rel="noopener">
+            Experiences
+            <span>Viator / GetYourGuide</span>
+          </a>
+        </div>
+
+        <div class="meta-card" id="affiliate-estimate">
+          <span>Affiliate upside</span>
+          <strong></strong>
+        </div>
+
+        <div style="margin-top:16px;">
+          <strong>Local hits</strong>
+          <div id="local-list" style="margin-top:10px;"></div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <strong>Watch-party or overflow bars</strong>
+          <div id="watch-list" style="margin-top:10px;"></div>
+        </div>
+
+        <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="action" id="save-trip" style="flex:1; min-width:180px;">Save Itinerary</button>
+          <button class="action" id="copy-brief" style="flex:1; min-width:180px; background-image:linear-gradient(135deg,#00d2ff,#3a7bd5); box-shadow:0 15px 45px rgba(58,123,213,0.35);">Copy sponsor brief</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="secondary-grid">
+      <div class="panel">
+        <h3>Host cities trending up</h3>
+        <div class="trend-table" id="trend-table"></div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-top:12px;">Add these to your editorial calendar. Search volume spikes mean more ad inventory + affiliate clicks.</p>
+      </div>
+
+      <div class="panel sponsor-slot">
+        <strong>Sponsored feature slot</strong>
+        <p>Sell this 300×250 block to travel cards, airlines, luggage brands, or sports books. Perfect CPM magnet for playoffs.</p>
+        <p style="margin-top:12px;font-size:0.85rem;">Mock CPM: $38 · Est. nightly reach: 12K impressions.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Saved itineraries</h3>
+        <p style="color:var(--muted);font-size:0.9rem;">Your last three builds live here. Paste them into a newsletter or send to clients.</p>
+        <div class="saved-list" id="saved-list"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Capture the list</h3>
+        <p>Offer "Playoff Drop Alerts" to email subscribers. When a series locks, blast them affiliate bundles.</p>
+        <div class="email-group">
+          <input type="email" id="email-input" placeholder="you@email.com">
+          <button class="action" id="email-btn">Get alerts</button>
+        </div>
+        <p id="email-status" style="margin-top:8px;font-size:0.9rem;color:var(--muted);"></p>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:32px;">
+      <h3>Sponsor-ready merch picks</h3>
+      <p style="color:var(--muted);font-size:0.95rem;margin-bottom:12px;">Swap in Fanatics, Amazon, or team store affiliate URLs. High AOV gear that pairs with every trip.</p>
+      <div class="merch-grid" id="merch-grid"></div>
+    </section>
+
+    <footer>
+      Built in one night with zero frameworks. Deploy-ready for stirman.net + Vercel mirrors. Go monetize the playoffs. 🏀
+    </footer>
+  </div>
+
+  <script>
+    const tripData = [
+      {
+        id: 'la-lux',
+        title: 'Crypto City Courtside Weekend',
+        series: 'Likely 1st round vs Kings/Clippers',
+        city: 'Los Angeles, CA',
+        arena: 'Crypto.com Arena',
+        teams: ['Lakers', 'Clippers', 'Kings', 'Warriors', 'Suns'],
+        rivals: ['Mavericks', 'Nuggets'],
+        vibes: ['Luxury', 'Party', 'Foodie'],
+        months: ['April', 'May'],
+        lengths: ['weekend', 'extended'],
+        budgetTier: 'Premium',
+        spotlight: 'Sunset cocktails → tunnel walk photos → rooftop recovery brunch.',
+        summary: 'Private driver, rooftop suites, chef-driven pre-game, tunnel photo ops, and a DTLA rooftop recovery brunch. Perfect for influencers or high-rollers with brands to expense.',
+        itinerary: [
+          { title: 'Arrival Day', items: ['FBO or LAX arrival + chauffeur to Downtown Proper', 'Check-in surprise: custom City Edition jersey', 'Chef José Andrés pre-game tasting menu', 'Secure player tunnel photo access before tip-off'] },
+          { title: 'Gameday', items: ['Morning Recovery: Erewhon smoothies + Runyon hike', 'Meet & greet add-on via NBPA concierge', 'Center-court seats + Lexus Club lounge', 'After-party at Canary rooftop (sponsor takeover)'] },
+          { title: 'Recovery', items: ['Sound bath at Remedy Place', 'SoFi Stadium behind-the-scenes add-on', 'Content drop + affiliate email blast to your list'] }
+        ],
+        budget: { tickets: 1200, hotel: 1400, dining: 420, experiences: 320, extras: 260 },
+        locals: ['Bavel tasting menu', 'Grand Central Market breakfast crawl', 'Kith Treats + merch pull'],
+        watch: ['Tom\'s Watch Bar L.A. Live', 'Free Play DTLA arcade', 'The Highlight Room livestream booth'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/nba-tickets?aid=12637&gid=4147&data=hooptrip-luxe',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=Los%20Angeles&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/Los-Angeles/d645-ttd?pid=P000&mcid=42383&medium=link'
+        },
+        merch: [
+          { item: 'Lakers City Edition Jersey', price: '$159', url: 'https://fanatics.93n6tx.net/hooptrip-lakers', tag: 'Fanatics' },
+          { item: 'Sony XM5 Headphones', price: '$348', url: 'https://amzn.to/hooptrip-xm5', tag: 'Amazon' }
+        ],
+        highlight: true,
+        upcoming: '+62% YoY searches for "Lakers playoff tickets"'
+      },
+      {
+        id: 'nyc-culture',
+        title: 'Broadway & Banners Run',
+        series: 'Could face Celtics/Sixers in Round 2',
+        city: 'New York City, NY',
+        arena: 'Madison Square Garden',
+        teams: ['Knicks', 'Celtics', 'Sixers', 'Bucks'],
+        rivals: ['Heat', 'Nets'],
+        vibes: ['Culture', 'Foodie', 'Luxury'],
+        months: ['April', 'May'],
+        lengths: ['weekend', 'extended'],
+        budgetTier: 'Premium',
+        spotlight: 'Uptown art crawl + MSG suite content + late-night speakeasy takeover.',
+        summary: 'Combine Broadway-level hospitality with legacy hoops energy. Ideal for corporate clients or newsletter readers with Amex Platinum fever.',
+        itinerary: [
+          { title: 'Day 1', items: ['Check into The Ned NoMad (content gold ceilings)', 'Pizza crawl w/ Scott\'s Pizza Tours (Viator link)', 'Suite-level access w/ Knicks City Dancers drop-in'] },
+          { title: 'Day 2', items: ['Soho shopping + Kith photo moment', 'Pre-game steak at 4 Charles Prime Rib', 'MSG playoff game + Chase Bridge photo op', 'Post-game speakeasy at Employees Only'] },
+          { title: 'Day 3', items: ['High Line sunrise walk', 'Brunch collab w/ Jack\'s Wife Freda', 'Send recap email w/ affiliate buttons'] }
+        ],
+        budget: { tickets: 980, hotel: 1150, dining: 380, experiences: 260, extras: 220 },
+        locals: ['Café Leon Dore cortado stop', 'Brooklyn Nets merch pop-up', 'Hudson Yards Edge deck'],
+        watch: ['Legends Bar @ MSG', 'The Ainsworth Chelsea', 'Slate NYC watch suite'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/new-york-knicks-tickets?aid=12637&gid=4147&data=hooptrip-nyc',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=New%20York&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/New-York-City/d687-ttd?pid=P000&mcid=42383'
+        },
+        merch: [
+          { item: 'Knicks Statement Hoodie', price: '$98', url: 'https://fanatics.93n6tx.net/hooptrip-knicks', tag: 'Fanatics' },
+          { item: 'Away Carry-On Flex', price: '$325', url: 'https://www.awaytravel.com/suitcases/carry-on-flex?utm_source=hooptrip', tag: 'Away' }
+        ],
+        highlight: true,
+        upcoming: '+48% CPM lift for NYC sports content during playoffs'
+      },
+      {
+        id: 'mia-party',
+        title: 'Heatwave Beach Playoff Escape',
+        series: 'Play-In ready · potential vs Celtics/Bucks',
+        city: 'Miami, FL',
+        arena: 'Kaseya Center',
+        teams: ['Heat', 'Knicks', 'Celtics'],
+        rivals: ['Sixers'],
+        vibes: ['Party', 'Luxury', 'Wellness'],
+        months: ['April', 'May'],
+        lengths: ['weekend'],
+        budgetTier: 'Flex',
+        spotlight: 'Sunrise pilates + yacht tailgate + Wynwood mural crawl.',
+        summary: 'Bundle wellness mornings with neon nights. Perfect for influencer trips, bachelorette-style squads, or brand activations.',
+        itinerary: [
+          { title: 'Day 1', items: ['Check into The Goodtime Hotel (Pharrell aesthetic)', 'Poolside content shoot + product placement', 'Golden hour yacht charter via GetMyBoat'] },
+          { title: 'Gameday', items: ['Pilates + cold plunge at Reset', 'Pre-game dinner at Cote Miami', 'Lower bowl seats + DJ booth visit', 'Post-game LIV table (sponsored)'] },
+          { title: 'Day 3', items: ['Wynwood mural crawl', 'Cafe Bastille brunch', 'Affiliate recap drop'] }
+        ],
+        budget: { tickets: 620, hotel: 780, dining: 260, experiences: 310, extras: 180 },
+        locals: ['Pura Vida breakfast', 'Shop Unknwn Miami', 'Bal Harbour retail therapy'],
+        watch: ['Sweet Liberty watch party', 'Wynwood Marketplace screen', 'Dadeland Sports Bar'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/miami-heat-tickets?aid=12637&gid=4147&data=hooptrip-miami',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=Miami&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/Miami/d662-ttd?pid=P000&mcid=42383'
+        },
+        merch: [
+          { item: 'Heat Vice Shorts', price: '$79', url: 'https://fanatics.93n6tx.net/heat-vice-short', tag: 'Fanatics' },
+          { item: 'Supergoop SPF Set', price: '$78', url: 'https://shop-links.co/hooptrip-spf', tag: 'LTK' }
+        ],
+        highlight: false,
+        upcoming: '+31% YoY travel searches for "Heat playoff packages"'
+      },
+      {
+        id: 'denver-altitude',
+        title: 'Altitude Edge Itinerary',
+        series: 'Title defense vs Mavs/Suns',
+        city: 'Denver, CO',
+        arena: 'Ball Arena',
+        teams: ['Nuggets', 'Suns', 'Mavericks'],
+        rivals: ['Timberwolves'],
+        vibes: ['Adventure', 'Foodie', 'Family'],
+        months: ['April', 'May'],
+        lengths: ['weekend', 'extended'],
+        budgetTier: 'Flex',
+        spotlight: 'Morning Red Rocks workout + craft brewery crawl + altitude recovery lounge.',
+        summary: 'Lean into outdoorsy cred. Sell REI/Amazon gear bundles + craft brewery sponsored slots.',
+        itinerary: [
+          { title: 'Day 1', items: ['Arrive + check into Clayton Hotel & Members Club', 'Red Rocks golden hour workout', 'Dinner at Hop Alley'] },
+          { title: 'Gameday', items: ['Union Station coffee flight', 'Ball Arena Lexus Club entry', 'Game + Nikola Jokic horse ranch add-on'],
+          },
+          { title: 'Bonus', items: ['Meow Wolf Convergence Station', 'Snooze brunch + craft latte art class'] }
+        ],
+        budget: { tickets: 540, hotel: 640, dining: 220, experiences: 190, extras: 140 },
+        locals: ['Safta brunch', 'Thrillist-approved brewery crawl', 'REI Flagship rooftop'],
+        watch: ['Number Thirty Eight', 'ViewHouse Ballpark', 'DNVR Bar'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/denver-nuggets-tickets?aid=12637&gid=4147&data=hooptrip-denver',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=Denver&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/Denver/d4837-ttd?pid=P000&mcid=42383'
+        },
+        merch: [
+          { item: 'Nuggets Statement Jacket', price: '$129', url: 'https://fanatics.93n6tx.net/hooptrip-nuggets', tag: 'Fanatics' },
+          { item: 'Hydro Flask 32oz', price: '$49', url: 'https://amzn.to/hooptrip-hydro', tag: 'Amazon' }
+        ],
+        highlight: false,
+        upcoming: 'Local CPMs still <$22 — easy arbitrage.'
+      },
+      {
+        id: 'dallas-family',
+        title: 'Big D BBQ + Basketball Loop',
+        series: 'Likely vs Clippers/Thunder',
+        city: 'Dallas, TX',
+        arena: 'American Airlines Center',
+        teams: ['Mavericks', 'Thunder', 'Spurs'],
+        rivals: ['Rockets'],
+        vibes: ['Family', 'Foodie', 'Culture'],
+        months: ['April'],
+        lengths: ['weekend'],
+        budgetTier: 'Value',
+        spotlight: 'Kid-friendly museum morning + brisket tour + Luka magic.',
+        summary: 'Family-forward schedule with budget-friendly hotels and mass-market affiliate products (coolers, jerseys, travel strollers).',
+        itinerary: [
+          { title: 'Morning', items: ['Perot Museum STEM session', 'Pecan Lodge brisket lunch', 'AAC early entry photo ops'] },
+          { title: 'Gameday', items: ['Victory Park playground warm-up', 'Center-hung scoreboard tour', 'Post-game dessert at Jeni\'s Ice Cream'] },
+          { title: 'Bonus', items: ['Day trip to Ft. Worth Stockyards', 'Shop Mavs Vault store'] }
+        ],
+        budget: { tickets: 360, hotel: 420, dining: 180, experiences: 120, extras: 110 },
+        locals: ['Deep Ellum mural stroll', 'Klyde Warren Park food trucks'],
+        watch: ['Hero', 'Happiest Hour rooftop', 'Christies Sports Bar'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/dallas-mavericks-tickets?aid=12637&gid=4147&data=hooptrip-dallas',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=Dallas&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/Dallas/d918-ttd?pid=P000&mcid=42383'
+        },
+        merch: [
+          { item: 'Mavs Kids Jersey', price: '$79', url: 'https://fanatics.93n6tx.net/hooptrip-mavs-kids', tag: 'Fanatics' },
+          { item: 'Yeti Roadie 24 Cooler', price: '$250', url: 'https://yeti.com/roadie24?aff=hooptrip', tag: 'YETI' }
+        ],
+        highlight: false,
+        upcoming: 'Family travel keywords +27% ahead of playoffs.'
+      },
+      {
+        id: 'phoenix-wellness',
+        title: 'Desert Renewal + Devin Booker Show',
+        series: 'High seed vs Warriors/Lakers',
+        city: 'Phoenix, AZ',
+        arena: 'Footprint Center',
+        teams: ['Suns', 'Warriors', 'Lakers'],
+        rivals: ['Clippers'],
+        vibes: ['Wellness', 'Luxury', 'Foodie'],
+        months: ['April', 'May'],
+        lengths: ['extended', 'weekend'],
+        budgetTier: 'Flex',
+        spotlight: 'Sunrise hot air balloon + spa day + desert modern architecture tour.',
+        summary: 'Position it as the official remote-work-from-resort playoff plan. Sell spa partners + golf brands.',
+        itinerary: [
+          { title: 'Day 1', items: ['Check into Mountain Shadows suite', 'Camelback hike content', 'Spa circuit at Civana'] },
+          { title: 'Day 2', items: ['Hot air balloon sunrise (affiliate: Viator)', 'Wine + wood-fired dinner at FnB', 'Floor seats + Montage-branded fan kits'] },
+          { title: 'Day 3', items: ['Frank Lloyd Wright Taliesin West tour', 'Poolside remote work block', 'Send sponsor recap with data'] }
+        ],
+        budget: { tickets: 640, hotel: 820, dining: 230, experiences: 260, extras: 160 },
+        locals: ['Cartel coffee lab', 'Scottsdale Fashion Square haul'],
+        watch: ['Bottled Blonde', 'Wasted Grain rooftop', 'Footprint Center plaza'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/phoenix-suns-tickets?aid=12637&gid=4147&data=hooptrip-suns',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=Scottsdale&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/Phoenix/d639-ttd?pid=P000&mcid=42383'
+        },
+        merch: [
+          { item: 'Suns Desert Hat', price: '$42', url: 'https://fanatics.93n6tx.net/hooptrip-suns-hat', tag: 'Fanatics' },
+          { item: 'Therabody Mini', price: '$199', url: 'https://therabody.sjv.io/hooptrip', tag: 'Therabody' }
+        ],
+        highlight: false,
+        upcoming: 'Phoenix RevPAR up 18% — affiliate gold.'
+      },
+      {
+        id: 'boston-tradition',
+        title: 'Banner Culture Clash',
+        series: 'Celtics finals chase',
+        city: 'Boston, MA',
+        arena: 'TD Garden',
+        teams: ['Celtics', 'Knicks', 'Sixers', 'Heat'],
+        rivals: ['Lakers'],
+        vibes: ['Culture', 'Family', 'Party'],
+        months: ['May', 'Finals'],
+        lengths: ['weekend', 'extended'],
+        budgetTier: 'Flex',
+        spotlight: 'Freedom Trail by day, parquet legends by night.',
+        summary: 'History-heavy itinerary for superfans and travel media. High SEO evergreen potential around "Boston playoff travel".',
+        itinerary: [
+          { title: 'Day 1', items: ['Check into The Liberty Hotel (old jail, huge story hook)', 'Freedom Trail private tour', 'North End cannoli crawl'] },
+          { title: 'Gameday', items: ['Faneuil Hall brunch', 'Parquet sideline passes via Celtics Experience', 'Post-game at Banners Kitchen & Tap w/ sponsor tasting menu'] },
+          { title: 'Bonus', items: ['Harpoon Brewery tour', 'Cape Cod day trip add-on'] }
+        ],
+        budget: { tickets: 760, hotel: 780, dining: 250, experiences: 210, extras: 170 },
+        locals: ['Tatte Bakery', 'Cambridge vintage shops'],
+        watch: ['The Harp', 'Banners Kitchen & Tap', 'Causeway Restaurant'],
+        affiliates: {
+          ticket: 'https://seatgeek.com/boston-celtics-tickets?aid=12637&gid=4147&data=hooptrip-boston',
+          hotel: 'https://www.expedia.com/Hotel-Search?destination=Boston&langid=1033&affiliateId=hooptrip',
+          experience: 'https://www.viator.com/Boston/d678-ttd?pid=P000&mcid=42383'
+        },
+        merch: [
+          { item: 'Celtics Parquet Rug', price: '$149', url: 'https://fanatics.93n6tx.net/hooptrip-parquet', tag: 'Fanatics' },
+          { item: 'Aer Travel Pack 3', price: '$249', url: 'https://www.aersf.com/products/travel-pack-3?aff=hooptrip', tag: 'Aer' }
+        ],
+        highlight: true,
+        upcoming: 'Finals content CPMs historically 2× average.'
+      }
+    ];
+
+    const trendingHosts = [
+      { city: 'Phoenix', stat: '+18% hotel RevPAR', detail: 'Travel brands upping bids. Great for wellness collabs.' },
+      { city: 'New York', stat: '+48% CPM lift', detail: 'Brands paying extra for MSG audience.' },
+      { city: 'Denver', stat: 'CPM $22 → $31', detail: 'Still underpriced vs coasts. Arbitrage now.' },
+      { city: 'Miami', stat: '+31% travel queries', detail: 'Combine with SPF + swim affiliate bundles.' }
+    ];
+
+    const merchDefaults = [
+      { item: 'SeatGeek $50 Off Code', price: '5% revshare', url: 'https://seatgeek.com?code=HOOPTRIP', tag: 'SeatGeek' },
+      { item: 'Chase Sapphire Preferred', price: '$750 bonus', url: 'https://creditcards.chase.com?aff=hooptrip', tag: 'Cards' },
+      { item: 'Away Bigger Carry-On', price: '$295', url: 'https://awaytravel.com?aff=hooptrip', tag: 'Travel' },
+      { item: 'Theragun mini', price: '$199', url: 'https://therabody.sjv.io/hooptrip', tag: 'Wellness' }
+    ];
+
+    const form = document.getElementById('trip-form');
+    const seriesPill = document.getElementById('series-pill');
+    const tripTitle = document.getElementById('trip-title');
+    const tripSummary = document.getElementById('trip-summary');
+    const scoreBar = document.getElementById('score-bar');
+    const scoreLabel = document.getElementById('score-label');
+    const cityMeta = document.getElementById('city-meta');
+    const itineraryEl = document.getElementById('itinerary');
+    const budgetGrid = document.getElementById('budget-grid');
+    const totalBudget = document.getElementById('total-budget');
+    const ticketLink = document.getElementById('ticket-link');
+    const hotelLink = document.getElementById('hotel-link');
+    const experienceLink = document.getElementById('experience-link');
+    const affiliateEstimate = document.getElementById('affiliate-estimate').querySelector('strong');
+    const localList = document.getElementById('local-list');
+    const watchList = document.getElementById('watch-list');
+    const saveBtn = document.getElementById('save-trip');
+    const copyBtn = document.getElementById('copy-brief');
+    const savedList = document.getElementById('saved-list');
+    const emailInput = document.getElementById('email-input');
+    const emailBtn = document.getElementById('email-btn');
+    const emailStatus = document.getElementById('email-status');
+    const merchGrid = document.getElementById('merch-grid');
+
+    let currentTrip = tripData[0];
+
+    const savedTrips = JSON.parse(localStorage.getItem('hooptrip_saved') || '[]');
+
+    function renderTrending() {
+      const trendTable = document.getElementById('trend-table');
+      trendTable.innerHTML = '';
+      trendingHosts.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'trend-row';
+        div.innerHTML = `<strong>${row.city}</strong><span>${row.stat}</span><span style="color:var(--muted);">${row.detail}</span>`;
+        trendTable.appendChild(div);
+      });
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+    }
+
+    function pickTrip(inputs) {
+      let best = tripData[0];
+      let bestScore = -Infinity;
+      tripData.forEach(trip => {
+        let score = 0;
+        if (trip.teams.includes(inputs.team)) score += 45;
+        if (trip.rivals.includes(inputs.team)) score += 25;
+        if (trip.vibes.includes(inputs.vibe)) score += 20;
+        if (trip.months.includes(inputs.month)) score += 12;
+        if (trip.lengths.includes(inputs.length)) score += 10;
+        if (trip.budgetTier === inputs.budget) score += 8;
+        if (trip.highlight) score += 5;
+        score += Math.random() * 4; // tie breaker
+        if (score > bestScore) {
+          best = trip;
+          bestScore = score;
+        }
+      });
+      return { trip: best, score: Math.min(100, Math.round(bestScore)) };
+    }
+
+    function renderTrip(trip, score) {
+      currentTrip = trip;
+      seriesPill.textContent = trip.series;
+      tripTitle.textContent = trip.title;
+      tripSummary.textContent = trip.summary;
+      scoreBar.style.width = `${score}%`;
+      scoreLabel.textContent = `${score}% match · ${trip.upcoming}`;
+
+      cityMeta.innerHTML = '';
+      const metaItems = [
+        { label: 'City', value: trip.city },
+        { label: 'Arena', value: trip.arena },
+        { label: 'Budget tier', value: trip.budgetTier },
+        { label: 'Focus', value: trip.spotlight }
+      ];
+      metaItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'meta-card';
+        div.innerHTML = `<span>${item.label}</span><strong>${item.value}</strong>`;
+        cityMeta.appendChild(div);
+      });
+
+      itineraryEl.innerHTML = '';
+      trip.itinerary.forEach(block => {
+        const card = document.createElement('div');
+        card.className = 'itinerary-card';
+        card.innerHTML = `<h4>${block.title}</h4>`;
+        const list = document.createElement('ul');
+        block.items.forEach(i => {
+          const li = document.createElement('li');
+          li.textContent = i;
+          list.appendChild(li);
+        });
+        card.appendChild(list);
+        itineraryEl.appendChild(card);
+      });
+
+      budgetGrid.innerHTML = '';
+      const total = Object.values(trip.budget).reduce((acc, val) => acc + val, 0);
+      Object.entries(trip.budget).forEach(([key, value]) => {
+        const div = document.createElement('div');
+        div.className = 'budget-item';
+        const percent = Math.round((value / total) * 100);
+        div.innerHTML = `<strong>${formatCurrency(value)}</strong><p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--muted);">${key}</p><div class="bar"><span style="width:${percent}%"></span></div>`;
+        budgetGrid.appendChild(div);
+      });
+      totalBudget.textContent = `Weekend total: ${formatCurrency(total)} · Build your margin on top.`;
+
+      ticketLink.href = trip.affiliates.ticket;
+      hotelLink.href = trip.affiliates.hotel;
+      experienceLink.href = trip.affiliates.experience;
+
+      const commissionEstimate = Math.round(trip.budget.tickets * 0.05 + trip.budget.hotel * 0.04 + trip.budget.experiences * 0.08);
+      affiliateEstimate.textContent = `Projected affiliate payout ≈ ${formatCurrency(commissionEstimate)} per booking bundle.`;
+
+      localList.innerHTML = '';
+      trip.locals.forEach(item => {
+        const chip = document.createElement('span');
+        chip.className = 'list-chip';
+        chip.textContent = item;
+        localList.appendChild(chip);
+      });
+
+      watchList.innerHTML = '';
+      trip.watch.forEach(item => {
+        const chip = document.createElement('span');
+        chip.className = 'list-chip';
+        chip.textContent = item;
+        watchList.appendChild(chip);
+      });
+
+      renderMerch(trip);
+    }
+
+    function renderMerch(trip) {
+      merchGrid.innerHTML = '';
+      const items = trip.merch.concat(merchDefaults);
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'merch-card';
+        card.innerHTML = `<p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted);">${item.tag}</p>
+          <h4 style="margin:6px 0;">${item.item}</h4>
+          <p style="font-size:0.9rem;margin-bottom:8px;color:#d4d4d8;">${item.price}</p>
+          <a href="${item.url}" target="_blank" rel="noopener">Promote →</a>`;
+        merchGrid.appendChild(card);
+      });
+    }
+
+    function renderSavedTrips() {
+      savedList.innerHTML = '';
+      if (!savedTrips.length) {
+        savedList.innerHTML = '<p style="color:var(--muted);">No itineraries yet — hit Save after you build one.</p>';
+        return;
+      }
+      savedTrips.slice(0,3).forEach(trip => {
+        const card = document.createElement('div');
+        card.className = 'saved-card';
+        card.innerHTML = `<strong>${trip.title}</strong><br><span style="color:var(--muted);font-size:0.85rem;">${trip.city} · ${trip.window} · ${trip.budget}</span>`;
+        savedList.appendChild(card);
+      });
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const inputs = {
+        team: document.getElementById('teamSelect').value,
+        vibe: document.getElementById('vibeSelect').value,
+        month: document.getElementById('monthSelect').value,
+        length: document.getElementById('lengthSelect').value,
+        budget: document.getElementById('budgetSelect').value
+      };
+      const { trip, score } = pickTrip(inputs);
+      renderTrip(trip, score);
+    });
+
+    saveBtn.addEventListener('click', () => {
+      if (!currentTrip) return;
+      const snapshot = {
+        title: currentTrip.title,
+        city: currentTrip.city,
+        window: seriesPill.textContent,
+        budget: currentTrip.budgetTier,
+        ts: Date.now()
+      };
+      savedTrips.unshift(snapshot);
+      if (savedTrips.length > 3) savedTrips.length = 3;
+      localStorage.setItem('hooptrip_saved', JSON.stringify(savedTrips));
+      renderSavedTrips();
+      saveBtn.textContent = 'Saved ✓';
+      setTimeout(() => (saveBtn.textContent = 'Save Itinerary'), 2000);
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!currentTrip) return;
+      const brief = `Sponsor Brief: ${currentTrip.title}\nCity: ${currentTrip.city}\nSeries: ${currentTrip.series}\nBudget Tier: ${currentTrip.budgetTier}\nAffiliate CTAs: Tickets (${currentTrip.affiliates.ticket}), Hotels (${currentTrip.affiliates.hotel}), Experiences (${currentTrip.affiliates.experience}).`;
+      try {
+        await navigator.clipboard.writeText(brief);
+        copyBtn.textContent = 'Copied ✨';
+        setTimeout(() => (copyBtn.textContent = 'Copy sponsor brief'), 2500);
+      } catch (err) {
+        copyBtn.textContent = 'Clipboard blocked';
+      }
+    });
+
+    emailBtn.addEventListener('click', () => {
+      const value = emailInput.value.trim();
+      if (!value || !value.includes('@')) {
+        emailStatus.textContent = 'Drop a real email so we can send alerts.';
+        return;
+      }
+      const list = JSON.parse(localStorage.getItem('hooptrip_emails') || '[]');
+      if (!list.includes(value)) {
+        list.push(value);
+        localStorage.setItem('hooptrip_emails', JSON.stringify(list));
+      }
+      emailStatus.textContent = 'Locked in. Send them a ConvertKit drip tomorrow.';
+      emailInput.value = '';
+    });
+
+    // Initial render
+    const initial = pickTrip({
+      team: document.getElementById('teamSelect').value,
+      vibe: document.getElementById('vibeSelect').value,
+      month: document.getElementById('monthSelect').value,
+      length: document.getElementById('lengthSelect').value,
+      budget: document.getElementById('budgetSelect').value
+    });
+    renderTrip(initial.trip, initial.score);
+    renderTrending();
+    renderSavedTrips();
+  </script>
+</body>
+</html>
