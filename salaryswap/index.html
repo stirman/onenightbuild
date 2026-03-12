@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SalarySwap — Cost of Living Salary Translator</title>
+<meta name="description" content="Instantly see what your salary is worth in another city. Free cost of living comparison calculator with housing, food, transport & lifestyle breakdowns.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--border:#1e1e30;--text:#e8e6e1;--muted:#8a8a9a;--accent1:#ff6b35;--accent2:#7b2ff7;--accent3:#00d4aa;--gradient:linear-gradient(135deg,#ff6b35,#7b2ff7,#00d4aa)}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(123,47,247,.08),transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,107,53,.06),transparent 60%),radial-gradient(ellipse at 50% 50%,rgba(0,212,170,.04),transparent 60%);pointer-events:none;z-index:0}
+.noise{position:fixed;inset:0;opacity:.035;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.container{max-width:680px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:2}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.tagline{color:var(--muted);font-size:1.05rem;margin-bottom:40px;line-height:1.5}
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px}
+.section-title{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+input[type="text"],input[type="number"],select{width:100%;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;font-family:'Space Grotesk',sans-serif;outline:none;transition:border .2s}
+input:focus,select:focus{border-color:var(--accent2)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8a9a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px;cursor:pointer}
+.field{margin-bottom:18px}
+.salary-input{position:relative}
+.salary-input::before{content:'$';position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1rem;pointer-events:none}
+.salary-input input{padding-left:30px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.preset{padding:8px 16px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--muted);font-size:.85rem;cursor:pointer;transition:all .2s;font-family:'Space Grotesk',sans-serif}
+.preset:hover,.preset.active{border-color:var(--accent2);color:var(--text);background:rgba(123,47,247,.1)}
+.btn{width:100%;padding:16px;background:var(--gradient);border:none;border-radius:12px;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:transform .15s,opacity .15s}
+.btn:hover{transform:translateY(-1px);opacity:.95}
+.btn:active{transform:translateY(0)}
+#results{display:none}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.hero-stat{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center}
+.hero-stat .val{font-family:'Instrument Serif',serif;font-size:clamp(1.6rem,4vw,2.2rem);margin-bottom:2px}
+.hero-stat .label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.val-up{color:var(--accent1)}
+.val-down{color:var(--accent3)}
+.val-same{color:var(--muted)}
+.verdict-box{text-align:center;padding:24px;margin-bottom:24px}
+.verdict-emoji{font-size:2.4rem;margin-bottom:8px}
+.verdict-text{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:6px}
+.verdict-sub{color:var(--muted);font-size:.95rem;line-height:1.5}
+.breakdown{margin-bottom:24px}
+.breakdown-item{margin-bottom:16px}
+.breakdown-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.9rem}
+.breakdown-cat{font-weight:600}
+.breakdown-pct{font-weight:600}
+.breakdown-pct.higher{color:var(--accent1)}
+.breakdown-pct.lower{color:var(--accent3)}
+.breakdown-pct.same{color:var(--muted)}
+.bar-bg{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.25,.8,.25,1)}
+.bar-current{background:var(--accent2)}
+.bar-target{background:var(--accent1)}
+.bar-row{display:flex;gap:4px;align-items:center;margin-top:4px;font-size:.75rem;color:var(--muted)}
+.bar-row .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.reality{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.reality-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.reality-item .emoji{font-size:1.4rem;margin-bottom:4px}
+.reality-item .num{font-size:1.3rem;font-weight:700}
+.reality-item .desc{font-size:.75rem;color:var(--muted);margin-top:2px}
+.tips{margin-bottom:24px}
+.tip{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:10px}
+.tip-title{font-weight:600;margin-bottom:4px;font-size:.95rem}
+.tip-desc{color:var(--muted);font-size:.85rem;line-height:1.5}
+.tip a{color:var(--accent3);text-decoration:none}
+.tip a:hover{text-decoration:underline}
+.gear{margin-bottom:24px}
+.gear-item{display:flex;gap:14px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px}
+.gear-emoji{font-size:1.6rem}
+.gear-info{flex:1}
+.gear-name{font-weight:600;font-size:.95rem;margin-bottom:2px}
+.gear-desc{color:var(--muted);font-size:.8rem}
+.gear-link{color:var(--accent3);text-decoration:none;font-size:.85rem;font-weight:600;white-space:nowrap}
+.gear-link:hover{text-decoration:underline}
+.email-box{background:linear-gradient(135deg,rgba(123,47,247,.12),rgba(0,212,170,.08));border:1px solid rgba(123,47,247,.25);border-radius:14px;padding:24px;text-align:center;margin-bottom:24px}
+.email-box h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:6px}
+.email-box p{color:var(--muted);font-size:.85rem;margin-bottom:14px}
+.email-row{display:flex;gap:8px}
+.email-row input{flex:1;padding:12px 14px;border-radius:10px}
+.email-row button{padding:12px 20px;background:var(--accent2);border:none;border-radius:10px;color:#fff;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;white-space:nowrap}
+.share-row{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.share-btn{padding:10px 20px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.share-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:40px;line-height:1.6}
+.footer a{color:var(--accent3);text-decoration:none}
+.swap-btn{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:10px auto;background:var(--bg);border:1px solid var(--border);border-radius:50%;cursor:pointer;font-size:1.2rem;color:var(--muted);transition:all .2s}
+.swap-btn:hover{border-color:var(--accent2);color:var(--accent2);transform:rotate(180deg)}
+.search-wrap{position:relative}
+.search-results{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;z-index:10;display:none}
+.search-results.show{display:block}
+.search-result{padding:10px 14px;cursor:pointer;font-size:.9rem;transition:background .15s}
+.search-result:hover{background:rgba(123,47,247,.1)}
+.search-result .city-name{font-weight:600}
+.search-result .city-detail{color:var(--muted);font-size:.8rem}
+@media(max-width:500px){.hero-stats{grid-template-columns:1fr}.reality{grid-template-columns:1fr 1fr}.email-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+<h1>SalarySwap</h1>
+<p class="tagline">What's your salary actually worth in another city? Enter your income, pick two cities, and see the real difference — housing, food, transport, everything.</p>
+
+<div id="calculator">
+<div class="section">
+<div class="section-title">💰 Your Salary</div>
+<div class="presets" id="salaryPresets"></div>
+<div class="field salary-input">
+<input type="text" id="salary" placeholder="85,000" inputmode="numeric">
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">📍 Current City</div>
+<div class="field search-wrap">
+<input type="text" id="fromSearch" placeholder="Search city..." autocomplete="off">
+<div class="search-results" id="fromResults"></div>
+</div>
+</div>
+
+<div class="swap-btn" id="swapBtn" title="Swap cities">⇅</div>
+
+<div class="section">
+<div class="section-title">🎯 Target City</div>
+<div class="field search-wrap">
+<input type="text" id="toSearch" placeholder="Search city..." autocomplete="off">
+<div class="search-results" id="toResults"></div>
+</div>
+</div>
+
+<button class="btn" id="calcBtn">Translate My Salary →</button>
+</div>
+
+<div id="results">
+<div class="section">
+<div class="section-title" id="resultTitle"></div>
+<div class="hero-stats" id="heroStats"></div>
+<div class="verdict-box" id="verdict"></div>
+</div>
+
+<div class="section">
+<div class="section-title">📊 Category Breakdown</div>
+<p style="color:var(--muted);font-size:.85rem;margin-bottom:18px">How costs compare across major spending categories</p>
+<div class="breakdown" id="breakdown"></div>
+<div class="bar-row" style="justify-content:center;gap:16px;margin-top:8px">
+<span><span class="dot" style="background:var(--accent2);display:inline-block"></span> Current</span>
+<span><span class="dot" style="background:var(--accent1);display:inline-block"></span> Target</span>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">🤯 Reality Check</div>
+<div class="reality" id="reality"></div>
+</div>
+
+<div class="section" id="tipsSection">
+<div class="section-title">💡 Smart Moves</div>
+<div class="tips" id="tips"></div>
+</div>
+
+<div class="section">
+<div class="section-title">🛍️ Gear That Helps</div>
+<div class="gear" id="gear"></div>
+</div>
+
+<div class="email-box">
+<h3>Get Weekly City Cost Insights</h3>
+<p>Salary negotiation tips, city comparisons & cost-saving hacks — free.</p>
+<div class="email-row">
+<input type="text" id="emailInput" placeholder="your@email.com">
+<button id="emailBtn">Subscribe</button>
+</div>
+</div>
+
+<div class="share-row">
+<button class="share-btn" id="copyBtn">📋 Copy Results</button>
+<button class="share-btn" id="tweetBtn">🐦 Share</button>
+</div>
+
+<div style="text-align:center;margin-top:24px">
+<button class="btn" id="recalcBtn" style="max-width:300px;margin:0 auto">← Try Another City</button>
+</div>
+</div>
+
+<div class="footer">
+<p>Built with ☕ by <a href="https://onenightbuild.com" target="_blank">One Night Build</a></p>
+<p style="margin-top:4px">Data based on aggregate cost-of-living indices. Affiliate links may earn commission.</p>
+</div>
+</div>
+
+<script>
+// City database with cost-of-living index relative to national average (100)
+// Categories: housing, food, transport, healthcare, utilities, misc
+const CITIES=[
+{name:"New York City",state:"NY",housing:238,food:116,transport:130,healthcare:110,utilities:115,misc:120},
+{name:"San Francisco",state:"CA",housing:260,food:118,transport:120,healthcare:112,utilities:130,misc:122},
+{name:"Los Angeles",state:"CA",housing:192,food:108,transport:118,healthcare:106,utilities:112,misc:110},
+{name:"Seattle",state:"WA",housing:180,food:112,transport:115,healthcare:108,utilities:95,misc:112},
+{name:"Boston",state:"MA",housing:195,food:110,transport:112,healthcare:114,utilities:120,misc:115},
+{name:"Washington DC",state:"DC",housing:190,food:108,transport:110,healthcare:108,utilities:105,misc:112},
+{name:"Miami",state:"FL",housing:170,food:106,transport:108,healthcare:104,utilities:105,misc:108},
+{name:"Chicago",state:"IL",housing:120,food:104,transport:108,healthcare:106,utilities:100,misc:105},
+{name:"Denver",state:"CO",housing:148,food:104,transport:102,healthcare:106,utilities:92,misc:106},
+{name:"Austin",state:"TX",housing:138,food:98,transport:100,healthcare:98,utilities:100,misc:102},
+{name:"Portland",state:"OR",housing:155,food:106,transport:108,healthcare:108,utilities:92,misc:108},
+{name:"Nashville",state:"TN",housing:120,food:96,transport:96,healthcare:96,utilities:92,misc:98},
+{name:"Atlanta",state:"GA",housing:112,food:98,transport:102,healthcare:100,utilities:96,misc:100},
+{name:"Dallas",state:"TX",housing:108,food:96,transport:100,healthcare:98,utilities:102,misc:98},
+{name:"Houston",state:"TX",housing:95,food:94,transport:102,healthcare:98,utilities:100,misc:96},
+{name:"Phoenix",state:"AZ",housing:110,food:98,transport:100,healthcare:100,utilities:108,misc:98},
+{name:"Minneapolis",state:"MN",housing:115,food:102,transport:100,healthcare:108,utilities:90,misc:102},
+{name:"San Diego",state:"CA",housing:195,food:108,transport:110,healthcare:106,utilities:115,misc:110},
+{name:"Philadelphia",state:"PA",housing:118,food:104,transport:108,healthcare:108,utilities:108,misc:104},
+{name:"Charlotte",state:"NC",housing:102,food:96,transport:96,healthcare:100,utilities:92,misc:96},
+{name:"Raleigh",state:"NC",housing:110,food:96,transport:96,healthcare:100,utilities:92,misc:98},
+{name:"Salt Lake City",state:"UT",housing:120,food:98,transport:96,healthcare:100,utilities:88,misc:98},
+{name:"Tampa",state:"FL",housing:108,food:98,transport:100,healthcare:98,utilities:102,misc:98},
+{name:"San Antonio",state:"TX",housing:88,food:92,transport:96,healthcare:94,utilities:98,misc:94},
+{name:"Pittsburgh",state:"PA",housing:88,food:98,transport:100,healthcare:102,utilities:96,misc:96},
+{name:"Columbus",state:"OH",housing:92,food:96,transport:96,healthcare:100,utilities:88,misc:96},
+{name:"Indianapolis",state:"IN",housing:85,food:94,transport:96,healthcare:98,utilities:88,misc:94},
+{name:"Kansas City",state:"MO",housing:82,food:94,transport:94,healthcare:100,utilities:96,misc:94},
+{name:"Milwaukee",state:"WI",housing:88,food:98,transport:96,healthcare:106,utilities:92,misc:96},
+{name:"Las Vegas",state:"NV",housing:110,food:100,transport:104,healthcare:100,utilities:102,misc:100},
+{name:"Oklahoma City",state:"OK",housing:72,food:92,transport:94,healthcare:96,utilities:92,misc:90},
+{name:"Memphis",state:"TN",housing:68,food:90,transport:92,healthcare:92,utilities:88,misc:88},
+{name:"Louisville",state:"KY",housing:78,food:92,transport:94,healthcare:96,utilities:88,misc:92},
+{name:"Richmond",state:"VA",housing:98,food:98,transport:96,healthcare:102,utilities:96,misc:98},
+{name:"Boise",state:"ID",housing:118,food:96,transport:92,healthcare:98,utilities:82,misc:96},
+{name:"Honolulu",state:"HI",housing:250,food:130,transport:125,healthcare:110,utilities:160,misc:125},
+{name:"Anchorage",state:"AK",housing:135,food:118,transport:108,healthcare:140,utilities:120,misc:108},
+{name:"Detroit",state:"MI",housing:62,food:92,transport:100,healthcare:100,utilities:96,misc:92},
+{name:"Cleveland",state:"OH",housing:65,food:94,transport:96,healthcare:100,utilities:90,misc:92},
+{name:"St. Louis",state:"MO",housing:75,food:94,transport:96,healthcare:100,utilities:96,misc:94},
+{name:"New Orleans",state:"LA",housing:95,food:102,transport:98,healthcare:96,utilities:100,misc:100},
+{name:"Sacramento",state:"CA",housing:155,food:104,transport:108,healthcare:106,utilities:108,misc:106},
+{name:"Tucson",state:"AZ",housing:88,food:96,transport:96,healthcare:98,utilities:102,misc:94},
+{name:"El Paso",state:"TX",housing:72,food:90,transport:92,healthcare:92,utilities:96,misc:90},
+{name:"Jacksonville",state:"FL",housing:95,food:96,transport:98,healthcare:98,utilities:100,misc:96},
+{name:"Bozeman",state:"MT",housing:158,food:104,transport:94,healthcare:102,utilities:82,misc:102},
+{name:"Burlington",state:"VT",housing:140,food:106,transport:98,healthcare:108,utilities:105,misc:106},
+{name:"Savannah",state:"GA",housing:95,food:96,transport:94,healthcare:96,utilities:96,misc:96},
+{name:"Charleston",state:"SC",housing:118,food:100,transport:96,healthcare:100,utilities:96,misc:100},
+{name:"Boulder",state:"CO",housing:175,food:108,transport:100,healthcare:108,utilities:90,misc:110}
+];
+
+// Category weights for overall index (how much of typical budget goes to each)
+const WEIGHTS={housing:.35,food:.15,transport:.15,healthcare:.10,utilities:.10,misc:.15};
+const CAT_LABELS={housing:"🏠 Housing",food:"🍔 Food & Groceries",transport:"🚗 Transportation",healthcare:"🏥 Healthcare",utilities:"⚡ Utilities",misc:"🎭 Entertainment & Misc"};
+
+let fromCity=null,toCity=null;
+
+// Salary presets
+const salaryPresets=[40,50,60,75,85,100,125,150,200];
+const presetsEl=document.getElementById('salaryPresets');
+salaryPresets.forEach(s=>{
+const btn=document.createElement('div');
+btn.className='preset';
+btn.textContent='$'+s+'K';
+btn.onclick=()=>{
+document.getElementById('salary').value=s*1000;
+document.querySelectorAll('#salaryPresets .preset').forEach(p=>p.classList.remove('active'));
+btn.classList.add('active');
+};
+presetsEl.appendChild(btn);
+});
+
+// City search
+function setupSearch(inputId,resultsId,setter){
+const input=document.getElementById(inputId);
+const results=document.getElementById(resultsId);
+input.addEventListener('input',()=>{
+const q=input.value.toLowerCase().trim();
+if(q.length<1){results.classList.remove('show');return}
+const matches=CITIES.filter(c=>(c.name+' '+c.state).toLowerCase().includes(q)).slice(0,8);
+results.innerHTML=matches.map((c,i)=>`<div class="search-result" data-idx="${CITIES.indexOf(c)}"><span class="city-name">${c.name}</span> <span class="city-detail">${c.state}</span></div>`).join('');
+results.classList.add('show');
+results.querySelectorAll('.search-result').forEach(r=>{
+r.onclick=()=>{
+const city=CITIES[parseInt(r.dataset.idx)];
+setter(city);
+input.value=city.name+', '+city.state;
+results.classList.remove('show');
+};
+});
+});
+input.addEventListener('blur',()=>setTimeout(()=>results.classList.remove('show'),200));
+}
+setupSearch('fromSearch','fromResults',c=>{fromCity=c});
+setupSearch('toSearch','toResults',c=>{toCity=c});
+
+// Swap
+document.getElementById('swapBtn').onclick=()=>{
+const tmp=fromCity;fromCity=toCity;toCity=tmp;
+const fi=document.getElementById('fromSearch');
+const ti=document.getElementById('toSearch');
+const tv=fi.value;fi.value=ti.value;ti.value=tv;
+};
+
+function getOverallIndex(city){
+return Object.keys(WEIGHTS).reduce((sum,k)=>sum+city[k]*WEIGHTS[k],0);
+}
+
+function fmt(n){return n.toLocaleString('en-US',{maximumFractionDigits:0})}
+function fmtMoney(n){return'$'+fmt(n)}
+function pctStr(from,to){
+const pct=((to-from)/from*100);
+if(Math.abs(pct)<1)return{text:'about the same',cls:'same'};
+return pct>0?{text:Math.round(pct)+'% higher',cls:'higher'}:{text:Math.abs(Math.round(pct))+'% lower',cls:'lower'};
+}
+
+document.getElementById('calcBtn').onclick=calculate;
+document.getElementById('recalcBtn').onclick=()=>{
+document.getElementById('results').style.display='none';
+document.getElementById('calculator').style.display='block';
+window.scrollTo({top:0,behavior:'smooth'});
+};
+
+function calculate(){
+const salaryRaw=document.getElementById('salary').value.replace(/[^0-9]/g,'');
+const salary=parseInt(salaryRaw);
+if(!salary||salary<10000){alert('Enter a valid salary');return}
+if(!fromCity||!toCity){alert('Select both cities');return}
+if(fromCity===toCity){alert('Pick two different cities');return}
+
+const fromIdx=getOverallIndex(fromCity);
+const toIdx=getOverallIndex(toCity);
+const ratio=toIdx/fromIdx;
+const equivalent=Math.round(salary*ratio);
+const diff=equivalent-salary;
+const monthly=Math.round(diff/12);
+
+document.getElementById('calculator').style.display='none';
+document.getElementById('results').style.display='block';
+window.scrollTo({top:0,behavior:'smooth'});
+
+// Title
+document.getElementById('resultTitle').textContent=fromCity.name+' → '+toCity.name;
+
+// Hero stats
+const p=pctStr(fromIdx,toIdx);
+document.getElementById('heroStats').innerHTML=`
+<div class="hero-stat"><div class="val">${fmtMoney(salary)}</div><div class="label">Current in ${fromCity.name}</div></div>
+<div class="hero-stat"><div class="val ${diff>0?'val-up':diff<0?'val-down':'val-same'}">${fmtMoney(equivalent)}</div><div class="label">Equivalent in ${toCity.name}</div></div>
+<div class="hero-stat"><div class="val ${diff>0?'val-up':diff<0?'val-down':'val-same'}">${diff>=0?'+':''}${fmtMoney(diff)}</div><div class="label">${diff>=0?'More':'Less'} needed/yr</div></div>
+<div class="hero-stat"><div class="val ${diff>0?'val-up':diff<0?'val-down':'val-same'}">${diff>=0?'+':''}${fmtMoney(monthly)}</div><div class="label">Per month difference</div></div>`;
+
+// Verdict
+const absPct=Math.abs(Math.round((ratio-1)*100));
+let emoji,text,sub;
+if(absPct<3){emoji='⚖️';text='About the Same';sub=`${toCity.name} costs roughly the same as ${fromCity.name}. Your salary translates almost 1:1.`}
+else if(ratio>1){
+if(absPct<10){emoji='📈';text='Slightly Pricier';sub=`${toCity.name} is ${absPct}% more expensive. You'd want a small raise to stay even.`}
+else if(absPct<25){emoji='🔥';text='Noticeably Pricier';sub=`${toCity.name} is ${absPct}% more expensive. You'd need ${fmtMoney(diff)} more per year just to break even.`}
+else{emoji='💸';text='Significantly Pricier';sub=`${toCity.name} is ${absPct}% more expensive. That's ${fmtMoney(Math.abs(monthly))}/mo more — make sure the salary matches.`}
+}else{
+if(absPct<10){emoji='👍';text='Slightly Cheaper';sub=`${toCity.name} is ${absPct}% cheaper. You'd effectively get a small raise by moving.`}
+else if(absPct<25){emoji='🎉';text='Nice Savings';sub=`${toCity.name} is ${absPct}% cheaper. That's like getting a ${fmtMoney(Math.abs(diff))}/yr raise without negotiating.`}
+else{emoji='🤑';text='Way Cheaper';sub=`${toCity.name} is ${absPct}% cheaper. Your dollar stretches MUCH further — ${fmtMoney(Math.abs(monthly))}/mo in your pocket.`}
+}
+document.getElementById('verdict').innerHTML=`<div class="verdict-emoji">${emoji}</div><div class="verdict-text">${text}</div><div class="verdict-sub">${sub}</div>`;
+
+// Category breakdown
+const cats=Object.keys(WEIGHTS);
+const maxVal=Math.max(...cats.flatMap(k=>[fromCity[k],toCity[k]]));
+document.getElementById('breakdown').innerHTML=cats.map(k=>{
+const p=pctStr(fromCity[k],toCity[k]);
+return`<div class="breakdown-item">
+<div class="breakdown-header"><span class="breakdown-cat">${CAT_LABELS[k]}</span><span class="breakdown-pct ${p.cls}">${p.text}</span></div>
+<div style="display:flex;gap:4px"><div class="bar-bg" style="flex:1"><div class="bar-fill bar-current" style="width:${fromCity[k]/maxVal*100}%"></div></div></div>
+<div style="display:flex;gap:4px;margin-top:3px"><div class="bar-bg" style="flex:1"><div class="bar-fill bar-target" style="width:${toCity[k]/maxVal*100}%"></div></div></div>
+</div>`;
+}).join('');
+
+// Reality check
+const absDiff=Math.abs(diff);
+const items=[
+{emoji:'☕',num:fmt(Math.round(absDiff/6)),desc:diff>0?'more lattes needed/yr':'lattes you save/yr'},
+{emoji:'🍕',num:fmt(Math.round(absDiff/15)),desc:diff>0?'pizza nights to cover':'pizza nights you gain'},
+{emoji:'✈️',num:fmt(Math.round(absDiff/350)),desc:diff>0?'domestic flights worth':'flights you could take'},
+{emoji:'📱',num:fmt(Math.round(absDiff/1200)),desc:diff>0?'iPhones worth':'iPhones you save'}
+];
+document.getElementById('reality').innerHTML=items.map(i=>`<div class="reality-item"><div class="emoji">${i.emoji}</div><div class="num">${i.num}</div><div class="desc">${i.desc}</div></div>`).join('');
+
+// Tips
+const tips=[];
+if(toCity.housing>fromCity.housing*1.15)tips.push({title:'Housing is the big one',desc:`Housing in ${toCity.name} is ${pctStr(fromCity.housing,toCity.housing).text}. Consider suburbs or negotiate remote work to pocket the difference. <a href="https://www.amazon.com/dp/0593795474?tag=stirman-20" target="_blank">The House Hacking Strategy →</a>`});
+if(ratio>1.1)tips.push({title:'Negotiate the gap',desc:`Show your employer this ${absPct}% cost difference when negotiating a relocation bump or remote-friendly salary. <a href="https://www.amazon.com/dp/0593727452?tag=stirman-20" target="_blank">Never Split the Difference →</a>`});
+if(ratio<0.9)tips.push({title:'Geo-arbitrage opportunity',desc:`If you can keep your ${fromCity.name} salary while living in ${toCity.name}, you'd effectively earn ${fmtMoney(Math.abs(diff))} more. Remote work makes this possible. <a href="https://www.amazon.com/dp/0307465357?tag=stirman-20" target="_blank">The 4-Hour Workweek →</a>`});
+if(toCity.transport>fromCity.transport*1.1)tips.push({title:'Transport costs add up',desc:`Transport is higher in ${toCity.name}. Look for neighborhoods near public transit or bike-friendly areas to save.`});
+tips.push({title:'Invest the difference',desc:`Whether you save or spend more, track it. Small cost-of-living gaps compound over decades. <a href="https://www.amazon.com/dp/0066620724?tag=stirman-20" target="_blank">The Psychology of Money →</a>`});
+document.getElementById('tips').innerHTML=tips.map(t=>`<div class="tip"><div class="tip-title">${t.title}</div><div class="tip-desc">${t.desc}</div></div>`).join('');
+
+// Gear
+const gearItems=[];
+if(ratio>1.05)gearItems.push({emoji:'📒',name:'YNAB Budgeting Method',desc:'Master your budget in a higher-cost city',link:'https://www.amazon.com/dp/0062842544?tag=stirman-20',cta:'Get the Book'});
+gearItems.push({emoji:'💼',name:'Laptop Backpack',desc:'For the remote worker doing geo-arbitrage',link:'https://www.amazon.com/dp/B0BNL3BSQF?tag=stirman-20',cta:'View on Amazon'});
+gearItems.push({emoji:'🎧',name:'Sony WH-1000XM5',desc:'Focus anywhere — essential for remote work',link:'https://www.amazon.com/dp/B0BX2L8PBT?tag=stirman-20',cta:'$328 on Amazon'});
+gearItems.push({emoji:'📊',name:'I Will Teach You To Be Rich',desc:'Automate your finances for any city',link:'https://www.amazon.com/dp/1523505745?tag=stirman-20',cta:'Get the Book'});
+if(diff>0)gearItems.push({emoji:'🏠',name:'Moving Checklist Planner',desc:'Planning a big move? Stay organized',link:'https://www.amazon.com/dp/B0C1J2QX7Y?tag=stirman-20',cta:'View on Amazon'});
+document.getElementById('gear').innerHTML=gearItems.map(g=>`<div class="gear-item"><div class="gear-emoji">${g.emoji}</div><div class="gear-info"><div class="gear-name">${g.name}</div><div class="gear-desc">${g.desc}</div></div><a href="${g.link}" target="_blank" class="gear-link">${g.cta}</a></div>`).join('');
+
+// Email
+document.getElementById('emailBtn').onclick=()=>{
+const e=document.getElementById('emailInput').value;
+if(e.includes('@')){document.querySelector('.email-box').innerHTML='<h3>✅ You\'re in!</h3><p style="color:var(--muted)">Check your inbox for weekly city insights.</p>';
+try{const ls=JSON.parse(localStorage.getItem('ss_emails')||'[]');ls.push(e);localStorage.setItem('ss_emails',JSON.stringify(ls))}catch(e){}}
+};
+
+// Share
+const shareText=`My ${fmtMoney(salary)} salary in ${fromCity.name} = ${fmtMoney(equivalent)} in ${toCity.name} (${p.text}). Check yours:`;
+document.getElementById('copyBtn').onclick=()=>{navigator.clipboard.writeText(shareText+' https://stirman.net/salaryswap/');document.getElementById('copyBtn').textContent='✅ Copied!'};
+document.getElementById('tweetBtn').onclick=()=>window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText+' https://stirman.net/salaryswap/'),'_blank');
+}
+</script>
+</body>
+</html>
