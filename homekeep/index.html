@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HomeKeep — Your Personalized Home Maintenance Schedule</title>
+<meta name="description" content="Get a free personalized home maintenance checklist based on your home type, age, and climate. Never miss a seasonal task again.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#13131a;--border:#1e1e2a;--text:#e8e8ed;--muted:#8888a0;--accent:#f97316;--accent2:#a855f7;--accent3:#06b6d4;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.noise{position:fixed;inset:0;opacity:.035;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");z-index:9999}
+.gradient-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(249,115,22,.12),transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(168,85,247,.1),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.06),transparent 60%);pointer-events:none}
+.container{max-width:720px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.1;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:40px;line-height:1.5}
+.step{display:none;animation:fadeIn .4s ease}
+.step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.question{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:6px}
+.question-sub{color:var(--muted);font-size:.9rem;margin-bottom:20px}
+.options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.opt{padding:12px 20px;border-radius:99px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:.95rem;transition:all .2s;color:var(--text);font-family:'Space Grotesk',sans-serif}
+.opt:hover{border-color:var(--accent);background:rgba(249,115,22,.08)}
+.opt.selected{border-color:var(--accent);background:rgba(249,115,22,.15);color:var(--accent)}
+.opt.multi.selected{border-color:var(--accent2);background:rgba(168,85,247,.15);color:var(--accent2)}
+.progress{display:flex;gap:8px;justify-content:center;margin-bottom:32px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.active{background:var(--accent)}
+.dot.done{background:var(--accent2)}
+.next-btn{display:inline-block;padding:14px 36px;border-radius:99px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:transform .2s,opacity .2s;opacity:.4;pointer-events:none}
+.next-btn.enabled{opacity:1;pointer-events:auto}
+.next-btn.enabled:hover{transform:scale(1.03)}
+
+/* Results */
+.results-header{text-align:center;margin-bottom:32px}
+.results-header h2{font-family:'Instrument Serif',serif;font-size:2rem;margin-bottom:4px}
+.results-header p{color:var(--muted);font-size:.95rem}
+.season-section{margin-bottom:36px}
+.season-title{font-family:'Instrument Serif',serif;font-size:1.5rem;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.season-subtitle{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;transition:all .2s;animation:slideUp .4s ease both}
+.task-card:hover{border-color:rgba(249,115,22,.3)}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.task-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.task-check.checked{border-color:var(--green);background:var(--green)}
+.task-check.checked::after{content:'✓';color:#fff;font-size:13px;font-weight:700}
+.task-info{flex:1}
+.task-name{font-weight:600;font-size:.95rem;margin-bottom:4px}
+.task-desc{color:var(--muted);font-size:.82rem;line-height:1.4;margin-bottom:6px}
+.task-tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:.72rem;padding:3px 10px;border-radius:99px;background:rgba(249,115,22,.1);color:var(--accent);border:1px solid rgba(249,115,22,.2)}
+.tag.difficulty-easy{background:rgba(34,197,94,.1);color:var(--green);border-color:rgba(34,197,94,.2)}
+.tag.difficulty-medium{background:rgba(234,179,8,.1);color:var(--yellow);border-color:rgba(234,179,8,.2)}
+.tag.difficulty-hard{background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.2)}
+.tag.pro{background:rgba(168,85,247,.1);color:var(--accent2);border-color:rgba(168,85,247,.2)}
+.affiliate-link{display:inline-block;font-size:.8rem;color:var(--accent3);text-decoration:none;margin-top:6px;transition:opacity .2s}
+.affiliate-link:hover{opacity:.8}
+
+/* Gear section */
+.gear-section{margin-top:40px;padding-top:32px;border-top:1px solid var(--border)}
+.gear-section h3{font-family:'Instrument Serif',serif;font-size:1.4rem;margin-bottom:4px}
+.gear-section .subtitle{font-size:.85rem;margin-bottom:20px}
+.gear-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:10px;animation:slideUp .4s ease both}
+.gear-card h4{font-size:.95rem;margin-bottom:4px}
+.gear-card p{color:var(--muted);font-size:.82rem;line-height:1.4;margin-bottom:8px}
+.gear-card a{display:inline-block;padding:8px 20px;border-radius:99px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;transition:transform .2s}
+.gear-card a:hover{transform:scale(1.03)}
+
+/* Email & share */
+.cta-section{margin-top:40px;padding:28px;background:var(--card);border:1px solid var(--border);border-radius:14px;text-align:center}
+.cta-section h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:6px}
+.cta-section p{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.email-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.email-row input{flex:1;padding:12px 16px;border-radius:99px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.9rem;font-family:'Space Grotesk',sans-serif}
+.email-row button{padding:12px 24px;border-radius:99px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.share-row{display:flex;gap:10px;justify-content:center;margin-top:24px}
+.share-btn{padding:10px 20px;border-radius:99px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:.85rem;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.share-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:32px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center}
+.stat-num{font-family:'Instrument Serif',serif;font-size:2rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{color:var(--muted);font-size:.78rem;margin-top:2px}
+
+.badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle}
+.badge-spring{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-summer{background:rgba(234,179,8,.15);color:var(--yellow)}
+.badge-fall{background:rgba(249,115,22,.15);color:var(--accent)}
+.badge-winter{background:rgba(6,182,212,.15);color:var(--accent3)}
+
+footer{text-align:center;padding:40px 20px;color:var(--muted);font-size:.78rem}
+footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="gradient-bg"></div>
+<div class="container">
+<header style="text-align:center;padding-top:20px">
+<h1>HomeKeep</h1>
+<p class="subtitle">Your personalized home maintenance schedule.<br>Never miss a seasonal task again.</p>
+</header>
+
+<div class="progress" id="progress"></div>
+
+<!-- Step 1: Home Type -->
+<div class="step active" data-step="0">
+<p class="question">What type of home do you have?</p>
+<p class="question-sub">This determines your maintenance profile</p>
+<div class="options" data-key="homeType">
+<div class="opt" data-val="house">🏠 Single-Family House</div>
+<div class="opt" data-val="townhouse">🏘️ Townhouse</div>
+<div class="opt" data-val="condo">🏢 Condo / Apartment</div>
+<div class="opt" data-val="cabin">🏕️ Cabin / Vacation Home</div>
+</div>
+</div>
+
+<!-- Step 2: Home Age -->
+<div class="step" data-step="1">
+<p class="question">How old is your home?</p>
+<p class="question-sub">Older homes need more attention</p>
+<div class="options" data-key="homeAge">
+<div class="opt" data-val="new">🆕 Under 5 years</div>
+<div class="opt" data-val="mid">🏗️ 5–20 years</div>
+<div class="opt" data-val="old">🧱 20–50 years</div>
+<div class="opt" data-val="vintage">🏛️ 50+ years</div>
+</div>
+</div>
+
+<!-- Step 3: Climate -->
+<div class="step" data-step="2">
+<p class="question">What's your climate like?</p>
+<p class="question-sub">Determines seasonal priorities</p>
+<div class="options" data-key="climate">
+<div class="opt" data-val="cold">❄️ Cold winters (snow/ice)</div>
+<div class="opt" data-val="mild">🌤️ Mild / Temperate</div>
+<div class="opt" data-val="hot">🔥 Hot & Humid</div>
+<div class="opt" data-val="dry">🏜️ Hot & Dry (desert)</div>
+<div class="opt" data-val="coastal">🌊 Coastal</div>
+</div>
+</div>
+
+<!-- Step 4: Features (multi-select) -->
+<div class="step" data-step="3">
+<p class="question">What does your home have?</p>
+<p class="question-sub">Select all that apply — more features = more tasks</p>
+<div class="options multi" data-key="features">
+<div class="opt multi" data-val="yard">🌿 Yard / Lawn</div>
+<div class="opt multi" data-val="pool">🏊 Pool / Hot Tub</div>
+<div class="opt multi" data-val="deck">🪵 Deck / Patio</div>
+<div class="opt multi" data-val="fireplace">🔥 Fireplace / Chimney</div>
+<div class="opt multi" data-val="garage">🚗 Garage</div>
+<div class="opt multi" data-val="basement">🏚️ Basement</div>
+<div class="opt multi" data-val="gutters">🌧️ Gutters</div>
+<div class="opt multi" data-val="solar">☀️ Solar Panels</div>
+<div class="opt multi" data-val="sprinklers">💧 Sprinkler System</div>
+<div class="opt multi" data-val="hvac">🌡️ Central HVAC</div>
+</div>
+<button class="next-btn enabled" onclick="nextStep()" style="margin-top:8px">Continue →</button>
+</div>
+
+<!-- Step 5: Skill Level -->
+<div class="step" data-step="4">
+<p class="question">What's your DIY comfort level?</p>
+<p class="question-sub">We'll mark tasks you might want to hire out</p>
+<div class="options" data-key="skill">
+<div class="opt" data-val="beginner">🔰 Beginner — YouTube is my teacher</div>
+<div class="opt" data-val="handy">🔧 Handy — I own a drill</div>
+<div class="opt" data-val="pro">🛠️ Pro — I fix everything myself</div>
+</div>
+</div>
+
+<!-- Results -->
+<div class="step" data-step="5" id="results"></div>
+</div>
+
+<footer>
+<p>Built by <a href="https://stirman.net" target="_blank">stirman.net</a> · One Night Build #29 · <a href="https://onenightbuild.com" target="_blank">onenightbuild.com</a></p>
+</footer>
+
+<script>
+const answers = { features: [] };
+let currentStep = 0;
+const totalSteps = 5;
+const AFFILIATE_TAG = 'stirman-20';
+
+function renderProgress() {
+  const p = document.getElementById('progress');
+  p.innerHTML = '';
+  for (let i = 0; i < totalSteps; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === currentStep ? ' active' : '') + (i < currentStep ? ' done' : '');
+    p.appendChild(d);
+  }
+}
+renderProgress();
+
+document.querySelectorAll('.options:not(.multi)').forEach(group => {
+  group.querySelectorAll('.opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      group.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      answers[group.dataset.key] = opt.dataset.val;
+      setTimeout(() => nextStep(), 300);
+    });
+  });
+});
+
+document.querySelectorAll('.options.multi').forEach(group => {
+  group.querySelectorAll('.opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.classList.toggle('selected');
+      const key = group.dataset.key;
+      if (opt.classList.contains('selected')) {
+        if (!answers[key].includes(opt.dataset.val)) answers[key].push(opt.dataset.val);
+      } else {
+        answers[key] = answers[key].filter(v => v !== opt.dataset.val);
+      }
+    });
+  });
+});
+
+function nextStep() {
+  document.querySelectorAll('.step')[currentStep].classList.remove('active');
+  currentStep++;
+  if (currentStep >= totalSteps) {
+    renderResults();
+  }
+  document.querySelectorAll('.step')[currentStep].classList.add('active');
+  renderProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function amazonLink(asin, text) {
+  return `<a href="https://www.amazon.com/dp/${asin}?tag=${AFFILIATE_TAG}" target="_blank" rel="noopener" class="affiliate-link">🛒 ${text} →</a>`;
+}
+
+const TASKS = [
+  // SPRING
+  {season:'spring',name:'Inspect roof for winter damage',desc:'Look for missing/cracked shingles, damaged flashing, and signs of leaks in the attic.',difficulty:'medium',home:['house','townhouse','cabin'],features:[],climate:['cold','mild','coastal'],asin:'B0BZJ2YQ1P',product:'Roof Sealant Tape'},
+  {season:'spring',name:'Clean gutters & downspouts',desc:'Remove debris, flush with hose, check for leaks and proper drainage away from foundation.',difficulty:'easy',home:['house','townhouse','cabin'],features:['gutters'],climate:['cold','mild','hot','coastal'],asin:'B0BXMYLDB6',product:'Gutter Cleaning Kit'},
+  {season:'spring',name:'Service HVAC — replace filters & schedule tune-up',desc:'Replace air filters (every 1-3 months). Schedule professional AC tune-up before summer hits.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:['hvac'],climate:['cold','mild','hot','dry','coastal'],asin:'B08TBR6BYS',product:'HVAC Filters 6-Pack'},
+  {season:'spring',name:'Power wash exterior surfaces',desc:'Clean siding, walkways, driveway, and patio. Removes winter grime and prevents mold growth.',difficulty:'medium',home:['house','townhouse','cabin'],features:[],climate:['cold','mild','hot','coastal'],asin:'B09MVHKBY4',product:'Electric Pressure Washer'},
+  {season:'spring',name:'Test smoke & CO detectors',desc:'Press test buttons on every detector. Replace batteries if needed. Replace units older than 10 years.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B0BJ4JZLXF',product:'Smoke & CO Detector Combo'},
+  {season:'spring',name:'Check foundation for cracks',desc:'Walk the perimeter looking for new cracks. Small cracks are normal but monitor for growth. Seal any gaps.',difficulty:'medium',home:['house','townhouse','cabin'],features:[],climate:['cold','mild','coastal'],asin:'B000BRQ136',product:'Foundation Crack Repair Kit'},
+  {season:'spring',name:'Prep lawn & garden',desc:'Dethatch, aerate, overseed bare spots, apply spring fertilizer. Edge beds and refresh mulch.',difficulty:'easy',home:['house','townhouse','cabin'],features:['yard'],climate:['cold','mild','hot','coastal'],asin:'B07KM6DBGT',product:'Lawn Aerator Shoes'},
+  {season:'spring',name:'Activate sprinkler system',desc:'Turn on water supply, check each zone for broken heads, adjust spray patterns, set timer.',difficulty:'easy',home:['house','cabin'],features:['sprinklers'],climate:['cold','mild','hot','dry'],asin:'B07TRSM3GZ',product:'Sprinkler Head Replacement Kit'},
+  {season:'spring',name:'Inspect deck/patio for damage',desc:'Check for loose boards, popped nails, rot, and wobbly railings. Sand rough spots and plan for staining.',difficulty:'medium',home:['house','townhouse','cabin'],features:['deck'],climate:['cold','mild','hot','coastal'],asin:'B08YWFCSWL',product:'Deck Stain & Sealer'},
+  {season:'spring',name:'Clean windows inside & out',desc:'Wash all windows, clean tracks, check screens for tears. Bright windows = better curb appeal.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B07GKKCR4M',product:'Magnetic Window Cleaner'},
+  {season:'spring',name:'Check exterior caulking & weather stripping',desc:'Inspect caulk around windows, doors, and trim. Replace any cracked or missing weather stripping.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B07WNRQZPS',product:'Silicone Caulk + Gun Kit'},
+  {season:'spring',name:'Inspect & clean solar panels',desc:'Check for damage, bird nests, debris. Clean with soft brush and water (no soap). Check inverter status.',difficulty:'medium',home:['house','cabin'],features:['solar'],climate:['mild','hot','dry'],asin:'B0C9VJX3JL',product:'Solar Panel Cleaning Kit'},
+
+  // SUMMER
+  {season:'summer',name:'Deep clean & balance pool',desc:'Scrub walls, vacuum, check filter, balance pH/chlorine/alkalinity. Inspect pump and plumbing.',difficulty:'medium',home:['house','cabin'],features:['pool'],climate:['mild','hot','dry','coastal'],asin:'B084GQM73R',product:'Pool Water Test Kit'},
+  {season:'summer',name:'Check attic ventilation & insulation',desc:'Ensure soffit vents are clear, ridge vent working. Add insulation if below R-38. Proper ventilation saves AC costs.',difficulty:'hard',home:['house','townhouse','cabin'],features:[],climate:['hot','dry','mild'],asin:'B09CK12VPT',product:'Attic Fan (solar-powered)'},
+  {season:'summer',name:'Inspect & repair grout/caulk in bathrooms',desc:'Check shower/tub grout and caulk for cracks or mildew. Re-grout or re-caulk as needed to prevent water damage.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B09HT9H3G7',product:'Grout Repair Kit'},
+  {season:'summer',name:'Service garage door',desc:'Lubricate tracks, hinges, rollers, and springs. Test auto-reverse safety feature. Tighten hardware.',difficulty:'easy',home:['house','townhouse','cabin'],features:['garage'],climate:['cold','mild','hot','dry','coastal'],asin:'B07VWS2HFG',product:'Garage Door Lubricant'},
+  {season:'summer',name:'Stain/seal deck',desc:'Apply stain or sealant to protect wood from UV and moisture. Best done in dry weather above 50°F.',difficulty:'medium',home:['house','townhouse','cabin'],features:['deck'],climate:['cold','mild','hot','coastal'],asin:'B08YWFCSWL',product:'Deck Stain & Sealer'},
+  {season:'summer',name:'Trim trees & shrubs away from house',desc:'Keep branches 3+ feet from roof and siding. Prevents damage, pests, and moisture problems.',difficulty:'medium',home:['house','townhouse','cabin'],features:['yard'],climate:['cold','mild','hot','coastal'],asin:'B07Y9LR5QR',product:'Telescoping Pole Saw'},
+  {season:'summer',name:'Check & maintain water heater',desc:'Flush sediment from tank (5 min), test T&P relief valve, check anode rod. Extends life by years.',difficulty:'medium',home:['house','townhouse','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B09GCYZB4L',product:'Anode Rod Replacement'},
+  {season:'summer',name:'Deep clean dryer vent',desc:'Disconnect and vacuum lint from the full vent line to the exterior. Lint buildup is a top fire hazard.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B0BHGPM1W5',product:'Dryer Vent Cleaning Kit'},
+  {season:'summer',name:'Inspect exterior paint / siding',desc:'Look for peeling, bubbling, or faded paint. Touch up problem areas before moisture gets in.',difficulty:'medium',home:['house','townhouse','cabin'],features:[],climate:['cold','mild','hot','coastal'],asin:'B07XKPQGPZ',product:'Exterior Paint + Primer'},
+  {season:'summer',name:'Check basement for moisture',desc:'Look for water stains, efflorescence (white powder), musty smell, or condensation. Run dehumidifier if needed.',difficulty:'easy',home:['house','townhouse'],features:['basement'],climate:['cold','mild','hot','coastal'],asin:'B08LGH2P9G',product:'Basement Dehumidifier'},
+
+  // FALL
+  {season:'fall',name:'Clean gutters before leaf drop',desc:'Clear all gutters and downspouts. Install gutter guards if you haven\'t already — saves hours every year.',difficulty:'easy',home:['house','townhouse','cabin'],features:['gutters'],climate:['cold','mild','hot','coastal'],asin:'B07D41HZYN',product:'Gutter Guards (200ft)'},
+  {season:'fall',name:'Winterize sprinkler system',desc:'Blow out lines with compressed air (or hire it out). Shut off supply valve. Drain backflow preventer.',difficulty:'medium',home:['house','cabin'],features:['sprinklers'],climate:['cold'],asin:'B08FMYBHPC',product:'Air Compressor (portable)'},
+  {season:'fall',name:'Schedule furnace tune-up',desc:'Replace filter, have a pro clean and inspect the system before heating season. Check for carbon monoxide leaks.',difficulty:'easy',home:['house','townhouse','cabin'],features:['hvac'],climate:['cold','mild'],asin:'B08TBR6BYS',product:'HVAC Filters 6-Pack'},
+  {season:'fall',name:'Inspect chimney & fireplace',desc:'Schedule a chimney sweep if you burn wood. Check damper, firebox, and cap. Creosote buildup = fire risk.',difficulty:'hard',home:['house','cabin'],features:['fireplace'],climate:['cold','mild'],asin:'B074N5KLPW',product:'Chimney Cleaning Kit'},
+  {season:'fall',name:'Seal driveway cracks',desc:'Fill cracks before freeze/thaw cycles make them worse. Apply sealcoat if it\'s been 2-3 years.',difficulty:'easy',home:['house','townhouse'],features:[],climate:['cold','mild'],asin:'B000BRQ7GW',product:'Driveway Crack Filler'},
+  {season:'fall',name:'Weatherize windows & doors',desc:'Apply weather stripping, caulk gaps, add window insulation film. Can cut heating bills 10-25%.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild'],asin:'B000CQNP50',product:'Window Insulation Kit (5-pack)'},
+  {season:'fall',name:'Drain & store garden hoses',desc:'Disconnect hoses, drain fully, store inside. Leave outdoor faucets open slightly and install frost covers.',difficulty:'easy',home:['house','townhouse','cabin'],features:['yard'],climate:['cold'],asin:'B078PHBXFJ',product:'Outdoor Faucet Covers (4-pack)'},
+  {season:'fall',name:'Test sump pump',desc:'Pour a bucket of water in the pit — pump should activate and drain within seconds. Test backup battery.',difficulty:'easy',home:['house','townhouse'],features:['basement'],climate:['cold','mild','coastal'],asin:'B0773G11HT',product:'Battery Backup Sump Pump'},
+  {season:'fall',name:'Aerate & overseed lawn',desc:'Fall is the best time to aerate compacted soil and overseed for thick spring growth. Apply fall fertilizer.',difficulty:'easy',home:['house','townhouse','cabin'],features:['yard'],climate:['cold','mild'],asin:'B07KM6DBGT',product:'Lawn Aerator Shoes'},
+  {season:'fall',name:'Check & prep emergency supplies',desc:'Inspect flashlights, batteries, first aid kit, water supply. Winter storms can knock out power for days.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','coastal'],asin:'B075RJQSSC',product:'Emergency Preparedness Kit'},
+  {season:'fall',name:'Protect outdoor furniture',desc:'Clean, dry, and cover or store patio furniture, grill, and cushions before rain/snow season.',difficulty:'easy',home:['house','townhouse','cabin'],features:['deck'],climate:['cold','mild','coastal'],asin:'B0BM13YDXQ',product:'Outdoor Furniture Covers'},
+
+  // WINTER
+  {season:'winter',name:'Prevent ice dams',desc:'Ensure attic is properly insulated and ventilated. Rake snow off roof edges after heavy storms. Check for icicle buildup.',difficulty:'hard',home:['house','townhouse','cabin'],features:[],climate:['cold'],asin:'B00GQPYHAC',product:'Roof Snow Rake'},
+  {season:'winter',name:'Monitor pipes for freezing',desc:'Keep heat above 55°F. Open cabinet doors under sinks on cold nights. Know your main shutoff location.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold'],asin:'B01MUUAHXO',product:'Pipe Heating Cable'},
+  {season:'winter',name:'Check for drafts',desc:'Hold a candle near windows, doors, and outlets on windy days. Seal any air leaks with caulk or foam.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild'],asin:'B000AS6DKO',product:'Great Stuff Foam Sealant'},
+  {season:'winter',name:'Clean & inspect fireplace monthly',desc:'Remove ashes (leave 1" bed), check for creosote buildup, test damper operation. Use seasoned hardwood only.',difficulty:'easy',home:['house','cabin'],features:['fireplace'],climate:['cold','mild'],asin:'B0088NH8HO',product:'Fireplace Tool Set'},
+  {season:'winter',name:'Reverse ceiling fan direction',desc:'Switch to clockwise (updraft) to push warm air down from ceiling. Saves 10-15% on heating.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild'],asin:null,product:null},
+  {season:'winter',name:'Check carbon monoxide detectors',desc:'Test all CO detectors. Critical in winter when furnaces, fireplaces, and generators run more.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:'B0BJ4JZLXF',product:'Smoke & CO Detector Combo'},
+  {season:'winter',name:'Insulate exposed pipes',desc:'Add foam insulation to pipes in unheated areas (basement, crawlspace, garage). Prevents freezing and bursts.',difficulty:'easy',home:['house','townhouse','cabin'],features:['basement','garage'],climate:['cold'],asin:'B088LX3MLQ',product:'Pipe Insulation Foam (6-pack)'},
+  {season:'winter',name:'Deep clean & organize garage',desc:'Winter is perfect for purging and organizing. Install shelving, label bins, clear floor space.',difficulty:'medium',home:['house','townhouse','cabin'],features:['garage'],climate:['cold','mild','hot','dry','coastal'],asin:'B074P6X8GJ',product:'Heavy Duty Garage Shelving'},
+  {season:'winter',name:'Plan spring projects & get quotes',desc:'Use the downtime to research contractors for bigger spring projects (roof, paint, landscaping). Booking early = better rates.',difficulty:'easy',home:['house','townhouse','condo','cabin'],features:[],climate:['cold','mild','hot','dry','coastal'],asin:null,product:null},
+  {season:'winter',name:'Maintain pool cover & equipment',desc:'Check pool cover tension and water level. Remove standing water/debris from cover. Run pump briefly if temps allow.',difficulty:'easy',home:['house','cabin'],features:['pool'],climate:['cold','mild'],asin:'B08XXNFCDY',product:'Pool Cover Pump'},
+];
+
+const GEAR = [
+  {name:'Electric Pressure Washer',desc:'The single most useful home maintenance tool. Cleans siding, driveways, decks, patios — everything. Saves hundreds vs hiring.',price:'$169',asin:'B09MVHKBY4',features:['yard','deck'],home:['house','townhouse','cabin']},
+  {name:'Cordless Drill/Driver Kit',desc:'Essential for every homeowner. Hang shelves, tighten hardware, assemble furniture, basic repairs. Get one with impact driver combo.',price:'$129',asin:'B07P7GJF5B',features:[],home:['house','townhouse','condo','cabin']},
+  {name:'Gutter Guards (200ft)',desc:'Install once, never clean gutters again. Pays for itself in 1-2 years of not hiring gutter cleaners ($150-300/visit).',price:'$89',asin:'B07D41HZYN',features:['gutters'],home:['house','townhouse','cabin']},
+  {name:'HVAC Filter Subscription',desc:'Set it and forget it. Fresh filters every 1-3 months keeps your system efficient and air clean. Saves 5-15% on energy bills.',price:'$8/mo',asin:'B08TBR6BYS',features:['hvac'],home:['house','townhouse','condo','cabin']},
+  {name:'Smart Leak Detector (3-pack)',desc:'Place under sinks, near water heater, and in basement. Alerts your phone at the first sign of a leak — before it becomes a $10K problem.',price:'$99',asin:'B07F951YP5',features:[],home:['house','townhouse','condo','cabin']},
+  {name:'LED Work Light (Rechargeable)',desc:'Essential for attic inspections, under-sink repairs, and any maintenance in tight spaces. Magnetic base, 1000+ lumens.',price:'$35',asin:'B0B2J3Q54Z',features:[],home:['house','townhouse','condo','cabin']},
+  {name:'Telescoping Ladder',desc:'Compact storage, extends to 12.5ft. Perfect for gutters, roof inspections, painting, tree trimming. Way safer than that wobbly old ladder.',price:'$159',asin:'B089T3TSMJ',features:['gutters'],home:['house','townhouse','cabin']},
+  {name:'Basement Dehumidifier',desc:'Prevents mold, musty smells, and moisture damage. Especially critical in humid climates. Look for auto-drain models.',price:'$229',asin:'B08LGH2P9G',features:['basement'],home:['house','townhouse']},
+];
+
+function getFilteredTasks() {
+  const {homeType, homeAge, climate, features, skill} = answers;
+  return TASKS.filter(t => {
+    if (t.home.length && !t.home.includes(homeType)) return false;
+    if (t.climate.length && !t.climate.includes(climate)) return false;
+    if (t.features.length && !t.features.some(f => features.includes(f))) return false;
+    return true;
+  }).map(t => {
+    // Boost priority for older homes
+    let priority = 0;
+    if (homeAge === 'vintage') priority += 2;
+    else if (homeAge === 'old') priority += 1;
+    t._priority = priority;
+    t._hirePro = (skill === 'beginner' && t.difficulty === 'hard') || (skill === 'beginner' && t.difficulty === 'medium');
+    return t;
+  });
+}
+
+function getFilteredGear() {
+  const {homeType, features} = answers;
+  return GEAR.filter(g => {
+    if (g.home.length && !g.home.includes(homeType)) return false;
+    if (g.features.length && !g.features.some(f => features.includes(f))) return false;
+    return true;
+  });
+}
+
+function renderResults() {
+  const tasks = getFilteredTasks();
+  const gear = getFilteredGear();
+  const seasons = ['spring','summer','fall','winter'];
+  const seasonEmoji = {spring:'🌱',summer:'☀️',fall:'🍂',winter:'❄️'};
+  const seasonLabels = {spring:'Spring',summer:'Summer',fall:'Fall',winter:'Winter'};
+  const badgeClass = {spring:'badge-spring',summer:'badge-summer',fall:'badge-fall',winter:'badge-winter'};
+  
+  const saved = JSON.parse(localStorage.getItem('homekeep-checked') || '{}');
+  const totalTasks = tasks.length;
+  const checkedCount = Object.values(saved).filter(Boolean).length;
+
+  let html = `
+    <div class="results-header">
+      <h2>${seasonEmoji.spring} Your HomeKeep Plan</h2>
+      <p>${totalTasks} tasks personalized for your ${answers.homeAge === 'new' ? 'newer' : answers.homeAge === 'vintage' ? 'vintage' : ''} ${answers.homeType} in a ${answers.climate} climate</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">${totalTasks}</div><div class="stat-label">Total Tasks / Year</div></div>
+      <div class="stat-card"><div class="stat-num">${tasks.filter(t=>t.difficulty==='easy').length}</div><div class="stat-label">Easy DIY</div></div>
+      <div class="stat-card"><div class="stat-num">${tasks.filter(t=>t._hirePro).length}</div><div class="stat-label">Consider Hiring Out</div></div>
+      <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Seasons Covered</div></div>
+    </div>`;
+
+  seasons.forEach(season => {
+    const sTasks = tasks.filter(t => t.season === season);
+    if (!sTasks.length) return;
+    html += `
+      <div class="season-section">
+        <div class="season-title">${seasonEmoji[season]} ${seasonLabels[season]} <span class="badge ${badgeClass[season]}">${sTasks.length} tasks</span></div>
+        <p class="season-subtitle">${getSeasonTip(season, answers.climate)}</p>`;
+    sTasks.forEach((t, i) => {
+      const id = `${season}-${i}`;
+      const checked = saved[id];
+      html += `
+        <div class="task-card" style="animation-delay:${i*80}ms">
+          <div class="task-check${checked ? ' checked' : ''}" data-id="${id}" onclick="toggleCheck(this)"></div>
+          <div class="task-info">
+            <div class="task-name">${t.name}${t._hirePro ? ' <span class="tag pro">💡 Consider hiring</span>' : ''}</div>
+            <div class="task-desc">${t.desc}</div>
+            <div class="task-tags">
+              <span class="tag difficulty-${t.difficulty}">${t.difficulty}</span>
+            </div>
+            ${t.asin ? amazonLink(t.asin, t.product) : ''}
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  // Gear section
+  html += `
+    <div class="gear-section">
+      <h3>🧰 Gear That Pays for Itself</h3>
+      <p class="subtitle">Tools that save you money (and headaches) over time</p>`;
+  gear.forEach((g, i) => {
+    html += `
+      <div class="gear-card" style="animation-delay:${i*80}ms">
+        <h4>${g.name} · ${g.price}</h4>
+        <p>${g.desc}</p>
+        <a href="https://www.amazon.com/dp/${g.asin}?tag=${AFFILIATE_TAG}" target="_blank" rel="noopener">Shop on Amazon →</a>
+      </div>`;
+  });
+  html += `</div>`;
+
+  // CTA
+  html += `
+    <div class="cta-section">
+      <h3>🔔 Never Miss a Seasonal Task</h3>
+      <p>Get quarterly reminders with your personalized checklist</p>
+      <div class="email-row">
+        <input type="email" placeholder="you@email.com" id="email-input">
+        <button onclick="captureEmail()">Remind Me</button>
+      </div>
+      <div class="share-row">
+        <button class="share-btn" onclick="copyResults()">📋 Copy Checklist</button>
+        <button class="share-btn" onclick="shareTwitter()">𝕏 Share</button>
+      </div>
+    </div>`;
+
+  document.getElementById('results').innerHTML = html;
+}
+
+function getSeasonTip(season, climate) {
+  const tips = {
+    spring: {cold:'Post-winter damage check is critical — ice does a number on roofs and foundations.',mild:'Perfect weather for exterior projects. Get ahead before summer heat.',hot:'AC prep is priority #1. Summer\'s coming fast.',dry:'Focus on irrigation and sun damage. Water is everything out here.',coastal:'Salt air corrosion check — winter storms hit coastal homes hard.'},
+    summer: {cold:'Your window for outdoor projects is short — make it count.',mild:'Peak maintenance season. Tackle the big stuff now.',hot:'Keep cool systems running and moisture in check.',dry:'Fire prevention + shade. Watch for cracked earth around foundation.',coastal:'Hurricane/storm prep if applicable. Check roof and windows.'},
+    fall: {cold:'Winterization is everything. Don\'t skip the pipe and sprinkler prep.',mild:'Get ahead of the rain. Clean gutters and seal everything.',hot:'Finally cool enough for outdoor work. Catch up on deferred projects.',dry:'Prep for rare rain — your drainage needs to work when it finally comes.',coastal:'Storm season wrap-up. Inspect everything before winter.'},
+    winter: {cold:'Mostly indoor projects. Monitor for ice, leaks, and heating efficiency.',mild:'Mild winters = perfect time for planning and organizing.',hot:'Your off-season is everyone else\'s summer. Great time for quotes.',dry:'Low-key season. Plan, organize, and budget for spring.',coastal:'Monitor for storm damage. Keep emergency supplies current.'}
+  };
+  return tips[season][climate] || 'Stay on top of it.';
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  const saved = JSON.parse(localStorage.getItem('homekeep-checked') || '{}');
+  saved[el.dataset.id] = el.classList.contains('checked');
+  localStorage.setItem('homekeep-checked', JSON.stringify(saved));
+}
+
+function captureEmail() {
+  const email = document.getElementById('email-input').value;
+  if (email && email.includes('@')) {
+    const list = JSON.parse(localStorage.getItem('homekeep-emails') || '[]');
+    list.push({ email, date: new Date().toISOString(), answers });
+    localStorage.setItem('homekeep-emails', JSON.stringify(list));
+    document.getElementById('email-input').value = '';
+    document.getElementById('email-input').placeholder = '✅ You\'re on the list!';
+  }
+}
+
+function copyResults() {
+  const tasks = getFilteredTasks();
+  const seasons = ['spring','summer','fall','winter'];
+  let text = '🏠 My HomeKeep Maintenance Schedule\n\n';
+  seasons.forEach(s => {
+    const st = tasks.filter(t => t.season === s);
+    if (!st.length) return;
+    text += `${s.toUpperCase()}\n`;
+    st.forEach(t => text += `☐ ${t.name}\n`);
+    text += '\n';
+  });
+  text += 'Generated at stirman.net/homekeep';
+  navigator.clipboard.writeText(text);
+}
+
+function shareTwitter() {
+  const tasks = getFilteredTasks();
+  const text = encodeURIComponent(`My home has ${tasks.length} maintenance tasks per year 😳 Just built my free seasonal checklist with HomeKeep`);
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent('https://stirman.net/homekeep/')}`, '_blank');
+}
+</script>
+</body>
+</html>
