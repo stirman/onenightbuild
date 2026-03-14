@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MadnessReady — March Madness Watch Party Builder</title>
+<meta name="description" content="Plan the ultimate March Madness watch party. Get a personalized setup guide with food, drinks, bracket pools, streaming tips, and gear — all based on your crew size and budget.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--orange:#FF6B35;--blue:#1B4DFF;--gold:#FFD700;--bg:#0A0A0F;--card:#13131A;--text:#E8E4DF;--muted:#8A8680;--accent1:#FF6B35;--accent2:#1B4DFF}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.035}
+.noise::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px}
+.bg-grad{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background:radial-gradient(ellipse at 20% 20%,rgba(255,107,53,.15),transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(27,77,255,.12),transparent 60%),radial-gradient(ellipse at 50% 50%,rgba(255,215,0,.06),transparent 50%)}
+.container{max-width:640px;margin:0 auto;padding:24px 16px;position:relative;z-index:1}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,10vw,5rem);line-height:.9;letter-spacing:2px;text-align:center;margin-bottom:8px}
+h1 .orange{color:var(--orange)}
+h1 .blue{color:var(--blue)}
+.subtitle{text-align:center;color:var(--muted);font-size:.95rem;margin-bottom:8px}
+.countdown-bar{text-align:center;margin-bottom:32px;padding:12px;background:linear-gradient(135deg,rgba(255,107,53,.15),rgba(27,77,255,.15));border-radius:12px;border:1px solid rgba(255,107,53,.2)}
+.countdown-bar .label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px}
+.countdown-bar .time{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);margin-top:2px}
+.progress{display:flex;gap:6px;justify-content:center;margin-bottom:28px}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .3s}
+.dot.active{background:var(--orange);box-shadow:0 0 8px rgba(255,107,53,.5)}
+.dot.done{background:var(--blue)}
+.question{margin-bottom:16px}
+.question h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-bottom:4px}
+.question p{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.options{display:flex;flex-wrap:wrap;gap:10px}
+.opt{padding:12px 20px;border-radius:40px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);cursor:pointer;font-size:.9rem;font-weight:500;transition:all .2s;flex:1;min-width:calc(50% - 5px);text-align:center}
+.opt:hover{border-color:var(--orange);background:rgba(255,107,53,.08)}
+.opt.selected{border-color:var(--orange);background:rgba(255,107,53,.15);color:#fff}
+.opt .emoji{display:block;font-size:1.5rem;margin-bottom:4px}
+.opt .label{display:block;font-size:.85rem}
+.opt .sub{display:block;font-size:.7rem;color:var(--muted);margin-top:2px}
+
+/* Results */
+#results{display:none}
+.section{background:var(--card);border-radius:16px;padding:24px;margin-bottom:20px;border:1px solid rgba(255,255,255,.06)}
+.section h3{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section h3 .icon{font-size:1.3rem}
+.item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.item:last-child{border-bottom:none}
+.item-name{font-weight:600;font-size:.95rem;margin-bottom:2px}
+.item-desc{color:var(--muted);font-size:.8rem;line-height:1.4}
+.item-qty{color:var(--orange);font-size:.8rem;font-weight:600;margin-top:4px}
+.bracket-rules{background:rgba(27,77,255,.08);border:1px solid rgba(27,77,255,.2);border-radius:12px;padding:16px;margin-top:12px}
+.bracket-rules h4{font-size:.95rem;color:var(--blue);margin-bottom:8px}
+.bracket-rules ol{padding-left:20px;font-size:.85rem;color:var(--muted);line-height:1.8}
+.gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.gear-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;text-align:center;transition:all .2s}
+.gear-card:hover{border-color:var(--orange);transform:translateY(-2px)}
+.gear-card .g-emoji{font-size:2rem;margin-bottom:8px}
+.gear-card .g-name{font-weight:600;font-size:.85rem;margin-bottom:4px}
+.gear-card .g-price{color:var(--orange);font-size:.8rem;margin-bottom:8px}
+.gear-card a{display:inline-block;padding:6px 14px;background:var(--orange);color:#fff;text-decoration:none;border-radius:20px;font-size:.75rem;font-weight:600;transition:all .2s}
+.gear-card a:hover{background:#ff8555}
+.tip{background:rgba(255,215,0,.06);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;margin-top:12px;font-size:.85rem;color:var(--muted)}
+.tip strong{color:var(--gold)}
+.cta-box{background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(27,77,255,.12));border:1px solid rgba(255,107,53,.2);border-radius:16px;padding:24px;text-align:center;margin-top:20px}
+.cta-box h3{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;margin-bottom:8px}
+.cta-box p{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.cta-box input{padding:12px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:.9rem;width:100%;max-width:300px;margin-bottom:10px}
+.cta-box button{padding:12px 28px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s}
+.cta-box button:hover{background:#ff8555}
+.share-bar{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.share-btn{padding:10px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s}
+.share-btn:hover{border-color:var(--orange);background:rgba(255,107,53,.1)}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border-radius:12px;padding:16px;text-align:center;border:1px solid rgba(255,255,255,.06)}
+.stat-card .stat-val{font-family:'Bebas Neue',sans-serif;font-size:2rem;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-card .stat-label{font-size:.75rem;color:var(--muted);margin-top:2px}
+.back-btn{display:inline-block;padding:8px 20px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:none;color:var(--muted);cursor:pointer;font-size:.8rem;margin-bottom:20px;transition:all .2s}
+.back-btn:hover{border-color:var(--orange);color:var(--text)}
+.stream-table{width:100%;font-size:.85rem;margin-top:12px}
+.stream-table td{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+.stream-table td:first-child{font-weight:600;width:35%}
+.stream-table td:last-child{color:var(--muted)}
+.game-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-top:10px}
+.game-card h4{font-size:.9rem;margin-bottom:4px}
+.game-card p{font-size:.8rem;color:var(--muted);line-height:1.4}
+.footer{text-align:center;color:var(--muted);font-size:.75rem;padding:40px 0 20px;opacity:.5}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="bg-grad"></div>
+<div class="container">
+<h1><span class="orange">MADNESS</span><span class="blue">READY</span></h1>
+<p class="subtitle">Build your ultimate March Madness watch party in 60 seconds</p>
+<div class="countdown-bar">
+<div class="label">⏰ Selection Sunday Countdown</div>
+<div class="time" id="countdown"></div>
+</div>
+
+<div id="quiz">
+<div class="progress" id="progress"></div>
+<div id="q-container"></div>
+</div>
+
+<div id="results"></div>
+
+<div class="footer">MadnessReady — a <a href="https://onenightbuild.com" style="color:var(--orange);text-decoration:none">One Night Build</a> project</div>
+</div>
+
+<script>
+// Countdown to Selection Sunday March 15, 2026 6PM ET = 3PM PT
+const selSunday = new Date('2026-03-15T18:00:00-05:00');
+function updateCountdown(){
+  const now = new Date();
+  const diff = selSunday - now;
+  if(diff<=0){document.getElementById('countdown').textContent='BRACKETS ARE LIVE! 🏀';return}
+  const d=Math.floor(diff/864e5),h=Math.floor((diff%864e5)/36e5),m=Math.floor((diff%36e5)/6e4),s=Math.floor((diff%6e4)/1e3);
+  document.getElementById('countdown').textContent=`${d}d ${h}h ${m}m ${s}s`;
+}
+updateCountdown();setInterval(updateCountdown,1000);
+
+const questions=[
+  {id:'size',title:'HOW BIG IS YOUR CREW?',sub:'This shapes your food, drinks, and gear list',opts:[
+    {v:'solo',emoji:'🎧',label:'Solo / Duo',sub:'Just me or +1'},
+    {v:'small',emoji:'🍻',label:'Small Squad',sub:'3-8 people'},
+    {v:'medium',emoji:'🎉',label:'House Party',sub:'9-20 people'},
+    {v:'big',emoji:'🏟️',label:'Big Bash',sub:'20+ people'}
+  ]},
+  {id:'budget',title:'WHAT\'S YOUR BUDGET VIBE?',sub:'For food, drinks, and gear combined',opts:[
+    {v:'low',emoji:'💵',label:'Keep It Cheap',sub:'Under $50'},
+    {v:'mid',emoji:'💰',label:'Solid Spread',sub:'$50-150'},
+    {v:'high',emoji:'💎',label:'Go All Out',sub:'$150-400'},
+    {v:'baller',emoji:'🏆',label:'Championship',sub:'$400+'}
+  ]},
+  {id:'food',title:'FOOD & DRINK STYLE?',sub:'What\'s the vibe for the spread',opts:[
+    {v:'snacks',emoji:'🍿',label:'Snacks & Chips',sub:'Low effort, high crunch'},
+    {v:'wings',emoji:'🍗',label:'Wings & Apps',sub:'Classic game day'},
+    {v:'grill',emoji:'🔥',label:'Grill & Smoke',sub:'Burgers, dogs, BBQ'},
+    {v:'order',emoji:'📱',label:'Just Order In',sub:'Pizza, delivery, catering'}
+  ]},
+  {id:'setup',title:'YOUR TV / STREAMING SETUP?',sub:'So we can optimize your viewing experience',opts:[
+    {v:'basic',emoji:'📺',label:'One TV',sub:'Living room setup'},
+    {v:'multi',emoji:'📡',label:'Multi-Screen',sub:'2+ TVs / laptop + TV'},
+    {v:'projector',emoji:'🎬',label:'Projector',sub:'Big screen vibes'},
+    {v:'bar',emoji:'🍺',label:'Going Out',sub:'Sports bar / restaurant'}
+  ]},
+  {id:'bracket',title:'BRACKET POOL FORMAT?',sub:'How competitive is your crew',opts:[
+    {v:'none',emoji:'😎',label:'No Pool',sub:'Just vibes'},
+    {v:'casual',emoji:'🤝',label:'Casual Pool',sub:'Bragging rights only'},
+    {v:'money',emoji:'💸',label:'Money Pool',sub:'$10-25 buy-in'},
+    {v:'serious',emoji:'🏦',label:'Serious Pool',sub:'$50+ buy-in'}
+  ]}
+];
+
+let step=0,answers={};
+
+function renderProgress(){
+  const p=document.getElementById('progress');
+  p.innerHTML=questions.map((_,i)=>`<div class="dot ${i<step?'done':i===step?'active':''}"></div>`).join('');
+}
+
+function renderQuestion(){
+  const q=questions[step];
+  const c=document.getElementById('q-container');
+  c.innerHTML=`<div class="question"><h2>${q.title}</h2><p>${q.sub}</p><div class="options">${q.opts.map(o=>`<div class="opt" data-v="${o.v}" onclick="pick('${q.id}','${o.v}',this)"><span class="emoji">${o.emoji}</span><span class="label">${o.label}</span><span class="sub">${o.sub}</span></div>`).join('')}</div></div>`;
+}
+
+function pick(qid,val,el){
+  answers[qid]=val;
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  setTimeout(()=>{
+    step++;
+    if(step>=questions.length){showResults()}
+    else{renderProgress();renderQuestion()}
+  },300);
+}
+
+function showResults(){
+  document.getElementById('quiz').style.display='none';
+  const r=document.getElementById('results');
+  r.style.display='block';
+  const {size,budget,food,setup,bracket}=answers;
+
+  const sizeLabel={solo:'Solo / Duo',small:'Small Squad (3-8)',medium:'House Party (9-20)',big:'Big Bash (20+)'}[size];
+  const budgetLabel={low:'Under $50',mid:'$50-150',high:'$150-400',baller:'$400+'}[budget];
+
+  // Game counts
+  const games={solo:'4-8',small:'8-16',medium:'All 32',big:'All 32'}[size];
+  const pplCount={solo:'1-2',small:'3-8',medium:'9-20',big:'20+'}[size];
+
+  // Food menu
+  const foodMenus={
+    snacks:getSnackMenu(size,budget),
+    wings:getWingsMenu(size,budget),
+    grill:getGrillMenu(size,budget),
+    order:getOrderMenu(size,budget)
+  };
+  const menu=foodMenus[food];
+
+  // Drinks
+  const drinks=getDrinks(size,budget);
+
+  // Streaming
+  const streaming=getStreaming(setup);
+
+  // Bracket
+  const bracketInfo=getBracket(bracket);
+
+  // Gear
+  const gear=getGear(setup,size,budget);
+
+  // Games/activities
+  const activities=getActivities(size,bracket);
+
+  r.innerHTML=`
+    <button class="back-btn" onclick="restart()">← Start Over</button>
+    <div class="hero-stats">
+      <div class="stat-card"><div class="stat-val">${pplCount}</div><div class="stat-label">People</div></div>
+      <div class="stat-card"><div class="stat-val">${budgetLabel}</div><div class="stat-label">Budget</div></div>
+      <div class="stat-card"><div class="stat-val">${games}</div><div class="stat-label">Games to Watch</div></div>
+      <div class="stat-card"><div class="stat-val">4 Days</div><div class="stat-label">Opening Weekend</div></div>
+    </div>
+
+    <div class="section">
+      <h3><span class="icon">🍽️</span> YOUR GAME DAY MENU</h3>
+      ${menu.map(i=>`<div class="item"><div class="item-name">${i.name}</div><div class="item-desc">${i.desc}</div><div class="item-qty">${i.qty}</div></div>`).join('')}
+      <div class="tip"><strong>Pro tip:</strong> Prep food during halftime of early games so you don't miss late-game action. Sheet pan nachos take 8 minutes.</div>
+    </div>
+
+    <div class="section">
+      <h3><span class="icon">🍺</span> DRINKS</h3>
+      ${drinks.map(i=>`<div class="item"><div class="item-name">${i.name}</div><div class="item-desc">${i.desc}</div><div class="item-qty">${i.qty}</div></div>`).join('')}
+    </div>
+
+    <div class="section">
+      <h3><span class="icon">📺</span> STREAMING & VIEWING SETUP</h3>
+      <table class="stream-table">
+        ${streaming.map(s=>`<tr><td>${s.label}</td><td>${s.value}</td></tr>`).join('')}
+      </table>
+      <div class="tip"><strong>Key dates:</strong> Selection Sunday is March 15 (CBS, 6pm ET). First Four: March 17-18. First/Second Rounds: March 19-22. Games air on CBS, TBS, TNT, and truTV.</div>
+    </div>
+
+    ${bracketInfo}
+
+    <div class="section">
+      <h3><span class="icon">🎲</span> PARTY GAMES & ACTIVITIES</h3>
+      ${activities.map(a=>`<div class="game-card"><h4>${a.name}</h4><p>${a.desc}</p></div>`).join('')}
+    </div>
+
+    <div class="section">
+      <h3><span class="icon">🛒</span> GEAR UP</h3>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:4px">Everything you need for the perfect setup</p>
+      <div class="gear-grid">
+        ${gear.map(g=>`<div class="gear-card"><div class="g-emoji">${g.emoji}</div><div class="g-name">${g.name}</div><div class="g-price">${g.price}</div><a href="${g.link}" target="_blank" rel="noopener">Shop →</a></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="cta-box">
+      <h3>🏀 GET BRACKET ALERTS</h3>
+      <p>Selection Sunday predictions, upset picks, and bracket strategy — delivered to your inbox before tip-off.</p>
+      <input type="email" placeholder="your@email.com" id="email-input">
+      <br>
+      <button onclick="capture()">Send Me Bracket Tips →</button>
+    </div>
+
+    <div class="share-bar">
+      <button class="share-btn" onclick="copyPlan()">📋 Copy Party Plan</button>
+      <button class="share-btn" onclick="shareTw()">𝕏 Share</button>
+    </div>
+  `;
+}
+
+function getSnackMenu(size,budget){
+  const mult={solo:1,small:2,medium:4,big:6}[size];
+  return [
+    {name:'Tortilla Chips & Guac',desc:'Fresh guacamole with lime, cilantro, and good chips. The foundation of any spread.',qty:`${mult} bag(s) chips + ${mult} avocado(s)`},
+    {name:'Loaded Nachos',desc:'Sheet pan nachos with cheese, jalapeños, black beans, sour cream. Quick halftime assembly.',qty:`${mult} sheet pan(s)`},
+    {name:'Popcorn Bar',desc:'Buttered popcorn with seasoning options: ranch, everything bagel, hot honey, parmesan.',qty:`${mult*2} bag(s)`},
+    {name:'Veggie & Hummus Tray',desc:'Carrots, celery, bell peppers, cucumber with hummus. Keeps hands clean for phone brackets.',qty:`${mult} tray(s)`},
+    {name:'Pretzel Bites & Beer Cheese',desc:'Warm soft pretzel bites with melted beer cheese dip. Crowd favorite.',qty:`${mult} bag(s) frozen + cheese dip`}
+  ];
+}
+function getWingsMenu(size,budget){
+  const mult={solo:1,small:3,medium:6,big:10}[size];
+  return [
+    {name:'Buffalo Wings (Classic)',desc:'Crispy fried wings tossed in Frank\'s RedHot butter sauce. The undisputed champion.',qty:`${mult*12} wings`},
+    {name:'Honey BBQ Wings',desc:'Sweet and smoky with a sticky glaze. Great for people who can\'t handle heat.',qty:`${mult*8} wings`},
+    {name:'Garlic Parmesan Wings',desc:'Baked wings with garlic butter and fresh parmesan. Underrated pick.',qty:`${mult*8} wings`},
+    {name:'Jalapeño Poppers',desc:'Cream cheese stuffed jalapeños wrapped in bacon. Dangerously good.',qty:`${mult*6} poppers`},
+    {name:'Mozzarella Sticks',desc:'Golden fried with marinara. Nobody says no to these.',qty:`${mult*4} sticks`},
+    {name:'Ranch & Blue Cheese',desc:'Both. Don\'t pick sides — this isn\'t the bracket.',qty:`${mult} bottle(s) each`}
+  ];
+}
+function getGrillMenu(size,budget){
+  const mult={solo:1,small:2,medium:4,big:7}[size];
+  return [
+    {name:'Smash Burgers',desc:'Thin, crispy-edged burgers with American cheese, pickles, special sauce. 3 minutes per side.',qty:`${mult*2} patties`},
+    {name:'Bratwursts',desc:'Grilled brats in hoagie rolls with sauerkraut and spicy mustard. Classic tailgate energy.',qty:`${mult*2} brats`},
+    {name:'BBQ Pulled Pork Sliders',desc:'Slow-cooked pulled pork on Hawaiian rolls with coleslaw. Start morning, ready by tip-off.',qty:`${mult} lb(s) pork shoulder`},
+    {name:'Grilled Corn',desc:'Mexican street corn with mayo, cotija, chili powder, and lime.',qty:`${mult*2} ears`},
+    {name:'Coleslaw',desc:'Creamy or vinegar-based — the perfect side for everything above.',qty:`${mult} batch(es)`}
+  ];
+}
+function getOrderMenu(size,budget){
+  const mult={solo:1,small:2,medium:4,big:6}[size];
+  return [
+    {name:'Pizza',desc:'Order from your favorite spot. Get variety — cheese, pepperoni, and one wildcard.',qty:`${mult} large pizza(s)`},
+    {name:'Wings (Delivery)',desc:'Most pizza places do solid wings. Order extra ranch.',qty:`${mult*12} wings`},
+    {name:'Sub Sandwiches',desc:'Giant party subs or individual heroes. Easy, no plates needed.',qty:`${mult} sub(s)`},
+    {name:'Chips & Dips',desc:'Still grab these from the store. No delivery spread is complete without crunch.',qty:`${mult} bag(s) + dips`}
+  ];
+}
+
+function getDrinks(size,budget){
+  const mult={solo:1,small:2,medium:4,big:7}[size];
+  const drinks=[
+    {name:'Beer',desc:'Classics: Coors Light, Blue Moon, local IPA. Get variety — a light option and a craft option.',qty:`${mult*6} cans/bottles`},
+    {name:'Hard Seltzer / Cider',desc:'White Claw, Athletic Brewing (NA), or local cider. For the non-beer crowd.',qty:`${mult*3} cans`}
+  ];
+  if(budget!=='low'){
+    drinks.push({name:'Bourbon & Ginger',desc:'Simple 2-ingredient cocktail. Jim Beam + ginger ale + lime. Mix as you go.',qty:`${mult>2?'1 handle':'750ml'} bourbon + ${mult} bottles ginger ale`});
+  }
+  if(budget==='high'||budget==='baller'){
+    drinks.push({name:'March Madness Punch',desc:'Blue Curaçao + lemonade + vodka + Sprite. Bright blue like the court. Dangerous.',qty:`1 punch bowl batch`});
+  }
+  drinks.push({name:'Water & Sodas',desc:'Hydration matters when you\'re yelling at refs for 12 hours. Stock up.',qty:`${mult*4} bottles water + ${mult*3} sodas`});
+  return drinks;
+}
+
+function getStreaming(setup){
+  const base=[
+    {label:'Channels',value:'CBS, TBS, TNT, truTV — all four carry games simultaneously'},
+    {label:'Best Bundle',value:'YouTube TV ($73/mo) or Hulu + Live TV ($77/mo) — both include all 4 channels'},
+    {label:'Free Option',value:'CBS games stream free on Paramount+ (with ads) or CBSSports.com'},
+    {label:'NCAA App',value:'March Madness Live app (iOS/Android) — free with cable login, some games free'},
+    {label:'Schedule',value:'Thurs-Fri: 4 games simultaneously (12pm-midnight ET). Sat-Sun: 8 games each day'}
+  ];
+  if(setup==='multi'){
+    base.push({label:'Multi-Screen Tip',value:'Use laptop/tablet for the secondary game. March Madness Live app lets you pick specific games and switch between them.'});
+  }
+  if(setup==='projector'){
+    base.push({label:'Projector Tip',value:'Set projector to "Game Mode" or lowest latency setting. Run audio through a soundbar — built-in projector speakers can\'t handle the roar.'});
+  }
+  if(setup==='bar'){
+    base.push({label:'Bar Tip',value:'Arrive 1+ hours before the first game you want to watch. Ask them to put your game on the closest TV. Tip well — the bartender controls the remote.'});
+  }
+  return base;
+}
+
+function getBracket(bracket){
+  if(bracket==='none')return `<div class="section"><h3><span class="icon">📊</span> BRACKET POOL</h3><p style="color:var(--muted);font-size:.85rem">No pool this year — just vibes! But consider a casual one even with no money involved. It makes every single game matter, even the 14 vs 3 matchups you'd normally skip.</p></div>`;
+
+  const buyIn={casual:'Free',money:'$10-25',serious:'$50+'}[bracket];
+  const format = bracket==='casual' ?
+    `<ol><li>Everyone fills out a bracket on ESPN or Yahoo (free)</li><li>Standard scoring: 1pt Round 1, 2pts Round 2, 4pts Sweet 16, 8pts Elite 8, 16pts Final Four, 32pts Championship</li><li>Winner gets bragging rights + a trophy (dollar store trophy = hilarious)</li><li>Last place has to wear the winner's team jersey to the next hangout</li></ol>` :
+    `<ol><li>Collect ${buyIn} from everyone BEFORE Selection Sunday</li><li>Use ESPN Tournament Challenge or Yahoo (free, tracks everything)</li><li>Standard scoring: 1-2-4-8-16-32 point escalation per round</li><li>Payout: 70% to 1st, 20% to 2nd, 10% to 3rd (or best upset picks)</li><li>Deadline: brackets lock before first game Thursday March 19</li><li>Venmo/Zelle the pot — don't chase people after</li></ol>`;
+
+  return `<div class="section"><h3><span class="icon">📊</span> BRACKET POOL — ${buyIn.toUpperCase()} BUY-IN</h3><div class="bracket-rules"><h4>How to run it:</h4>${format}</div><div class="tip"><strong>Upset strategy:</strong> Every year, at least one 12-seed beats a 5-seed. Pick 2-3 first-round upsets. Don't pick a 16-seed over a 1-seed unless you want to be a legend or a fool.</div></div>`;
+}
+
+function getGear(setup,size,budget){
+  const gear=[];
+  if(setup==='basic'||setup==='multi'){
+    gear.push({emoji:'📺',name:'TCL 55" 4K TV',price:'$249',link:'https://www.amazon.com/dp/B0D5CMN1RS?tag=stirman-20'});
+  }
+  if(setup==='projector'){
+    gear.push({emoji:'🎬',name:'BenQ TH685i Projector',price:'$549',link:'https://www.amazon.com/dp/B09MFKB1YN?tag=stirman-20'});
+  }
+  gear.push({emoji:'🔊',name:'JBL Flip 6 Speaker',price:'$99',link:'https://www.amazon.com/dp/B09GYM3GRP?tag=stirman-20'});
+  if(size!=='solo'){
+    gear.push({emoji:'🧊',name:'Coleman 48-Qt Cooler',price:'$34',link:'https://www.amazon.com/dp/B0882DYDWM?tag=stirman-20'});
+  }
+  gear.push({emoji:'🏀',name:'Team Jersey',price:'$75-110',link:'https://www.amazon.com/s?k=ncaa+basketball+jersey&tag=stirman-20'});
+  gear.push({emoji:'🍿',name:'Popcorn Machine',price:'$29',link:'https://www.amazon.com/dp/B07V3GNKP5?tag=stirman-20'});
+  if(budget==='high'||budget==='baller'){
+    gear.push({emoji:'🪑',name:'Stadium Seat Cushion',price:'$35',link:'https://www.amazon.com/dp/B078PGCH7Y?tag=stirman-20'});
+    gear.push({emoji:'🏆',name:'Trophy (for bracket winner)',price:'$12',link:'https://www.amazon.com/dp/B07NQHXKZG?tag=stirman-20'});
+  }
+  if(size==='medium'||size==='big'){
+    gear.push({emoji:'🍽️',name:'Chafing Dish Set',price:'$36',link:'https://www.amazon.com/dp/B0CGHP4NNF?tag=stirman-20'});
+    gear.push({emoji:'🥤',name:'Solo Cup 100-Pack',price:'$9',link:'https://www.amazon.com/dp/B078RF7TSL?tag=stirman-20'});
+  }
+  return gear.slice(0,8);
+}
+
+function getActivities(size,bracket){
+  const a=[
+    {name:'🏀 Halftime Shooting Contest',desc:'Trash can in the corner of the room. Everyone gets 5 shots with a crumpled napkin. Loser refills the chips.'},
+    {name:'📱 Live Upset Bingo',desc:'Print bingo cards with events: "Announcer says Cinderella", "Player fouls out", "Buzzer beater", "Coach gets T\'d up". First to 5 wins.'},
+    {name:'🎯 Over/Under Predictions',desc:'Before each game, everyone predicts over/under on the spread. Keep a running tally. Most correct at the end of the day wins.'}
+  ];
+  if(size!=='solo'){
+    a.push({name:'🍻 Drink Triggers',desc:'Take a sip every time: a ref makes a bad call, someone says "one shining moment", a player flops, a mascot appears on screen. Stay hydrated.'});
+  }
+  if(bracket!=='none'){
+    a.push({name:'🏆 Bracket Reveal Party',desc:'Everyone fills brackets in secret. On Thursday before tip-off, reveal picks one region at a time. Roast each other\'s choices.'});
+  }
+  a.push({name:'📊 Upset Alert Board',desc:'Whiteboard or poster tracking every upset as it happens. Circle the bracket-busters. Mourn together.'});
+  return a;
+}
+
+function capture(){
+  const e=document.getElementById('email-input').value;
+  if(e){
+    localStorage.setItem('mr-email',e);
+    const btn=document.querySelector('.cta-box button');
+    btn.textContent='✅ You\'re In!';
+    btn.style.background='#22c55e';
+  }
+}
+
+function copyPlan(){
+  const t=document.getElementById('results').innerText;
+  navigator.clipboard.writeText(t).then(()=>{
+    const btn=document.querySelector('.share-btn');
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy Party Plan',2000);
+  });
+}
+
+function shareTw(){
+  const url=encodeURIComponent('https://stirman.net/madness-ready/');
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Just built my March Madness watch party plan with MadnessReady 🏀🔥')}&url=${url}`,'_blank');
+}
+
+function restart(){
+  step=0;answers={};
+  document.getElementById('results').style.display='none';
+  document.getElementById('results').innerHTML='';
+  document.getElementById('quiz').style.display='block';
+  renderProgress();renderQuestion();
+}
+
+renderProgress();renderQuestion();
+</script>
+</body>
+</html>
