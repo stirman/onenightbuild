@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaxCheck — Deductions You're Probably Missing</title>
+<meta name="description" content="Find tax deductions you didn't know you qualified for. Free quiz shows your estimated savings in 2 minutes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#13131a;--border:#1e1e2a;--text:#e8e6e1;--muted:#8a8a9a;--green:#2ecc71;--red:#e74c3c;--gold:#f1c40f;--accent1:#ff6b35;--accent2:#7c3aed;--accent3:#06d6a0}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.035}
+.noise::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");width:100%;height:100%}
+.gradient-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background:radial-gradient(ellipse at 20% 20%,rgba(124,58,237,.15) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(255,107,53,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(6,214,160,.08) 0%,transparent 50%)}
+.container{max-width:680px;margin:0 auto;padding:24px 16px;position:relative;z-index:1}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1.1;margin-bottom:8px;background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:32px;line-height:1.5}
+.deadline{display:inline-block;background:linear-gradient(135deg,var(--red),#c0392b);color:#fff;padding:6px 14px;border-radius:20px;font-size:.85rem;font-weight:600;margin-bottom:24px}
+/* Quiz */
+.step{display:none;animation:fadeUp .4s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.step-label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.question{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:20px;line-height:1.3}
+.options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.opt{padding:10px 18px;border:1.5px solid var(--border);border-radius:24px;cursor:pointer;font-size:.95rem;transition:all .2s;background:transparent;color:var(--text);font-family:inherit}
+.opt:hover{border-color:var(--accent2);background:rgba(124,58,237,.08)}
+.opt.selected{border-color:var(--accent2);background:rgba(124,58,237,.15);color:#fff}
+.opt.multi.selected{border-color:var(--accent3);background:rgba(6,214,160,.15)}
+.progress-dots{display:flex;gap:6px;justify-content:center;margin-bottom:28px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.active{background:var(--accent2);transform:scale(1.2)}
+.dot.done{background:var(--accent3)}
+.next-btn{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,var(--accent2),var(--accent1));color:#fff;border:none;border-radius:24px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .2s,opacity .2s;opacity:.4;pointer-events:none}
+.next-btn.ready{opacity:1;pointer-events:auto}
+.next-btn.ready:hover{transform:scale(1.03)}
+/* Results */
+#results{display:none;animation:fadeUp .5s ease}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;text-align:center}
+.stat-card .num{font-family:'Instrument Serif',serif;font-size:2rem;background:linear-gradient(135deg,var(--accent3),var(--accent1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-card .label{font-size:.8rem;color:var(--muted);margin-top:4px}
+.stat-card.big{grid-column:1/-1}
+.stat-card.big .num{font-size:2.8rem}
+.section-title{font-family:'Instrument Serif',serif;font-size:1.5rem;margin:28px 0 16px}
+.deduction-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;border-left:3px solid var(--accent3)}
+.deduction-card.missed{border-left-color:var(--accent1)}
+.ded-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ded-name{font-weight:600;font-size:1.05rem}
+.ded-savings{color:var(--accent3);font-weight:700;font-size:1.1rem}
+.ded-desc{color:var(--muted);font-size:.88rem;line-height:1.5}
+.ded-tag{display:inline-block;font-size:.7rem;padding:3px 8px;border-radius:10px;margin-top:6px;font-weight:600}
+.tag-easy{background:rgba(46,204,113,.15);color:var(--green)}
+.tag-medium{background:rgba(241,196,15,.15);color:var(--gold)}
+.tag-pro{background:rgba(231,76,60,.15);color:var(--red)}
+.verdict-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin:24px 0}
+.verdict-emoji{font-size:2.5rem;margin-bottom:8px}
+.verdict-title{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:8px}
+.verdict-desc{color:var(--muted);font-size:.95rem;line-height:1.5}
+/* CTA */
+.cta-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(255,107,53,.08));border:1px solid var(--border);border-radius:16px;padding:24px;margin:20px 0;text-align:center}
+.cta-card h3{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:8px}
+.cta-card p{color:var(--muted);font-size:.9rem;margin-bottom:14px}
+.cta-link{display:inline-block;padding:10px 24px;background:linear-gradient(135deg,var(--accent2),var(--accent1));color:#fff;text-decoration:none;border-radius:20px;font-weight:600;font-size:.95rem;transition:transform .2s}
+.cta-link:hover{transform:scale(1.03)}
+.affiliate-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.aff-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
+.aff-card .aff-emoji{font-size:1.8rem;margin-bottom:6px}
+.aff-card .aff-name{font-weight:600;font-size:.95rem;margin-bottom:4px}
+.aff-card .aff-price{color:var(--muted);font-size:.8rem;margin-bottom:8px}
+.aff-card a{color:var(--accent3);text-decoration:none;font-size:.85rem;font-weight:600}
+.aff-card a:hover{text-decoration:underline}
+.email-capture{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin:24px 0}
+.email-capture h3{font-family:'Instrument Serif',serif;font-size:1.2rem;margin-bottom:6px}
+.email-capture p{color:var(--muted);font-size:.85rem;margin-bottom:14px}
+.email-row{display:flex;gap:8px;max-width:400px;margin:0 auto}
+.email-row input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text);font-family:inherit;font-size:.9rem}
+.email-row button{padding:10px 20px;background:linear-gradient(135deg,var(--accent3),var(--accent2));color:#fff;border:none;border-radius:20px;font-weight:600;cursor:pointer;font-family:inherit;font-size:.9rem}
+.share-btns{display:flex;gap:10px;justify-content:center;margin:20px 0}
+.share-btn{padding:8px 18px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
+.share-btn:hover{background:rgba(124,58,237,.1);border-color:var(--accent2)}
+.footer{text-align:center;padding:40px 0 20px;color:var(--muted);font-size:.75rem}
+.footer a{color:var(--accent2);text-decoration:none}
+.bar-wrap{margin:8px 0}
+.bar-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.bar-bg{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width 1s ease;width:0}
+.reality-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.reality-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.reality-item .ri-num{font-family:'Instrument Serif',serif;font-size:1.5rem;color:var(--accent1)}
+.reality-item .ri-label{font-size:.75rem;color:var(--muted);margin-top:2px}
+.std-vs{display:flex;gap:12px;margin:16px 0}
+.std-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center}
+.std-card.winner{border-color:var(--accent3);background:rgba(6,214,160,.05)}
+.std-card .sv-label{font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.std-card .sv-amount{font-family:'Instrument Serif',serif;font-size:1.6rem}
+.std-card .sv-tag{display:inline-block;margin-top:6px;font-size:.7rem;padding:3px 10px;border-radius:10px;background:rgba(6,214,160,.15);color:var(--accent3);font-weight:600}
+</style>
+</head>
+<body>
+<div class="gradient-bg"></div>
+<div class="noise"></div>
+<div class="container">
+
+<div id="intro" class="step active">
+<div class="deadline">⏰ Tax deadline: April 15, 2026 — 32 days left</div>
+<h1>Deductions You're Probably Missing</h1>
+<p class="subtitle">The average American overpays $1,200 in taxes every year. Answer 7 quick questions and we'll find deductions you didn't know you qualified for.</p>
+<div class="progress-dots" id="dots"></div>
+<button class="next-btn ready" onclick="startQuiz()">Find My Deductions →</button>
+</div>
+
+<div id="quiz"></div>
+<div id="results"></div>
+
+</div>
+
+<div class="footer">
+<p>Built in one night by <a href="https://onenightbuild.com" target="_blank">One Night Build</a> · Not tax advice — consult a CPA</p>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "What's your filing status?",
+    opts: [
+      {t:"Single",v:"single"},
+      {t:"Married Filing Jointly",v:"mfj"},
+      {t:"Married Filing Separately",v:"mfs"},
+      {t:"Head of Household",v:"hoh"}
+    ],
+    multi: false, key: "filing"
+  },
+  {
+    q: "What's your estimated annual income?",
+    opts: [
+      {t:"Under $50K",v:"low"},
+      {t:"$50K – $100K",v:"mid"},
+      {t:"$100K – $200K",v:"high"},
+      {t:"$200K+",v:"very_high"}
+    ],
+    multi: false, key: "income"
+  },
+  {
+    q: "Do you own or rent your home?",
+    opts: [
+      {t:"🏠 Own (with mortgage)",v:"own_mortgage"},
+      {t:"🏠 Own (paid off)",v:"own_paid"},
+      {t:"🏢 Rent",v:"rent"}
+    ],
+    multi: false, key: "housing"
+  },
+  {
+    q: "What applies to you? (select all)",
+    opts: [
+      {t:"👶 Have kids under 17",v:"kids"},
+      {t:"🎓 Paying student loans",v:"student_loans"},
+      {t:"💊 High medical expenses",v:"medical"},
+      {t:"🏥 Have an HSA",v:"hsa"},
+      {t:"💰 Contribute to 401(k)/IRA",v:"retirement"},
+      {t:"🎁 Donate to charity",v:"charity"},
+      {t:"None of these",v:"none"}
+    ],
+    multi: true, key: "situations"
+  },
+  {
+    q: "Work situation?",
+    opts: [
+      {t:"💼 W-2 Employee",v:"w2"},
+      {t:"📱 Freelancer / 1099",v:"freelance"},
+      {t:"🏢 Business Owner",v:"business"},
+      {t:"🏠 Work From Home",v:"wfh"},
+      {t:"📚 Student",v:"student"}
+    ],
+    multi: false, key: "work"
+  },
+  {
+    q: "Any of these this year? (select all)",
+    opts: [
+      {t:"🚗 Drive for work",v:"mileage"},
+      {t:"📚 Took courses / education",v:"education"},
+      {t:"⚡ Energy-efficient home upgrades",v:"energy"},
+      {t:"👨‍👩‍👧 Pay for childcare",v:"childcare"},
+      {t:"🏠 Home office",v:"home_office"},
+      {t:"💸 Investment losses",v:"invest_loss"},
+      {t:"None",v:"none"}
+    ],
+    multi: true, key: "extras"
+  },
+  {
+    q: "How do you currently file taxes?",
+    opts: [
+      {t:"📝 DIY (free tools)",v:"diy"},
+      {t:"💻 TurboTax / H&R Block",v:"software"},
+      {t:"👔 CPA / Accountant",v:"cpa"},
+      {t:"🤷 Haven't filed yet",v:"not_yet"}
+    ],
+    multi: false, key: "method"
+  }
+];
+
+const DEDUCTIONS = [
+  {id:"mortgage_interest",name:"Mortgage Interest Deduction",desc:"Deduct interest paid on your mortgage — often $8K-$15K+ for newer mortgages.",savings:{low:2400,mid:3600,high:5500,very_high:7000},difficulty:"easy",req:h=>h==="own_mortgage",itemized:true},
+  {id:"property_tax",name:"Property Tax Deduction",desc:"State and local property taxes, up to $10,000 (SALT cap).",savings:{low:1200,mid:2400,high:3500,very_high:3500},difficulty:"easy",req:h=>["own_mortgage","own_paid"].includes(h),itemized:true},
+  {id:"state_income_tax",name:"State & Local Income Tax (SALT)",desc:"Deduct state income taxes paid, up to $10K combined with property tax.",savings:{low:800,mid:1800,high:3200,very_high:3500},difficulty:"easy",req:()=>true,itemized:true},
+  {id:"student_loan_interest",name:"Student Loan Interest",desc:"Deduct up to $2,500 in student loan interest — even with the standard deduction.",savings:{low:500,mid:500,high:375,very_high:0},difficulty:"easy",req:(_,s)=>s.includes("student_loans"),itemized:false},
+  {id:"child_tax_credit",name:"Child Tax Credit",desc:"Up to $2,000 per qualifying child under 17. This is a CREDIT, not just a deduction — directly reduces your tax bill.",savings:{low:2000,mid:2000,high:2000,very_high:2000},difficulty:"easy",req:(_,s)=>s.includes("kids"),itemized:false,perKid:true},
+  {id:"childcare_credit",name:"Child & Dependent Care Credit",desc:"Credit for childcare expenses while you work — up to $3,000 for one child, $6,000 for two+.",savings:{low:1200,mid:1050,high:600,very_high:600},difficulty:"easy",req:(_,s,e)=>e.includes("childcare"),itemized:false},
+  {id:"hsa_deduction",name:"HSA Contribution Deduction",desc:"Contributions to your HSA are tax-free. $4,150 individual / $8,300 family limit in 2026.",savings:{low:600,mid:1000,high:1400,very_high:1600},difficulty:"easy",req:(_,s)=>s.includes("hsa"),itemized:false},
+  {id:"retirement_401k",name:"401(k) / Traditional IRA",desc:"Reduce taxable income by contributing to retirement. 401(k) limit: $23,500. IRA: $7,000.",savings:{low:1200,mid:2800,high:5200,very_high:8200},difficulty:"easy",req:(_,s)=>s.includes("retirement"),itemized:false},
+  {id:"charity",name:"Charitable Donations",desc:"Cash and goods donated to qualified charities. Keep receipts for everything over $250.",savings:{low:200,mid:500,high:1200,very_high:2800},difficulty:"easy",req:(_,s)=>s.includes("charity"),itemized:true},
+  {id:"medical_expenses",name:"Medical Expense Deduction",desc:"Medical expenses exceeding 7.5% of AGI are deductible. Includes dental, vision, prescriptions, mental health.",savings:{low:400,mid:600,high:900,very_high:1200},difficulty:"medium",req:(_,s)=>s.includes("medical"),itemized:true},
+  {id:"home_office",name:"Home Office Deduction",desc:"Simplified method: $5/sq ft up to 300 sq ft = $1,500. Must be exclusive-use workspace.",savings:{low:750,mid:1100,high:1500,very_high:1500},difficulty:"medium",req:(_,s,e,w)=>(w==="freelance"||w==="business")&&(e.includes("home_office")),itemized:false},
+  {id:"self_employment",name:"Self-Employment Tax Deduction",desc:"Deduct the employer-equivalent portion (50%) of your SE tax. Automatic but often forgotten.",savings:{low:1100,mid:2200,high:3800,very_high:5500},difficulty:"easy",req:(_,s,e,w)=>w==="freelance"||w==="business",itemized:false},
+  {id:"business_expenses",name:"Business Expenses (Schedule C)",desc:"Equipment, software, supplies, marketing, travel, meals (50%), professional development — all deductible.",savings:{low:800,mid:1800,high:3200,very_high:5000},difficulty:"medium",req:(_,s,e,w)=>w==="freelance"||w==="business",itemized:false},
+  {id:"mileage",name:"Business Mileage Deduction",desc:"70¢/mile for business driving in 2026. Track every trip — it adds up fast.",savings:{low:600,mid:1200,high:1800,very_high:2400},difficulty:"medium",req:(_,s,e)=>e.includes("mileage"),itemized:false},
+  {id:"education_credit",name:"Lifetime Learning Credit",desc:"Up to $2,000 for courses, certifications, or continuing education. Doesn't need to be a degree program.",savings:{low:800,mid:800,high:600,very_high:0},difficulty:"easy",req:(_,s,e)=>e.includes("education"),itemized:false},
+  {id:"energy_credit",name:"Energy Efficient Home Credit",desc:"30% credit for solar panels, heat pumps, insulation, windows, doors. Up to $3,200/year.",savings:{low:1500,mid:1500,high:1500,very_high:1500},difficulty:"easy",req:(_,s,e)=>e.includes("energy"),itemized:false},
+  {id:"investment_loss",name:"Capital Loss Harvesting",desc:"Offset investment gains with losses. Up to $3,000 in net losses can reduce ordinary income too.",savings:{low:450,mid:660,high:960,very_high:1100},difficulty:"medium",req:(_,s,e)=>e.includes("invest_loss"),itemized:false},
+  {id:"educator_expense",name:"Educator Expense Deduction",desc:"Teachers can deduct up to $300 for classroom supplies — no itemizing needed.",savings:{low:300,mid:300,high:300,very_high:300},difficulty:"easy",req:()=>false,itemized:false},
+  {id:"health_insurance_se",name:"Self-Employed Health Insurance",desc:"Deduct 100% of health insurance premiums for yourself, spouse, and dependents.",savings:{low:2400,mid:3600,high:5400,very_high:7200},difficulty:"easy",req:(_,s,e,w)=>w==="freelance"||w==="business",itemized:false}
+];
+
+let answers = {};
+let currentStep = 0;
+
+function startQuiz(){
+  document.getElementById('intro').classList.remove('active');
+  currentStep = 0;
+  renderStep();
+}
+
+function renderStep(){
+  const q = QUESTIONS[currentStep];
+  const quiz = document.getElementById('quiz');
+  let dotsHtml = QUESTIONS.map((_,i)=>`<div class="dot ${i<currentStep?'done':''} ${i===currentStep?'active':''}"></div>`).join('');
+  let optsHtml = q.opts.map(o=>`<button class="opt ${q.multi?'multi':''}" data-val="${o.v}" onclick="selectOpt(this,'${q.key}',${q.multi})">${o.t}</button>`).join('');
+  quiz.innerHTML = `<div class="step active">
+    <div class="progress-dots">${dotsHtml}</div>
+    <div class="step-label">Question ${currentStep+1} of ${QUESTIONS.length}</div>
+    <div class="question">${q.q}</div>
+    <div class="options">${optsHtml}</div>
+    <button class="next-btn" id="nextBtn" onclick="nextStep()">Continue →</button>
+  </div>`;
+}
+
+function selectOpt(el, key, multi){
+  if(multi){
+    el.classList.toggle('selected');
+    if(el.dataset.val==='none'){
+      el.parentElement.querySelectorAll('.opt').forEach(o=>{if(o!==el)o.classList.remove('selected')});
+    } else {
+      el.parentElement.querySelector('[data-val="none"]')?.classList.remove('selected');
+    }
+    const selected = [...el.parentElement.querySelectorAll('.opt.selected')].map(o=>o.dataset.val);
+    answers[key] = selected.length ? selected : ['none'];
+  } else {
+    el.parentElement.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[key] = el.dataset.val;
+  }
+  document.getElementById('nextBtn').classList.add('ready');
+}
+
+function nextStep(){
+  if(!document.getElementById('nextBtn').classList.contains('ready')) return;
+  currentStep++;
+  if(currentStep >= QUESTIONS.length){
+    document.getElementById('quiz').innerHTML = '';
+    showResults();
+  } else {
+    renderStep();
+  }
+}
+
+function showResults(){
+  const income = answers.income || 'mid';
+  const housing = answers.housing || 'rent';
+  const situations = answers.situations || ['none'];
+  const work = answers.work || 'w2';
+  const extras = answers.extras || ['none'];
+  const filing = answers.filing || 'single';
+  const method = answers.method || 'diy';
+
+  // Standard deduction amounts 2026
+  const stdDeduction = {single:15700,mfj:31400,mfs:15700,hoh:23500};
+  const std = stdDeduction[filing] || 15700;
+
+  // Find qualifying deductions
+  let qualifying = [];
+  let itemizedTotal = 0;
+  let aboveLineTotal = 0;
+  let creditsTotal = 0;
+
+  DEDUCTIONS.forEach(d=>{
+    if(d.req(housing, situations, extras, work)){
+      const save = d.savings[income] || 0;
+      if(save > 0){
+        qualifying.push({...d, estSavings: save});
+        if(d.itemized) itemizedTotal += save;
+        else if(d.name.includes('Credit')) creditsTotal += save;
+        else aboveLineTotal += save;
+      }
+    }
+  });
+
+  // Sort by savings descending
+  qualifying.sort((a,b)=>b.estSavings - a.estSavings);
+
+  const totalSavings = qualifying.reduce((s,d)=>s+d.estSavings, 0);
+  const shouldItemize = itemizedTotal > std;
+
+  // Effective savings (can't double-count if not itemizing)
+  const effectiveSavings = shouldItemize ? totalSavings : (aboveLineTotal + creditsTotal);
+
+  // Verdict
+  let verdict, verdictEmoji, verdictDesc;
+  if(effectiveSavings > 8000){verdictEmoji="🤯";verdict="You're Leaving Serious Money on the Table";verdictDesc="You likely qualify for multiple significant deductions. A good CPA could save you thousands. This is not a drill.";}
+  else if(effectiveSavings > 4000){verdictEmoji="💰";verdict="Solid Savings Waiting";verdictDesc="You have several deductions worth claiming. Make sure you're not leaving these on the table — it adds up year after year.";}
+  else if(effectiveSavings > 1500){verdictEmoji="📋";verdict="A Few Worth Checking";verdictDesc="You have some deductions to look into. May not change your life, but free money is free money.";}
+  else{verdictEmoji="✅";verdict="You're Probably in Good Shape";verdictDesc="You don't have a ton of unclaimed deductions, but double-check the ones below — even $500 buys a nice dinner.";}
+
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.style.display = 'block';
+
+  let html = `
+    <h1>Your Tax Deduction Report</h1>
+    <p class="subtitle">Based on your answers, here's what you might be missing.</p>
+
+    <div class="hero-stats">
+      <div class="stat-card big">
+        <div class="num">$${effectiveSavings.toLocaleString()}</div>
+        <div class="label">Estimated potential savings</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">${qualifying.length}</div>
+        <div class="label">Deductions found</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">$${Math.round(effectiveSavings/12).toLocaleString()}</div>
+        <div class="label">Per month you could save</div>
+      </div>
+    </div>
+
+    <div class="verdict-card">
+      <div class="verdict-emoji">${verdictEmoji}</div>
+      <div class="verdict-title">${verdict}</div>
+      <div class="verdict-desc">${verdictDesc}</div>
+    </div>
+
+    <div class="section-title">Standard vs. Itemized</div>
+    <div class="std-vs">
+      <div class="std-card ${!shouldItemize?'winner':''}">
+        <div class="sv-label">Standard Deduction</div>
+        <div class="sv-amount">$${std.toLocaleString()}</div>
+        ${!shouldItemize?'<div class="sv-tag">✓ Better for you</div>':''}
+      </div>
+      <div class="std-card ${shouldItemize?'winner':''}">
+        <div class="sv-label">Your Itemized Total</div>
+        <div class="sv-amount">$${itemizedTotal.toLocaleString()}</div>
+        ${shouldItemize?'<div class="sv-tag">✓ Better for you</div>':''}
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:.82rem;margin-bottom:8px">${shouldItemize?'Your itemized deductions exceed the standard deduction — itemizing saves you more.':'The standard deduction is higher, but you can STILL claim above-the-line deductions and credits on top of it.'}</p>
+  `;
+
+  // Above-the-line & credits (always claimable)
+  const aboveLine = qualifying.filter(d=>!d.itemized);
+  if(aboveLine.length){
+    html += `<div class="section-title">Deductions & Credits You Can Claim${!shouldItemize?' (Even with Standard Deduction)':''}</div>`;
+    aboveLine.forEach(d=>{
+      html += deductionCard(d);
+    });
+  }
+
+  // Itemized deductions
+  const itemized = qualifying.filter(d=>d.itemized);
+  if(itemized.length){
+    html += `<div class="section-title">${shouldItemize?'Itemized Deductions (Claim These!)':'Itemized Deductions (Only If You Itemize)'}</div>`;
+    itemized.forEach(d=>{
+      html += deductionCard(d, !shouldItemize);
+    });
+  }
+
+  // Reality check
+  html += `
+    <div class="section-title">What $${effectiveSavings.toLocaleString()} Gets You</div>
+    <div class="reality-grid">
+      <div class="reality-item"><div class="ri-num">${Math.round(effectiveSavings/6)}</div><div class="ri-label">Lattes ☕</div></div>
+      <div class="reality-item"><div class="ri-num">${Math.round(effectiveSavings/350)}</div><div class="ri-label">Round-trip flights ✈️</div></div>
+      <div class="reality-item"><div class="ri-num">${Math.round(effectiveSavings/15.49)}</div><div class="ri-label">Months of Netflix 📺</div></div>
+      <div class="reality-item"><div class="ri-num">${Math.round(effectiveSavings/50)}</div><div class="ri-label">Nice dinners 🍽️</div></div>
+    </div>
+  `;
+
+  // Filing tool recommendation
+  const toolRec = work==='freelance'||work==='business' ?
+    {name:"TurboTax Self-Employed",url:"https://www.amazon.com/s?k=turbotax+self+employed+2026&tag=stirman-20",why:"Handles Schedule C, 1099s, and finds freelancer deductions automatically."} :
+    qualifying.length > 5 ?
+    {name:"TurboTax Deluxe",url:"https://www.amazon.com/s?k=turbotax+deluxe+2026&tag=stirman-20",why:"Best for maximizing deductions — walks you through every one."} :
+    {name:"TurboTax Free / IRS Free File",url:"https://www.amazon.com/s?k=turbotax+2026&tag=stirman-20",why:"Your situation is straightforward — save on filing fees."};
+
+  html += `
+    <div class="cta-card">
+      <h3>📊 Recommended: ${toolRec.name}</h3>
+      <p>${toolRec.why}</p>
+      <a href="${toolRec.url}" target="_blank" class="cta-link">Check Price on Amazon →</a>
+    </div>
+  `;
+
+  // Affiliate products
+  html += `
+    <div class="section-title">Tax Season Essentials</div>
+    <div class="affiliate-grid">
+      <div class="aff-card">
+        <div class="aff-emoji">📒</div>
+        <div class="aff-name">Tax Organizer Folder</div>
+        <div class="aff-price">~$15</div>
+        <a href="https://www.amazon.com/s?k=tax+organizer+folder&tag=stirman-20" target="_blank">Shop on Amazon →</a>
+      </div>
+      <div class="aff-card">
+        <div class="aff-emoji">🧾</div>
+        <div class="aff-name">Receipt Scanner</div>
+        <div class="aff-price">~$45</div>
+        <a href="https://www.amazon.com/s?k=receipt+scanner+portable&tag=stirman-20" target="_blank">Shop on Amazon →</a>
+      </div>
+      <div class="aff-card">
+        <div class="aff-emoji">📖</div>
+        <div class="aff-name">Tax-Free Wealth (Book)</div>
+        <div class="aff-price">~$20</div>
+        <a href="https://www.amazon.com/s?k=tax+free+wealth+tom+wheelwright&tag=stirman-20" target="_blank">Shop on Amazon →</a>
+      </div>
+      <div class="aff-card">
+        <div class="aff-emoji">🔒</div>
+        <div class="aff-name">Fireproof Document Bag</div>
+        <div class="aff-price">~$25</div>
+        <a href="https://www.amazon.com/s?k=fireproof+document+bag&tag=stirman-20" target="_blank">Shop on Amazon →</a>
+      </div>
+    </div>
+  `;
+
+  // Email capture
+  html += `
+    <div class="email-capture">
+      <h3>💸 Never Overpay Again</h3>
+      <p>Get a monthly tax tip + deduction reminder so you're ready next year.</p>
+      <div class="email-row">
+        <input type="email" placeholder="you@email.com" id="emailInput">
+        <button onclick="captureEmail()">Subscribe</button>
+      </div>
+    </div>
+  `;
+
+  // Share
+  html += `
+    <div class="share-btns">
+      <button class="share-btn" onclick="copyResults()">📋 Copy Results</button>
+      <button class="share-btn" onclick="shareTwitter()">𝕏 Share</button>
+    </div>
+  `;
+
+  resultsDiv.innerHTML = html;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deductionCard(d, dimmed){
+  const diffLabel = d.difficulty==='easy'?'Easy to claim':'Might need help';
+  const diffClass = d.difficulty==='easy'?'tag-easy':'tag-medium';
+  return `<div class="deduction-card ${dimmed?'missed':''}">
+    <div class="ded-header">
+      <div class="ded-name">${d.name}</div>
+      <div class="ded-savings"${dimmed?' style="opacity:.4"':''}>~$${d.estSavings.toLocaleString()}</div>
+    </div>
+    <div class="ded-desc">${d.desc}</div>
+    <span class="ded-tag ${diffClass}">${diffLabel}</span>
+    ${d.itemized?'<span class="ded-tag" style="background:rgba(124,58,237,.15);color:var(--accent2);margin-left:4px">Itemized</span>':''}
+  </div>`;
+}
+
+function captureEmail(){
+  const email = document.getElementById('emailInput').value;
+  if(email && email.includes('@')){
+    let list = JSON.parse(localStorage.getItem('taxcheck_emails')||'[]');
+    list.push({email, date: new Date().toISOString()});
+    localStorage.setItem('taxcheck_emails', JSON.stringify(list));
+    document.getElementById('emailInput').parentElement.innerHTML = '<p style="color:var(--accent3);font-weight:600">✓ You\'re in! Tax tips coming your way.</p>';
+  }
+}
+
+function copyResults(){
+  const q = document.querySelectorAll('.deduction-card');
+  let text = '🧾 TaxCheck Results\n\n';
+  q.forEach(c=>{
+    const name = c.querySelector('.ded-name').textContent;
+    const savings = c.querySelector('.ded-savings').textContent;
+    text += `${name}: ${savings}\n`;
+  });
+  text += '\nFind your deductions: stirman.net/taxcheck';
+  navigator.clipboard.writeText(text);
+  event.target.textContent = '✓ Copied!';
+  setTimeout(()=>event.target.textContent='📋 Copy Results',2000);
+}
+
+function shareTwitter(){
+  const total = document.querySelector('.stat-card.big .num').textContent;
+  const url = encodeURIComponent('https://stirman.net/taxcheck');
+  const text = encodeURIComponent(`I might be missing ${total} in tax deductions 🤯 Check yours before April 15:`);
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
+}
+</script>
+</body>
+</html>
