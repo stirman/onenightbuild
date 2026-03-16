@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrateScout — Subscription Box Matchmaker for Ambitious Kids</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07050f;
+      --card: rgba(8, 6, 15, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f6f2ff;
+      --accent: #f772ff;
+      --accent-2: #68f3ff;
+      --accent-3: #ffb347;
+      --noise: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"%3E%3Cfilter id="n" x="0" y="0" width="1" height="1"%3E%3CfeTurbulence baseFrequency="0.8"/%3E%3C/filter%3E%3Crect width="160" height="160" filter="url(%23n)" opacity="0.08"/%3E%3C/svg%3E');
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.4;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: radial-gradient(circle at 20% 20%, rgba(247, 114, 255, 0.4), transparent 45%),
+        radial-gradient(circle at 80% 0%, rgba(104, 243, 255, 0.35), transparent 45%),
+        radial-gradient(circle at 60% 80%, rgba(255, 179, 71, 0.35), transparent 45%),
+        #030107;
+      filter: saturate(130%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image: var(--noise);
+      opacity: 0.55;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .shell {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 80px 24px 120px;
+    }
+
+    header {
+      display: grid;
+      gap: 24px;
+    }
+
+    h1 {
+      font-family: 'Instrument Serif', 'Times New Roman', serif;
+      font-size: clamp(2.8rem, 6vw, 4.2rem);
+      line-height: 1.05;
+      margin: 0;
+    }
+
+    .hero-tagline {
+      font-size: 1.3rem;
+      max-width: 720px;
+      color: rgba(246, 242, 255, 0.78);
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .badge {
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.04);
+      font-size: 0.92rem;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 30px;
+    }
+
+    .panel {
+      padding: 20px;
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: 0 40px 120px rgba(6, 5, 18, 0.7);
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.68);
+    }
+
+    .panel p {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .market-pulse {
+      margin-top: 50px;
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .market-pulse .signal {
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 18px;
+      background: rgba(15, 9, 25, 0.78);
+    }
+
+    .signal strong {
+      font-size: 1.2rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    form {
+      margin-top: 60px;
+      display: grid;
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .field {
+      padding: 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(11, 8, 17, 0.85);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.65);
+    }
+
+    input[type="range"], select, .chip-grid input {
+      accent-color: var(--accent);
+    }
+
+    .range-display {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+    }
+
+    .chip input {
+      display: none;
+    }
+
+    .chip.active {
+      border-color: rgba(255,255,255,0.4);
+      background: linear-gradient(120deg, rgba(247, 114, 255, 0.4), rgba(104, 243, 255, 0.38));
+      box-shadow: 0 10px 40px rgba(247, 114, 255, 0.25);
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .radio {
+      border-radius: 20px;
+      padding: 12px 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border 0.2s ease, background 0.2s ease;
+    }
+
+    .radio input {
+      accent-color: var(--accent-2);
+    }
+
+    .radio.active {
+      border-color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.08);
+    }
+
+    button.cta {
+      grid-column: 1 / -1;
+      padding: 22px 28px;
+      border-radius: 30px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      color: #05030b;
+      background: linear-gradient(100deg, #f772ff, #68f3ff, #ffb347);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      box-shadow: 0 20px 60px rgba(247, 114, 255, 0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button.cta:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 35px 80px rgba(247, 114, 255, 0.5);
+    }
+
+    .results {
+      margin-top: 70px;
+      display: grid;
+      gap: 32px;
+    }
+
+    .result-card {
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(7, 5, 15, 0.85);
+      padding: 32px;
+      display: grid;
+      gap: 16px;
+      box-shadow: 0 40px 100px rgba(7, 5, 15, 0.8);
+    }
+
+    .result-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .rank-tag {
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .result-card h2 {
+      font-size: 2rem;
+      margin: 0;
+      font-family: 'Instrument Serif', serif;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
+    .meta-pill {
+      border-radius: 20px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.95rem;
+    }
+
+    .perks {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .reason, .roi-hook {
+      border-radius: 20px;
+      padding: 18px;
+      border: 1px dashed rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-row a, .btn-row button {
+      border-radius: 999px;
+      padding: 12px 22px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .primary-link {
+      background: linear-gradient(110deg, #f772ff, #68f3ff);
+      color: #05030b;
+      box-shadow: 0 10px 40px rgba(104, 243, 255, 0.35);
+    }
+
+    .secondary-link {
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #f6f2ff;
+    }
+
+    .sponsor-row {
+      margin-top: 80px;
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .sponsor-card {
+      border-radius: 28px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(13, 8, 18, 0.78);
+    }
+
+    .email-capture {
+      margin-top: 40px;
+      border-radius: 30px;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .email-capture form {
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .email-capture input {
+      flex: 1;
+      min-width: 220px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(7,5,15,0.8);
+      color: var(--text);
+      padding: 14px 18px;
+      font-size: 1rem;
+    }
+
+    .email-capture button {
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(120deg, #68f3ff, #ffb347);
+      color: #05030b;
+      padding: 14px 24px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    footer {
+      margin-top: 80px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        padding-top: 60px;
+      }
+      .result-card {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="badges">
+        <div class="badge">Family Commerce Play • Nightly Build 32</div>
+        <div class="badge">Market: Kids Activity Subscriptions ($3.95B, 2024 baseline)</div>
+        <div class="badge">Revenue Stack: Affiliate + Sponsored Slots + Email</div>
+      </div>
+      <h1>CrateScout™</h1>
+      <p class="hero-tagline">A high-conversion scout for kids' subscription boxes. Match age, vibe, and parent goals to the highest-paying crates in seconds, then route visitors to affiliate-ready CTAs, sponsored slots, and a deals list you can monetize on autopilot.</p>
+      <div class="hero-grid">
+        <div class="panel">
+          <h3>Conversion Why</h3>
+          <p>Parents research boxes right before checking out. Give them confidence, then capture the click.</p>
+        </div>
+        <div class="panel">
+          <h3>Affiliate AOV</h3>
+          <p>$28–$110 per crate → perfect for ShareASale, Impact, KiwiCo, CrunchLabs, and Lovevery programs.</p>
+        </div>
+        <div class="panel">
+          <h3>Repeat Visits</h3>
+          <p>Boxes refresh quarterly; parents come back for seasonal swaps, unlocking email + sponsor revenue.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="market-pulse">
+      <div class="signal">
+        <strong>Experiential learning is booming.</strong>
+        <p>Wirecutter + MySubscriptionAddiction both crowned STEM + geography boxes as 2026 favorites. Ride the editorial wave with shoppable content.</p>
+      </div>
+      <div class="signal">
+        <strong>$3.95B TAM & climbing.</strong>
+        <p>Market researchers peg kids subscription boxes at $3.95B in 2024 with sustained 6% CAGR through 2030. Parents pay for convenience.</p>
+      </div>
+      <div class="signal">
+        <strong>Newsletter scarcity.</strong>
+        <p>Every pick includes a deal hook so you can grow a "Parent Playbook" list and resell seasonal campaigns.</p>
+      </div>
+    </section>
+
+    <form id="scout-form">
+      <div class="field">
+        <label>Kid age</label>
+        <input type="range" id="age" min="2" max="16" value="8" />
+        <div class="range-display"><span id="age-display">8</span> yrs</div>
+      </div>
+      <div class="field">
+        <label>What lights them up?</label>
+        <div class="chip-grid" id="interests">
+          <label class="chip"><input type="checkbox" value="stem" />STEM builds</label>
+          <label class="chip"><input type="checkbox" value="art" />Art & design</label>
+          <label class="chip"><input type="checkbox" value="culture" />World culture</label>
+          <label class="chip"><input type="checkbox" value="cooking" />Food & kitchen</label>
+          <label class="chip"><input type="checkbox" value="coding" />Coding & digital</label>
+          <label class="chip"><input type="checkbox" value="outdoor" />Outdoor/adventure</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Monthly budget</label>
+        <input type="range" id="budget" min="15" max="120" step="5" value="35" />
+        <div class="range-display">$<span id="budget-display">35</span> / shipment</div>
+      </div>
+      <div class="field">
+        <label>Vibe</label>
+        <div class="radio-group" id="vibe">
+          <label class="radio"><input type="radio" name="vibe" value="hands-on" checked />Hands-on builds</label>
+          <label class="radio"><input type="radio" name="vibe" value="creative" />Creative + artsy</label>
+          <label class="radio"><input type="radio" name="vibe" value="calm" />Screen-free calm</label>
+          <label class="radio"><input type="radio" name="vibe" value="digital" />Coding + gadgets</label>
+          <label class="radio"><input type="radio" name="vibe" value="global" />Global explorer</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Shipping cadence</label>
+        <div class="radio-group" id="cadence">
+          <label class="radio"><input type="radio" name="cadence" value="monthly" checked />Monthly momentum</label>
+          <label class="radio"><input type="radio" name="cadence" value="bi" />Every other month</label>
+          <label class="radio"><input type="radio" name="cadence" value="quarterly" />Quarterly hero crate</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Parent priority</label>
+        <div class="radio-group" id="goal">
+          <label class="radio"><input type="radio" name="goal" value="confidence" checked />Build confidence</label>
+          <label class="radio"><input type="radio" name="goal" value="screenfree" />Less screen time</label>
+          <label class="radio"><input type="radio" name="goal" value="family" />Whole-family activity</label>
+          <label class="radio"><input type="radio" name="goal" value="independent" />Self-led projects</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Mess tolerance</label>
+        <div class="radio-group" id="mess">
+          <label class="radio"><input type="radio" name="mess" value="tidy" checked />Keep it tidy</label>
+          <label class="radio"><input type="radio" name="mess" value="medium" />Some glitter is fine</label>
+          <label class="radio"><input type="radio" name="mess" value="chaos" />Paint on the ceiling? Sure.</label>
+        </div>
+      </div>
+      <button class="cta" type="submit">Generate high-converting lineup</button>
+    </form>
+
+    <section class="results" id="results">
+      <p>Dial in a profile above to see your top-monetizing crates.</p>
+    </section>
+
+    <section class="sponsor-row">
+      <div class="sponsor-card">
+        <h3>Ad slot • above the fold</h3>
+        <p>300×250 sponsor tile reserved for KiwiCo, CrunchLabs, or Lovevery seasonal pushes. $1.8k flat for 30 days.</p>
+      </div>
+      <div class="sponsor-card">
+        <h3>Email list • Parent Playbook</h3>
+        <p>All signups drop into ConvertKit. Monetize via sponsored deal drops ($500 per send) or affiliate-only drips.</p>
+      </div>
+      <div class="sponsor-card">
+        <h3>SEO moat</h3>
+        <p>Long-tail clusters: "best STEM box age 8", "KiwiCo vs CrunchLabs", "Lovevery alternative" → high intent, evergreen.</p>
+      </div>
+    </section>
+
+    <div class="email-capture">
+      <h2>Weekly drop of exclusive crate deals + launch codes</h2>
+      <p>No fluff, just the promo codes parents actually redeem. Great for remarketing and sponsor slots.</p>
+      <form id="email-form">
+        <input type="email" placeholder="you@email.com" required />
+        <button type="submit">Lock in early access</button>
+      </form>
+      <div id="email-success" style="margin-top:12px; font-size:0.95rem; color:#68f3ff; display:none;">You're on the list. Expect Sunday deal drops.</div>
+    </div>
+
+    <footer>
+      Built live on Mar 15, 2026. CrateScout is part of the One Night Build collection at stirman.net.
+    </footer>
+  </main>
+
+  <script>
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        const input = chip.querySelector('input');
+        input.checked = !input.checked;
+        chip.classList.toggle('active', input.checked);
+      });
+    });
+
+    const radios = document.querySelectorAll('.radio');
+    radios.forEach(radio => {
+      const input = radio.querySelector('input');
+      input.addEventListener('change', () => {
+        const group = radio.parentElement;
+        group.querySelectorAll('.radio').forEach(r => r.classList.remove('active'));
+        radio.classList.add('active');
+      });
+      if (input.checked) radio.classList.add('active');
+    });
+
+    const ageInput = document.getElementById('age');
+    const ageDisplay = document.getElementById('age-display');
+    ageInput.addEventListener('input', () => {
+      ageDisplay.textContent = ageInput.value;
+    });
+
+    const budgetInput = document.getElementById('budget');
+    const budgetDisplay = document.getElementById('budget-display');
+    budgetInput.addEventListener('input', () => {
+      budgetDisplay.textContent = budgetInput.value;
+    });
+
+    const crates = [
+      {
+        id: 'kiwico',
+        name: 'KiwiCo Explorer Crate',
+        tagline: 'STEM + maker missions for ages 5-12',
+        price: 23.95,
+        cadence: 'monthly',
+        minAge: 5,
+        maxAge: 12,
+        vibe: ['hands-on', 'creative', 'stem'],
+        tags: ['STEM', 'Maker', 'Hands-on'],
+        goals: ['confidence', 'screenfree', 'independent'],
+        mess: 'medium',
+        affiliate: 'https://www.kiwico.com/?utm_campaign=stirman',
+        perks: ['Laser-cut build kits + art crossover projects', 'Parent guide with bonus experiments', 'First month 50% off + free STEM ebook'],
+        roi: 'Average order value ~$72 over first 90 days with standard KiwiCo affiliate payouts (8-10%).'
+      },
+      {
+        id: 'lovevery',
+        name: 'Lovevery Play Kits',
+        tagline: 'Montessori play essentials for toddlers',
+        price: 80,
+        cadence: 'bi',
+        minAge: 2,
+        maxAge: 4,
+        vibe: ['calm', 'hands-on'],
+        tags: ['Montessori', 'Screen-free', 'Parent coaching'],
+        goals: ['screenfree', 'family', 'confidence'],
+        mess: 'tidy',
+        affiliate: 'https://lovevery.com/?aff=stirman',
+        perks: ['Occupational-therapist approved toys', 'Parent app with stage-by-stage tips', 'Ships every other month, easy upsell bundles'],
+        roi: 'High-ticket kit ($80) + add-on bundles = strong CPL upside for DTC sponsors.'
+      },
+      {
+        id: 'mel',
+        name: 'MEL Science Lab',
+        tagline: 'Chemistry + physics experiments for tweens',
+        price: 39,
+        cadence: 'monthly',
+        minAge: 9,
+        maxAge: 14,
+        vibe: ['hands-on', 'digital'],
+        tags: ['STEM', 'AR lessons', 'Serious science'],
+        goals: ['confidence', 'independent'],
+        mess: 'chaos',
+        affiliate: 'https://melscience.com/?ref=stirman',
+        perks: ['VR-ready lessons + real lab gear', 'Certification badges for homeschool logs', 'Recurring upsells: refills + advanced kits'],
+        roi: 'Average commission ~$18 per signup with bundled experiment refills.'
+      },
+      {
+        id: 'bitsbox',
+        name: 'Bitsbox Code Studio',
+        tagline: 'App-building kits mailed monthly',
+        price: 29.95,
+        cadence: 'monthly',
+        minAge: 6,
+        maxAge: 12,
+        vibe: ['digital'],
+        tags: ['Coding', 'Creative tech', 'Screen + tactile mix'],
+        goals: ['independent', 'confidence'],
+        mess: 'tidy',
+        affiliate: 'https://bitsbox.com/?ref=stirman',
+        perks: ['Colorful projects + online coding dashboard', 'Great upsell path into premium web portal', 'Parents get progress reports for accountability'],
+        roi: 'Recurring SaaS-style commission (12% rev share) + referral stacking.'
+      },
+      {
+        id: 'littlepassports',
+        name: 'Little Passports World Edition',
+        tagline: 'Global culture adventures delivered',
+        price: 27.95,
+        cadence: 'monthly',
+        minAge: 6,
+        maxAge: 10,
+        vibe: ['global', 'creative'],
+        tags: ['Geography', 'Stickers', 'Food + language'],
+        goals: ['family', 'screenfree'],
+        mess: 'tidy',
+        affiliate: 'https://www.littlepassports.com/?utm_source=stirman',
+        perks: ['Souvenir suitcase + collectible map', 'Snack pairings + Spotify playlists for each country', 'Partner-friendly for travel sponsors'],
+        roi: 'Bundles convert at ~$65 AOV with 10% commission + printables upsell.'
+      },
+      {
+        id: 'universalyums',
+        name: 'Universal Yums',
+        tagline: 'International snack tasting flights',
+        price: 16,
+        cadence: 'monthly',
+        minAge: 8,
+        maxAge: 16,
+        vibe: ['family', 'global'],
+        tags: ['Food adventure', 'Family night', 'Quick wins'],
+        goals: ['family', 'screenfree'],
+        mess: 'tidy',
+        affiliate: 'https://www.universalyums.com/?ref=stirman',
+        perks: ['Instant gratification tasting parties', 'Newsletter tie-ins for recipe sponsors', 'Perfect low-price tripwire offer'],
+        roi: 'High conversion on $16 intro box + add-to-cart upsells (drink kits, holiday boxes).'
+      },
+      {
+        id: 'raddish',
+        name: 'Raddish Kids Kitchen Club',
+        tagline: 'Hands-on cooking adventures',
+        price: 24,
+        cadence: 'monthly',
+        minAge: 4,
+        maxAge: 12,
+        vibe: ['creative', 'hands-on'],
+        tags: ['Cooking', 'Life skills', 'Family night'],
+        goals: ['family', 'confidence'],
+        mess: 'medium',
+        affiliate: 'https://www.raddishkids.com/?utm_source=stirman',
+        perks: ['Laminated recipe guides + apron badges', 'Grocery lists for Instacart affiliate tie-ins', 'Seasonal themed menus'],
+        roi: 'Blend Amazon Fresh + kitchen gear affiliate offers for stacked payouts.'
+      },
+      {
+        id: 'crunchlabs',
+        name: 'CrunchLabs Build Box',
+        tagline: 'Mark Rober-style engineering drops',
+        price: 99,
+        cadence: 'quarterly',
+        minAge: 9,
+        maxAge: 15,
+        vibe: ['hands-on'],
+        tags: ['Engineering', 'Video lessons', 'Hero builds'],
+        goals: ['confidence', 'independent'],
+        mess: 'chaos',
+        affiliate: 'https://www.crunchlabs.com/?affiliate=stirman',
+        perks: ['Cinematic video lessons + big mechanical builds', 'Quarterly cadence = premium CPA', 'Great pairing with YouTube sponsor inventory'],
+        roi: '$30+ CPA via Impact + natural segue into merch + courses.'
+      },
+      {
+        id: 'sagomini',
+        name: 'Sago Mini Adventure Club',
+        tagline: 'Story-led imaginative play kits',
+        price: 30,
+        cadence: 'monthly',
+        minAge: 3,
+        maxAge: 6,
+        vibe: ['creative', 'calm'],
+        tags: ['Pretend play', 'Travel stories', 'Fine motor'],
+        goals: ['family', 'screenfree'],
+        mess: 'tidy',
+        affiliate: 'https://sagomini.com/?ref=stirman',
+        perks: ['Fold-out playsets + QR audio stories', 'Parent talking points = blog fodder', 'Pairs with preschool advertisers'],
+        roi: 'Low churn cohort, strong LTV → higher EPC on lifetime commissions.'
+      },
+      {
+        id: 'girlsmake',
+        name: 'Girls That Make',
+        tagline: 'Wearable circuits for tweens',
+        price: 32,
+        cadence: 'monthly',
+        minAge: 10,
+        maxAge: 15,
+        vibe: ['hands-on', 'creative', 'digital'],
+        tags: ['Wearables', 'STEM for girls', 'Fashion-tech'],
+        goals: ['confidence', 'independent'],
+        mess: 'tidy',
+        affiliate: 'https://girlsthatmake.com/?aff=stirman',
+        perks: ['Combine coding + style for shareable outcomes', 'Perfect for TikTok UGC affiliates', 'Optional classroom bundles'],
+        roi: 'High social virality = organic conversions + 15% affiliate cut.'
+      }
+    ];
+
+    function scoreCrate(crate, answers) {
+      let score = 0;
+
+      // Age overlap
+      if (answers.age >= crate.minAge && answers.age <= crate.maxAge) {
+        score += 30;
+      } else {
+        const distance = Math.min(
+          Math.abs(answers.age - crate.minAge),
+          Math.abs(answers.age - crate.maxAge)
+        );
+        score += Math.max(0, 20 - distance * 4);
+      }
+
+      // Interests
+      answers.interests.forEach(int => {
+        if (
+          (int === 'stem' && crate.tags.includes('STEM')) ||
+          (int === 'art' && crate.vibe.includes('creative')) ||
+          (int === 'culture' && (crate.vibe.includes('global') || crate.tags.includes('Geography'))) ||
+          (int === 'cooking' && crate.tags.includes('Cooking')) ||
+          (int === 'coding' && crate.tags.includes('Coding')) ||
+          (int === 'outdoor' && crate.tags.includes('Outdoor'))
+        ) {
+          score += 14;
+        }
+      });
+
+      // Budget
+      if (crate.price <= answers.budget) {
+        score += 22;
+      } else {
+        score -= (crate.price - answers.budget) * 0.6;
+      }
+
+      // Vibe
+      if (crate.vibe.includes(answers.vibe)) score += 15;
+
+      // Cadence
+      if (crate.cadence === answers.cadence) score += 10;
+      if (answers.cadence === 'bi' && crate.cadence === 'quarterly') score += 4;
+
+      // Goal
+      if (crate.goals.includes(answers.goal)) score += 12;
+
+      // Mess tolerance
+      const messScore = { tidy: 0, medium: 6, chaos: 12 };
+      const crateMess = { tidy: 0, medium: 6, chaos: 12 }[crate.mess];
+      score -= Math.abs(messScore[answers.mess] - crateMess);
+
+      // Small randomizer to avoid ties
+      score += Math.random() * 2;
+
+      return score;
+    }
+
+    function buildReason(crate, answers) {
+      const parts = [];
+      if (answers.interests.includes('stem') && crate.tags.includes('STEM')) parts.push('lines up with your STEM priority');
+      if (answers.interests.includes('art') && crate.vibe.includes('creative')) parts.push('feeds creative energy');
+      if (answers.goal === 'screenfree' && crate.goals.includes('screenfree')) parts.push('delivers true screen-free time');
+      if (answers.goal === 'family' && crate.goals.includes('family')) parts.push('becomes an easy family-night anchor');
+      if (crate.price <= answers.budget) parts.push(`stays under your $${answers.budget} cap`);
+      if (crate.cadence === answers.cadence) parts.push('ships on your preferred cadence');
+      return parts.length ? parts.join(', ') : 'hits the right growth curve for your kid. ';
+    }
+
+    const form = document.getElementById('scout-form');
+    const results = document.getElementById('results');
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const answers = {
+        age: Number(ageInput.value),
+        interests: Array.from(document.querySelectorAll('#interests input:checked')).map(i => i.value),
+        budget: Number(budgetInput.value),
+        vibe: document.querySelector('input[name="vibe"]:checked').value,
+        cadence: document.querySelector('input[name="cadence"]:checked').value,
+        goal: document.querySelector('input[name="goal"]:checked').value,
+        mess: document.querySelector('input[name="mess"]:checked').value
+      };
+
+      const scored = crates
+        .map(crate => ({ ...crate, score: scoreCrate(crate, answers), reason: buildReason(crate, answers) }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+
+      results.innerHTML = scored
+        .map((crate, index) => `
+          <article class="result-card">
+            <div class="result-head">
+              <span class="rank-tag">#${index + 1} MATCH</span>
+              <h2>${crate.name}</h2>
+            </div>
+            <p>${crate.tagline}</p>
+            <div class="meta-grid">
+              <div class="meta-pill">$${crate.price.toFixed(2)} · ${crate.cadence === 'bi' ? 'every other month' : crate.cadence}</div>
+              <div class="meta-pill">Ages ${crate.minAge}–${crate.maxAge}</div>
+              <div class="meta-pill">${crate.tags.join(' • ')}</div>
+            </div>
+            <div class="reason"><strong>Why it converts:</strong> ${crate.reason}.</div>
+            <ul class="perks">
+              ${crate.perks.map(perk => `<li>${perk}</li>`).join('')}
+            </ul>
+            <div class="roi-hook"><strong>Monetization hook:</strong> ${crate.roi}</div>
+            <div class="btn-row">
+              <a class="primary-link" href="${crate.affiliate}" target="_blank" rel="noopener">Get exclusive deal</a>
+              <button class="secondary-link" type="button" data-crate="${crate.id}">Add to sponsor pitch</button>
+            </div>
+          </article>
+        `)
+        .join('');
+    });
+
+    document.getElementById('email-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      document.getElementById('email-success').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
