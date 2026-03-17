@@ -259,7 +259,7 @@
                     <div class="hero-stat-label">Apps Shipped</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="hero-stat-value">34</div>
+                    <div class="hero-stat-value" id="night-count">34</div>
                     <div class="hero-stat-label">Nights</div>
                 </div>
                 <div class="hero-stat">
@@ -279,6 +279,16 @@
 
     <script>
     const builds = [
+        {
+            name: "SpringBreak Radar",
+            emoji: "🌴",
+            desc: "Family spring break trip matcher with filters, affiliate-ready hotel/experience bundles, Amazon gear upsells, sponsor slots, and SeatGeek-ready roadmap.",
+            url: "/springbreak-radar/",
+            night: "Night 35",
+            date: "Mar 16",
+            tags: ["travel", "family", "affiliate"],
+            accent: "linear-gradient(135deg, #ff7a5c, #35d5ff)"
+        },
         {
             name: "CrateScout",
             emoji: "📦",
@@ -623,6 +633,8 @@
 
     const grid = document.getElementById('builds-grid');
     document.getElementById('build-count').textContent = builds.length;
+    const nightCountEl = document.getElementById('night-count');
+    if (nightCountEl) nightCountEl.textContent = builds.length;
 
     builds.forEach(build => {
         const card = document.createElement('a');

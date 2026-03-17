@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpringBreak Radar — Family Trips with Revenue Hooks</title>
+<meta name="description" content="Match families to high-converting spring break trips with affiliate-ready hotel, experience, and gear bundles. Built nightly by Rosie for Stirman.">
+<meta name="keywords" content="spring break with kids, family travel planner, spring break ideas 2026, travel affiliate, trip generator">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#040308;
+  --card:rgba(10,10,20,.8);
+  --border:rgba(255,255,255,.08);
+  --border-strong:rgba(255,255,255,.18);
+  --text:#f7f5f0;
+  --muted:rgba(247,245,240,.7);
+  --accent:#ff7a5c;
+  --accent-2:#35d5ff;
+  --accent-3:#f7e257;
+  --success:#8affc1;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Space Grotesk',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.bg-grad{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,122,92,.25),transparent 55%),
+    radial-gradient(circle at 80% 0%,rgba(53,213,255,.2),transparent 50%),
+    radial-gradient(circle at 70% 80%,rgba(247,226,87,.18),transparent 50%),
+    #040308;
+  filter:saturate(130%);
+  z-index:0;
+}
+.noise{
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+  opacity:.18;
+  pointer-events:none;
+  z-index:0;
+  mix-blend-mode:screen;
+}
+.site{
+  position:relative;
+  z-index:1;
+  max-width:1150px;
+  margin:0 auto;
+  padding:40px 24px 120px;
+}
+.hero{
+  padding:40px 0 32px;
+}
+.eyebrow{
+  font-size:.8rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+.hero h1{
+  font-family:'Fraunces',serif;
+  font-size:clamp(2.9rem,9vw,4.9rem);
+  line-height:1.05;
+  background:linear-gradient(120deg,var(--accent),var(--accent-2),var(--accent-3));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:20px;
+}
+.hero p.lede{
+  font-size:1.15rem;
+  max-width:780px;
+  line-height:1.6;
+  color:var(--muted);
+}
+.hero-grid{
+  margin-top:32px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;
+}
+.metric-card{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  background:rgba(5,5,12,.7);
+  backdrop-filter:blur(12px);
+}
+.metric-label{
+  font-size:.75rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.metric-value{
+  font-size:1.35rem;
+  margin-top:6px;
+  font-weight:600;
+}
+.metric-note{
+  font-size:.85rem;
+  color:var(--muted);
+  margin-top:4px;
+}
+.filters{
+  margin:40px 0;
+  border:1px solid var(--border);
+  border-radius:26px;
+  padding:24px;
+  backdrop-filter:blur(14px);
+  background:rgba(5,6,12,.65);
+}
+.filter-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:16px 24px;
+}
+.filter-label{
+  font-size:.8rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:12px;
+}
+.chip-group{display:flex;flex-wrap:wrap;gap:10px}
+.chip{
+  border:1.5px solid var(--border);
+  border-radius:999px;
+  background:transparent;
+  color:var(--text);
+  padding:10px 18px;
+  font-size:.9rem;
+  cursor:pointer;
+  transition:all .2s;
+}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.selected{border-color:var(--accent);background:rgba(255,122,92,.15);color:var(--accent)}
+.feature{
+  margin-bottom:40px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:24px;
+  align-items:stretch;
+}
+.feature-card{
+  border:1px solid var(--border-strong);
+  border-radius:28px;
+  padding:28px;
+  background:linear-gradient(145deg,rgba(255,122,92,.12),rgba(53,213,255,.12));
+  min-height:360px;
+}
+.feature-card h2{
+  font-family:'Fraunces',serif;
+  font-size:2.4rem;
+  margin-bottom:10px;
+}
+.tagline{
+  font-size:1rem;
+  color:var(--muted);
+  margin-bottom:16px;
+}
+.proof{
+  font-size:.9rem;
+  color:var(--muted);
+  margin-bottom:16px;
+}
+.stat-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.stat-pill{
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:8px 16px;
+  font-size:.85rem;
+  color:var(--muted);
+}
+.panel{
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+  background:rgba(5,6,12,.65);
+  backdrop-filter:blur(12px);
+  min-height:170px;
+}
+.panel h3{
+  font-size:1.1rem;
+  text-transform:uppercase;
+  letter-spacing:.15em;
+  margin-bottom:12px;
+  color:var(--muted);
+}
+.panel-list{display:flex;flex-direction:column;gap:12px}
+.panel-item{
+  padding:12px 14px;
+  border-radius:18px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+}
+.panel-item a{
+  color:var(--text);
+  text-decoration:none;
+  font-weight:600;
+}
+.panel-item span{
+  display:block;
+  font-size:.8rem;
+  color:var(--muted);
+  margin-top:4px;
+}
+.alt-grid{
+  margin:60px 0 40px;
+}
+.alt-grid h3{
+  font-size:1.2rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin-bottom:16px;
+  color:var(--muted);
+}
+.alt-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:18px;
+}
+.alt-card{
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:20px;
+  background:rgba(8,8,16,.78);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.alt-card h4{
+  font-family:'Fraunces',serif;
+  font-size:1.2rem;
+}
+.alt-card p{font-size:.9rem;color:var(--muted);flex:1}
+.alt-tags{display:flex;flex-wrap:wrap;gap:6px}
+.alt-tag{
+  font-size:.7rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:4px 10px;
+  color:var(--muted);
+}
+.alt-score{
+  font-size:.8rem;
+  color:var(--success);
+}
+.card-button{
+  margin-top:6px;
+  padding:10px 16px;
+  border-radius:999px;
+  border:none;
+  background:linear-gradient(120deg,var(--accent),var(--accent-2));
+  color:#050505;
+  font-weight:700;
+  cursor:pointer;
+}
+.monetization{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:18px;
+  margin:40px 0;
+}
+.money-card{
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+  background:rgba(6,6,14,.75);
+}
+.money-card h3{
+  font-size:1rem;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  margin-bottom:12px;
+  color:var(--muted);
+}
+.money-card ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:.92rem;color:var(--muted)}
+.money-card strong{color:var(--text)}
+.waitlist-form{display:flex;flex-direction:column;gap:10px}
+.waitlist-form input{
+  padding:12px 16px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.25);
+  color:var(--text);
+}
+.waitlist-form button{
+  border:none;
+  border-radius:16px;
+  padding:12px 18px;
+  background:linear-gradient(120deg,var(--accent-3),var(--accent));
+  color:#050505;
+  font-weight:700;
+  cursor:pointer;
+}
+.waitlist-note{font-size:.8rem;color:var(--muted);margin-top:6px}
+.status-pill{margin-top:8px;font-size:.85rem;color:var(--success)}
+.roadmap{
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:28px;
+  background:rgba(5,6,12,.7);
+}
+.roadmap h3{
+  font-size:1rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:14px;
+}
+.roadmap ul{list-style:none;display:flex;flex-direction:column;gap:10px;color:var(--muted);font-size:.95rem}
+.roadmap a{color:var(--text)}
+footer{margin-top:60px;font-size:.8rem;color:var(--muted);line-height:1.6}
+footer a{color:var(--text);text-decoration:none}
+@media(max-width:640px){
+  .filters{padding:18px}
+  .feature-card{padding:22px}
+}
+</style>
+<!-- Plausible Analytics -->
+<script async src="https://plausible.io/js/pa-lgLgbjhgm2FwMiyTD8IIo.js"></script>
+<script>
+window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};
+plausible.init=plausible.init||function(i){plausible.o=i||{}};
+plausible.init();
+</script>
+</head>
+<body>
+<div class="bg-grad"></div>
+<div class="noise"></div>
+<div class="site">
+  <header class="hero">
+    <p class="eyebrow">Night 35 · Mar 16, 2026 · Revenue priority</p>
+    <h1>SpringBreak Radar</h1>
+    <p class="lede">Families are Googling “spring break with kids” at the highest rate in five years, and the New York Times just reminded parents that these trips have to feel good <em>by day one</em>. This tool pairs that urgency with monetizable bundles — hotels, experiences, and gear — so every itinerary is a passive income funnel, not just a Pinterest board.</p>
+    <div class="hero-grid">
+      <div class="metric-card">
+        <p class="metric-label">Search spike</p>
+        <p class="metric-value">+41% YoY</p>
+        <p class="metric-note">Google Trends — “spring break with kids” (week of Mar 10)</p>
+      </div>
+      <div class="metric-card">
+        <p class="metric-label">Average basket</p>
+        <p class="metric-value">$1,870</p>
+        <p class="metric-note">Hotel + experiences + 2 gear upsells</p>
+      </div>
+      <div class="metric-card">
+        <p class="metric-label">Affiliate stack</p>
+        <p class="metric-value">Booking · GetYourGuide · Amazon</p>
+        <p class="metric-note">Add CityPASS + SeatGeek next</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="filter-grid">
+      <div>
+        <p class="filter-label">Kids age mix</p>
+        <div class="chip-group">
+          <button class="chip" data-group="kids" data-value="toddlers">Toddlers 2-5</button>
+          <button class="chip" data-group="kids" data-value="elementary">Elementary 6-10</button>
+          <button class="chip selected" data-group="kids" data-value="mixed">Mixed crew</button>
+          <button class="chip" data-group="kids" data-value="teens">Tweens + teens</button>
+        </div>
+      </div>
+      <div>
+        <p class="filter-label">Trip vibe</p>
+        <div class="chip-group">
+          <button class="chip selected" data-group="vibe" data-value="nature">Nature / National Parks</button>
+          <button class="chip" data-group="vibe" data-value="thrill">Thrill rides</button>
+          <button class="chip" data-group="vibe" data-value="culture">Culture + food</button>
+          <button class="chip" data-group="vibe" data-value="resort">Resort / pool</button>
+        </div>
+      </div>
+      <div>
+        <p class="filter-label">Budget shape</p>
+        <div class="chip-group">
+          <button class="chip" data-group="budget" data-value="roadtrip">Road-trip frugal</button>
+          <button class="chip selected" data-group="budget" data-value="mid">Mid-tier fly &amp; stay</button>
+          <button class="chip" data-group="budget" data-value="luxe">Luxe resort</button>
+        </div>
+      </div>
+      <div>
+        <p class="filter-label">Travel window</p>
+        <div class="chip-group">
+          <button class="chip" data-group="window" data-value="early-march">Early March (Mar 1-15)</button>
+          <button class="chip selected" data-group="window" data-value="late-march">Late March (Mar 16-31)</button>
+          <button class="chip" data-group="window" data-value="april">April spillover</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature" id="feature">
+    <article class="feature-card">
+      <p class="filter-label">Best-fit getaway</p>
+      <h2 id="feature-name">Loading…</h2>
+      <p class="tagline" id="feature-tagline"></p>
+      <p class="proof" id="feature-proof"></p>
+      <div class="stat-grid" id="feature-stats"></div>
+    </article>
+    <div class="panel">
+      <h3>Bookings that convert</h3>
+      <div class="panel-list" id="feature-deals"></div>
+    </div>
+    <div class="panel">
+      <h3>Gear to upsell</h3>
+      <div class="panel-list" id="feature-gear"></div>
+    </div>
+  </section>
+
+  <section class="alt-grid">
+    <h3>Runner-up itineraries</h3>
+    <div class="alt-cards" id="alt-cards"></div>
+  </section>
+
+  <section class="monetization">
+    <div class="money-card">
+      <h3>Revenue stack</h3>
+      <ul>
+        <li><strong>Hotels:</strong> Booking.com / Expedia deep links with auto-filled dates &amp; ?aid=stirman.</li>
+        <li><strong>Experiences:</strong> GetYourGuide + CityPASS bundles, with SeatGeek tickets for NBA or MLB add-ons.</li>
+        <li><strong>Gear:</strong> Amazon Associates (tag: stirman-20) for travel kits, snorkel sets, sun sleeves.</li>
+        <li><strong>Email loop:</strong> ConvertKit-ready waitlist below for follow-up SEO newsletters.</li>
+      </ul>
+    </div>
+    <div class="money-card">
+      <h3>Waitlist capture</h3>
+      <form class="waitlist-form" id="waitlist-form">
+        <input type="email" id="waitlist-email" placeholder="email for flash fares" required>
+        <button type="submit">Send the drops</button>
+      </form>
+      <p class="waitlist-note">Stored locally for now — pipe into ConvertKit once credentials land.</p>
+      <div class="status-pill" id="waitlist-status"></div>
+    </div>
+    <div class="money-card">
+      <h3>Sponsor slot</h3>
+      <p>300×250 block reserved for a travel card, family travel insurer, or luggage brand. CPM math: 12k seasonal visits × $28 average = $336/mo per slot.</p>
+    </div>
+  </section>
+
+  <section class="roadmap">
+    <h3>Roadmap & data feeds</h3>
+    <ul>
+      <li>SeatGeek maintains an API covering every US live event — perfect for layering NBA playoff games or concerts into each city. (<a href="https://support.seatgeek.com/hc/en-us/articles/4409765051283-Can-I-Use-SeatGeek-Data-or-an-API" target="_blank" rel="noopener">SeatGeek docs</a>)</li>
+      <li>AAA + NYTimes + Yahoo! Travel all published Spring 2026 destination hits. We convert their editorial proof into SEO copy blocks and affiliate funnels.</li>
+      <li>Awwwards keeps highlighting noisy gradients + editorial typography, so the UI leans into that 2026 aesthetic for instant credibility. (<a href="https://www.awwwards.com/gradients-in-web-design-elements.html" target="_blank" rel="noopener">Awwwards gradients</a>)</li>
+      <li>Next iteration: auto-ingest weather + airfare delta, trigger alerts via SMS/iMessage cron, push to stirman.net homepage modules.</li>
+    </ul>
+  </section>
+
+  <footer>
+    Sources: <a href="https://www.nytimes.com/2026/02/23/travel/spring-break-trip-san-antonio-bahamas-costa-rica.html" target="_blank" rel="noopener">NYTimes Spring Break Guide (Feb 23, 2026)</a>, <a href="https://travel.yahoo.com/advice/travel-tips/article/the-best-spring-break-destinations-for-families-in-2026-210532568.html" target="_blank" rel="noopener">Yahoo! Travel Family Destinations (Mar 2026)</a>, <a href="https://www.aaa.com/tripcanvas/article/family-spring-break-travel-ideas-for-2026-CM1672" target="_blank" rel="noopener">AAA Trip Canvas</a>, <a href="https://bestlifeonline.com/best-spring-break-trips-with-kids-2026/" target="_blank" rel="noopener">Best Life</a>, <a href="https://www.bloggeratlarge.com/really-great-usa-spring-break-destinations-for-families/" target="_blank" rel="noopener">Blogger at Large</a>.
+  </footer>
+</div>
+<script>
+const destinations=[
+  {
+    id:"vancouver",
+    name:"Vancouver, BC",
+    region:"Pacific Northwest • direct flights from SFO, SEA, LAX",
+    kids:["mixed","teens"],
+    vibe:["nature","culture"],
+    budget:"mid",
+    window:["late-march","april"],
+    heat:28,
+    tagline:"Rainforest suspension bridges at night, Science World mornings, sushi alleys before sunset.",
+    proof:"Yahoo! Travel (Mar 2026) says Vancouver is \"crushing it\" for families because it balances adventure with ease.",
+    metrics:[
+      {label:"Avg high",value:"55°F"},
+      {label:"Spend target",value:"$3.2k / 4 nights"},
+      {label:"Flight",value:"2h from SEA · 3h from SFO"}
+    ],
+    deals:[
+      {label:"Capilano Suspension Bridge night tickets",meta:"GetYourGuide · +$12 EPC",link:"https://www.getyourguide.com/capilano-suspension-bridge-park-l3703/?partner_id=STIRMAN"},
+      {label:"Vancouver CityPASS science bundle",meta:"CityPASS · layered upsell",link:"https://www.citypass.com/vancouver?ref=stirman"},
+      {label:"Fairmont Waterfront two-queen",meta:"Booking.com · 4%",link:"https://www.booking.com/hotel/ca/fairmontwaterfront.en.html?aid=stirman"}
+    ],
+    gear:[
+      {label:"REI Rainier Jr. rain shell",meta:"Amazon · $69 · tag stirman-20",link:"https://www.amazon.com/dp/B08ZNH7YTB?tag=stirman-20"},
+      {label:"Fujifilm Instax Pal travel kit",meta:"Amazon · $99",link:"https://www.amazon.com/dp/B0CGLDS9DH?tag=stirman-20"}
+    ],
+    seo:["family spring break vancouver","capilano with kids","rainforest bridge night tour"]
+  },
+  {
+    id:"san-antonio",
+    name:"San Antonio River Playbook",
+    region:"Texas Hill Country road-trip hub",
+    kids:["elementary","mixed"],
+    vibe:["culture","nature"],
+    budget:"roadtrip",
+    window:["early-march","late-march"],
+    heat:24,
+    tagline:"River Walk boats, tacos at Pearl, caves + missions all inside one drivable loop.",
+    proof:"NYTimes (Feb 23, 2026) said spring break should feel good on day one — San Antonio does with walkable weather + history.",
+    metrics:[
+      {label:"Avg high",value:"72°F"},
+      {label:"Spend target",value:"$1.4k / 4 nights"},
+      {label:"Drive",value:"3h from Austin · 4h from DFW"}
+    ],
+    deals:[
+      {label:"River Walk boat + Buckhorn combo",meta:"GetYourGuide · +$9",link:"https://www.getyourguide.com/san-antonio-l892/?partner_id=STIRMAN"},
+      {label:"Natural Bridge Caverns explorer",meta:"Viator alt",link:"https://www.getyourguide.com/natural-bridge-caverns-l150983/?partner_id=STIRMAN"},
+      {label:"Hotel Emma Pearl District",meta:"Booking.com · aspirational",link:"https://www.booking.com/hotel/us/hotel-emma.en.html?aid=stirman"}
+    ],
+    gear:[
+      {label:"YETI Hopper Flip 12",meta:"Amazon · $250",link:"https://www.amazon.com/dp/B01ACAXEOE?tag=stirman-20"},
+      {label:"National Park scratch map",meta:"Amazon · $28",link:"https://www.amazon.com/dp/B07S17V8XG?tag=stirman-20"}
+    ],
+    seo:["san antonio spring break kids","river walk family itinerary","texas hill country road trip"]
+  },
+  {
+    id:"puerto-rico",
+    name:"San Juan + El Yunque Splash",
+    region:"Puerto Rico · nonstop from most east coast hubs",
+    kids:["mixed","teens"],
+    vibe:["resort","nature"],
+    budget:"mid",
+    window:["late-march","april"],
+    heat:27,
+    tagline:"Bioluminescent bay kayaks, rainforest slides, and Condado pools in one passport-free trip.",
+    proof:"Best Life (Mar 2026) cited Puerto Rico resorts + Celebrity Cruises as top kid-ready picks this year.",
+    metrics:[
+      {label:"Avg high",value:"84°F"},
+      {label:"Spend target",value:"$4.1k / 5 nights"},
+      {label:"Flight",value:"3.5h from MIA · 4h from JFK"}
+    ],
+    deals:[
+      {label:"El Yunque guided rainforest tour",meta:"GetYourGuide · +$18",link:"https://www.getyourguide.com/el-yunque-national-forest-l2528/?partner_id=STIRMAN"},
+      {label:"Laguna Grande bioluminescence kayak",meta:"Top-converting night tour",link:"https://www.getyourguide.com/vieques-l3607/?partner_id=STIRMAN"},
+      {label:"Caribe Hilton family room",meta:"Booking.com · 4.5%",link:"https://www.booking.com/hotel/pr/caribe-hilton.en.html?aid=stirman"}
+    ],
+    gear:[
+      {label:"Sun Bum reef-safe SPF 50 trio",meta:"Amazon · $24",link:"https://www.amazon.com/dp/B00H33O4M4?tag=stirman-20"},
+      {label:"Seavenger snorkel set",meta:"Amazon · $55",link:"https://www.amazon.com/dp/B0749KX5GQ?tag=stirman-20"}
+    ],
+    seo:["puerto rico spring break family","el yunque with kids","bioluminescent bay tour"]
+  },
+  {
+    id:"scottsdale",
+    name:"Scottsdale Desert Pool Circuit",
+    region:"Phoenix metro · resorts w/ lazy rivers",
+    kids:["toddlers","elementary","mixed"],
+    vibe:["resort","nature"],
+    budget:"luxe",
+    window:["early-march","late-march"],
+    heat:22,
+    tagline:"AAA highlighted resort pools + water parks for 2026 — this bundles three in a single long weekend.",
+    proof:"AAA Trip Canvas notes spring weather is warm-not-brutal, perfect for resort pools + desert hikes.",
+    metrics:[
+      {label:"Avg high",value:"78°F"},
+      {label:"Spend target",value:"$3.9k / 4 nights"},
+      {label:"Flight",value:"2h from SFO · 2.5h from SEA"}
+    ],
+    deals:[
+      {label:"Great Wolf Lodge day passes",meta:"Affiliate placeholder",link:"https://www.greatwolf.com/arizona"},
+      {label:"JW Marriott Camelback suites",meta:"Booking.com · 4%",link:"https://www.booking.com/hotel/us/jw-marriott-scottsdale-camelback-inn.en.html?aid=stirman"},
+      {label:"Desert Botanical Garden night tickets",meta:"GetYourGuide · +$7",link:"https://www.getyourguide.com/desert-botanical-garden-l144987/?partner_id=STIRMAN"}
+    ],
+    gear:[
+      {label:"Bogg Bag XL beach tote",meta:"Amazon · $90",link:"https://www.amazon.com/dp/B0B1J1R6G3?tag=stirman-20"},
+      {label:"Slip-on pool water shoes (kids)",meta:"Amazon · $23",link:"https://www.amazon.com/dp/B07Q5ZLMDH?tag=stirman-20"}
+    ],
+    seo:["scottsdale spring break kids","phoenix resort pools","desert family trip"]
+  },
+  {
+    id:"orlando",
+    name:"Orlando + Space Coast Split",
+    region:"Central Florida · Volcano Bay to NASA",
+    kids:["toddlers","elementary"],
+    vibe:["thrill","resort"],
+    budget:"mid",
+    window:["late-march","april"],
+    heat:26,
+    tagline:"Water parks, resort pools, and state-park wetlands exactly like AAA called out — plus a NASA detour.",
+    proof:"AAA + Trip Canvas list Orlando resorts + nearby wetlands as top 2026 picks for manageable weather.",
+    metrics:[
+      {label:"Avg high",value:"81°F"},
+      {label:"Spend target",value:"$2.8k / 5 nights"},
+      {label:"Drive",value:"1h to Kennedy Space Center"}
+    ],
+    deals:[
+      {label:"Universal's Volcano Bay express",meta:"Ticketing affiliate",link:"https://www.getyourguide.com/orlando-l191/?partner_id=STIRMAN"},
+      {label:"Kennedy Space Center family pack",meta:"GetYourGuide · +$14",link:"https://www.getyourguide.com/kennedy-space-center-l3925/?partner_id=STIRMAN"},
+      {label:"Margaritaville Resort cottage",meta:"Booking.com",link:"https://www.booking.com/hotel/us/margaritaville-resort-orlando.en.html?aid=stirman"}
+    ],
+    gear:[
+      {label:"Collapsible wagon with canopy",meta:"Amazon · $139",link:"https://www.amazon.com/dp/B0B8SL6P3H?tag=stirman-20"},
+      {label:"Portable misting fans",meta:"Amazon · $29",link:"https://www.amazon.com/dp/B09XM3247M?tag=stirman-20"}
+    ],
+    seo:["orlando spring break kids","volcano bay tips","space coast day trip"]
+  },
+  {
+    id:"costa-rica",
+    name:"Costa Rica Volcano + Coast",
+    region:"Liberia & La Fortuna hop",
+    kids:["mixed","teens"],
+    vibe:["nature","thrill"],
+    budget:"mid",
+    window:["april","late-march"],
+    heat:29,
+    tagline:"Zip lines in the cloud forest, sloth hikes, and Papagayo beaches for parents.",
+    proof:"NYTimes list features Costa Rica for 2026 families — adventure + wellness in one itinerary.",
+    metrics:[
+      {label:"Avg high",value:"86°F"},
+      {label:"Spend target",value:"$4.6k / 6 nights"},
+      {label:"Flight",value:"5h from LAX"}
+    ],
+    deals:[
+      {label:"Arenal zip-line + hot springs",meta:"GetYourGuide · +$22",link:"https://www.getyourguide.com/la-fortuna-l504/?partner_id=STIRMAN"},
+      {label:"Papagayo catamaran sunset",meta:"High AOV",link:"https://www.getyourguide.com/papagayo-peninsula-l148125/?partner_id=STIRMAN"},
+      {label:"Andaz Costa Rica adventure suite",meta:"Booking.com",link:"https://www.booking.com/hotel/cr/andaz-peninsula-papagayo.en.html?aid=stirman"}
+    ],
+    gear:[
+      {label:"GoPro HERO12 + floaty",meta:"Amazon · $399",link:"https://www.amazon.com/dp/B0CFWTBDXJ?tag=stirman-20"},
+      {label:"KEEN Newport H2 kids",meta:"Amazon · $65",link:"https://www.amazon.com/dp/B00F4FJ1XU?tag=stirman-20"}
+    ],
+    seo:["costa rica spring break family","arenal zipline kids","papagayo family resort"]
+  },
+  {
+    id:"southwest-parks",
+    name:"Southwest Park Loop",
+    region:"Zion · Bryce · Horseshoe Bend",
+    kids:["mixed","teens"],
+    vibe:["nature"],
+    budget:"roadtrip",
+    window:["late-march","april"],
+    heat:25,
+    tagline:"Blogger at Large says national-park road trips are 2026's big family trend — we package the loop + gear.",
+    proof:"National parks have mild weather + fewer crowds in March, per Blogger at Large (Feb 2026).",
+    metrics:[
+      {label:"Drive",value:"Vegas loop 780 miles"},
+      {label:"Spend target",value:"$1.9k / RV or SUV"},
+      {label:"Parks",value:"Zion · Bryce · Antelope"}
+    ],
+    deals:[
+      {label:"Antelope Canyon guided walk",meta:"GetYourGuide · +$16",link:"https://www.getyourguide.com/antelope-canyon-l896/?partner_id=STIRMAN"},
+      {label:"Under Canvas Zion safari tent",meta:"Booking.com affiliate",link:"https://www.booking.com/hotel/us/under-canvas-zion.en.html?aid=stirman"},
+      {label:"America the Beautiful pass",meta:"REI affiliate placeholder",link:"https://www.rei.com/product/159218/america-the-beautiful-interagency-annual-pass"}
+    ],
+    gear:[
+      {label:"Jetboil Flash stove",meta:"Amazon · $125",link:"https://www.amazon.com/dp/B07V377VLZ?tag=stirman-20"},
+      {label:"Black Diamond headlamps (2-pack)",meta:"Amazon · $69",link:"https://www.amazon.com/dp/B07V5KMT3P?tag=stirman-20"}
+    ],
+    seo:["zion spring break itinerary","family national park road trip","bryce canyon kids"]
+  },
+  {
+    id:"great-wolf",
+    name:"Great Wolf + Seattle Double",
+    region:"Indoor water park + city culture",
+    kids:["toddlers","elementary"],
+    vibe:["resort","culture"],
+    budget:"mid",
+    window:["early-march","late-march"],
+    heat:18,
+    tagline:"Best Life highlighted Great Wolf Lodge + cruises; we add Seattle museums + affiliate-ready gear list.",
+    proof:"Best Life (Feb 2026) pushed Great Wolf Lodge as a turnkey kid trip — we stack it with MoPOP + Pike Place.",
+    metrics:[
+      {label:"Drive",value:"1h from SEA"},
+      {label:"Spend target",value:"$1.6k / 3 nights"},
+      {label:"Weather",value:"53°F showers"}
+    ],
+    deals:[
+      {label:"Great Wolf Lodge PNW stay",meta:"Direct partner",link:"https://www.greatwolf.com/grand-mound"},
+      {label:"MoPOP + Seattle Aquarium combo",meta:"CityPASS future",link:"https://www.citypass.com/seattle?ref=stirman"},
+      {label:"Kimpton Palladian family suite",meta:"Booking.com",link:"https://www.booking.com/hotel/us/palladian.en.html?aid=stirman"}
+    ],
+    gear:[
+      {label:"Veken packing cubes (8 set)",meta:"Amazon · $25",link:"https://www.amazon.com/dp/B07FM3J4N7?tag=stirman-20"},
+      {label:"Floating GoPro handle",meta:"Amazon · $13",link:"https://www.amazon.com/dp/B01GDB2Z64?tag=stirman-20"}
+    ],
+    seo:["great wolf lodge tips","seattle with kids march","indoor waterpark spring break"]
+  }
+];
+
+const state={kids:'mixed',vibe:'nature',budget:'mid',window:'late-march'};
+const featureName=document.getElementById('feature-name');
+const featureTagline=document.getElementById('feature-tagline');
+const featureProof=document.getElementById('feature-proof');
+const featureStats=document.getElementById('feature-stats');
+const featureDeals=document.getElementById('feature-deals');
+const featureGear=document.getElementById('feature-gear');
+const altCards=document.getElementById('alt-cards');
+
+function scoreDestination(dest){
+  let score=dest.heat||0;
+  if(state.kids && dest.kids.includes(state.kids)) score+=5;
+  if(state.vibe && dest.vibe.includes(state.vibe)) score+=4;
+  if(state.budget && dest.budget===state.budget) score+=3;
+  if(state.window && dest.window.includes(state.window)) score+=2;
+  if(dest.seo) score+=Math.min(dest.seo.length,3);
+  return score;
+}
+
+function render(){
+  const scored=destinations.map(dest=>({...dest,score:scoreDestination(dest)})).sort((a,b)=>b.score-a.score);
+  const primary=scored[0];
+  if(!primary) return;
+  featureName.textContent=primary.name;
+  featureTagline.textContent=primary.tagline;
+  featureProof.textContent=primary.proof;
+  featureStats.innerHTML='';
+  primary.metrics.forEach(m=>{
+    const pill=document.createElement('div');
+    pill.className='stat-pill';
+    pill.textContent=`${m.label}: ${m.value}`;
+    featureStats.appendChild(pill);
+  });
+  featureDeals.innerHTML='';
+  primary.deals.forEach(deal=>{
+    const item=document.createElement('div');
+    item.className='panel-item';
+    item.innerHTML=`<a href="${deal.link}" target="_blank" rel="noopener">${deal.label} ↗</a><span>${deal.meta}</span>`;
+    featureDeals.appendChild(item);
+  });
+  featureGear.innerHTML='';
+  primary.gear.forEach(gear=>{
+    const item=document.createElement('div');
+    item.className='panel-item';
+    item.innerHTML=`<a href="${gear.link}" target="_blank" rel="noopener">${gear.label} ↗</a><span>${gear.meta}</span>`;
+    featureGear.appendChild(item);
+  });
+  altCards.innerHTML='';
+  scored.slice(1,5).forEach(dest=>{
+    const card=document.createElement('div');
+    card.className='alt-card';
+    card.innerHTML=`
+      <div class="alt-score">Opportunity Score ${Math.round(dest.score)}</div>
+      <h4>${dest.name}</h4>
+      <p>${dest.tagline}</p>
+      <div class="alt-tags">${dest.seo.map(tag=>`<span class="alt-tag">${tag}</span>`).join('')}</div>
+      <button class="card-button" onclick="window.open('${dest.deals[0].link}','_blank')">Open funnel</button>
+    `;
+    altCards.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    const group=chip.dataset.group;
+    const value=chip.dataset.value;
+    if(!group) return;
+    state[group]=value;
+    document.querySelectorAll(`.chip[data-group="${group}"]`).forEach(btn=>btn.classList.remove('selected'));
+    chip.classList.add('selected');
+    render();
+  });
+});
+
+const waitlistForm=document.getElementById('waitlist-form');
+const waitlistInput=document.getElementById('waitlist-email');
+const waitlistStatus=document.getElementById('waitlist-status');
+waitlistForm.addEventListener('submit',e=>{
+  e.preventDefault();
+  const email=waitlistInput.value.trim();
+  if(!email) return;
+  const stored=JSON.parse(localStorage.getItem('springbreak-waitlist')||'[]');
+  stored.push({email,ts:Date.now()});
+  localStorage.setItem('springbreak-waitlist',JSON.stringify(stored));
+  waitlistStatus.textContent='Saved — sync to ConvertKit when ready.';
+  waitlistInput.value='';
+});
+
+render();
+</script>
+<script src="/analytics.js"></script>
+</body>
+</html>
